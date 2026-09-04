@@ -21,8 +21,9 @@ const App = () => {
       <ScrollToTop />
       
       <Routes>
-        {/* Landing Page - No Layout */}
-        <Route path="/landing" element={<LandingPage />} />
+        {/* Trial-ride campaign page - No Layout */}
+        <Route path="/book-your-trial-ride" element={<LandingPage />} />
+        <Route path="/landing" element={<Navigate to="/book-your-trial-ride" replace />} />
         
         {/* All other pages - With Layout */}
         <Route element={<Layout />}>

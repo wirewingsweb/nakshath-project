@@ -68,26 +68,26 @@ const NakshathDifference = () => {
   ];
 
   return (
-    <div className="relative w-full  py-24 overflow-hidden">
+    <div className="relative w-full bg-[#0C0922] py-16 sm:py-24 overflow-hidden">
       
       {/* Background Image - Indoor Arena with Rider */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-x-0 top-0 h-[720px] sm:inset-0 sm:h-auto">
         <img 
           src="/find difference.png" 
           alt="Indoor Arena Background" 
-          className="w-full h-full object-cover object-center"
+          className="w-full h-full object-cover object-[78%_center] brightness-[1.06] contrast-[1.08] saturate-[1.1] sm:object-center sm:brightness-100 sm:contrast-[1.1] sm:saturate-[1.14]"
         />
         {/* Dark Gradient Overlay */}
-        <div className="absolute inset-0 "></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0C0922]/34 via-[#0C0922]/56 to-[#0C0922] sm:bg-[#0C0922]/45 lg:bg-gradient-to-r lg:from-[#0C0922]/58 lg:via-[#0C0922]/38 lg:to-[#0C0922]/16"></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-6">
         
         {/* Header Section */}
-        <div className="max-w-2xl mb-16">
-          <h4 className="text-[#C9A227] text-xs font-medium uppercase tracking-[0.3em] mb-4">The Nakshath Difference</h4>
+        <div className="max-w-2xl mb-16 [text-shadow:0_2px_16px_rgba(0,0,0,.72)]">
+          <h4 className="type-eyebrow text-[#C9A227] mb-4">The Nakshath Difference</h4>
           
-          <h2 className="font-serif text-[1.75rem] md:text-[2.5rem] leading-tight mb-6">
+          <h2 className="type-page-title mb-6">
             <span className="text-white">Where Passion</span><br/>
             <span className="text-[#C9A227]">Meets Prestige</span>
           </h2>
@@ -95,7 +95,7 @@ const NakshathDifference = () => {
           {/* Divider Line */}
           <div className="w-16 h-[2px] bg-[#C9A227]/60 mb-8"></div>
           
-          <p className="text-white/80 text-lg leading-relaxed font-normal max-w-xl">
+          <p className="type-lead text-white/90 max-w-xl">
             Nakshath Equestrian Club is a premium equestrian sports
             destination designed to inspire discipline, strength and
             excellence through world-class equestrian training and
@@ -106,14 +106,14 @@ const NakshathDifference = () => {
         {/* Feature Cards - 4 Cards in a Row, Slightly Left */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 lg:mr-[20%]">
           {features.map((feature, idx) => (
-            <div key={idx} className="bg-[#0C0922]/60 backdrop-blur-sm border border-white/10 rounded-2xl p-6 text-center flex flex-col items-center justify-center hover:border-[#C9A227]/50 transition-colors duration-300 min-h-[200px]">
+            <div key={idx} className="bg-[#0C0922]/50 backdrop-blur-[2px] border border-white/25 rounded-2xl p-6 text-left md:text-center flex flex-col items-start md:items-center justify-center hover:border-[#C9A227]/60 transition-colors duration-300 min-h-[200px]">
               {/* Icon */}
               <div className="mb-4">
                 {feature.icon}
               </div>
               
               {/* Title */}
-              <h4 className="text-[#C9A227] font-serif text-sm font-medium uppercase tracking-wide leading-relaxed text-center">
+              <h4 className="type-card-title text-[#C9A227] text-left md:text-center">
                 {feature.title}
               </h4>
               
