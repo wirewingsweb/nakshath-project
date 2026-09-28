@@ -1,27 +1,79 @@
-// src/pages/About.jsx
-import { useState, useEffect } from 'react';
-import SectionDots from '../components/SectionDots';
-import ShinyText from '../components/ShinyText';
-import {
-  Reveal,
-  FadeUp,
-  ImageReveal,
-  Stagger,
-  StaggerItem,
-  SplitText,
-  DriftImage,
-  InteractiveCard,
-} from '../components/motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { viewportOnce } from '../utils/animations';
 
-const CHAPTERS = [
-  { id: 'chapter-about-intro', label: 'Who We Are' },
-  { id: 'chapter-practice',    label: 'Practice' },
-  { id: 'chapter-vision',      label: 'Vision' },
-  { id: 'chapter-campus',      label: 'Campus' },
-];
+// ============================================================
+// TIMELINE SECTION
+// ============================================================
+const TimelineSection = ({ number, title, eyebrow, children, isLeft = true }) => {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'center center'],
+  });
 
+  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 0.7, 1]);
+  const y = useTransform(scrollYProgress, [0, 1], [60, 0]);
+  const dotScale = useTransform(scrollYProgress, [0, 0.5, 1], [0.5, 1.2, 1]);
+
+  return (
+    <div ref={ref} className="relative grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-16">
+      {/* DOT + LINE SIDE (Mobile: top, Desktop: alternating) */}
+      <div className={`flex ${isLeft ? 'md:order-1' : 'md:order-2'} md:justify-${isLeft ? 'end' : 'start'} items-start md:items-center`}>
+        <motion.div
+          className="flex items-center gap-4"
+          style={{ opacity, y }}
+        >
+          <div className={`flex flex-col ${isLeft ? 'md:items-end' : 'md:items-start'} gap-2`}>
+            <span className="font-mono text-[0.6rem] uppercase tracking-[0.3em] text-[#C9A227]">
+              {eyebrow}
+            </span>
+            <h3 className="font-serif text-2xl md:text-3xl font-semibold text-white">
+              {title}
+            </h3>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* NUMBER DOT (CENTER) */}
+      <motion.div
+        className="absolute left-1/2 top-0 -translate-x-1/2 md:left-1/2 md:top-1/2 md:-translate-y-1/2"
+        style={{ scale: dotScale }}
+      >
+        <div className="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-[#C9A227] bg-[#0C0922]">
+          <span className="font-serif text-sm font-bold text-[#C9A227]">{number}</span>
+          <motion.span
+            className="absolute inset-0 rounded-full border border-[#C9A227]"
+            animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeOut' }}
+          />
+        </div>
+      </motion.div>
+
+      {/* CONTENT SIDE */}
+      <motion.div
+        className={`${isLeft ? 'md:order-2' : 'md:order-1'} md:pt-4`}
+        style={{ opacity, y }}
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+};
+
+// ============================================================
+// MAIN COMPONENT
+// ============================================================
 const About = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -31,282 +83,338 @@ const About = () => {
   }, []);
 
   const practiceItems = [
-    { title: "Coaching from inside the competitive system", desc: "Technique taught the way it's judged, not the way it's improvised." },
-    { title: "A covered arena, so the calendar doesn't break", desc: "Bengaluru loses riding days to monsoon and to summer afternoons. Ours don't stop." },
-    { title: "International-standard geotextile footing", desc: "The surface used at competition venues — consistent grip, cushioning, and lower injury risk." },
-    { title: "Limited riders per batch", desc: "Progress comes from corrected repetitions, which needs a coach watching one rider at a time." },
-    { title: "A dressage arena built to standard dimensions", desc: "Riders practice on the same geometry they'll be marked on." },
+    { title: 'Coaching from inside the competitive system', desc: "Technique taught the way it's judged, not the way it's improvised." },
+    { title: "A covered arena, so the calendar doesn't break", desc: 'Bengaluru loses riding days to monsoon and summer afternoons. Ours don\'t stop.' },
+    { title: 'International-standard geotextile footing', desc: 'The surface used at competition venues — consistent grip, cushioning, and lower injury risk.' },
+    { title: 'Limited riders per batch', desc: 'Progress comes from corrected repetitions, which needs a coach watching one rider at a time.' },
+    { title: 'A dressage arena built to standard dimensions', desc: "Riders practice on the same geometry they'll be marked on." },
   ];
 
   const achievements = [
-    { title: "Silver, CSIO* international show jumping", desc: "CSIO competitions are run under Fédération Equestre Internationale rules — the sport's world governing body. Competing at this level requires FEI registration and a qualifying record." },
-    { title: "Bronze, Junior National Championship 2025", desc: "A national podium finish in the most recent championship year." },
-    { title: "Long-listed, Team India Show Jumping, 2026 Asian Games", desc: "The selection pool from which India's continental squad is chosen." },
+    { num: '01', title: 'Silver, CSIO International', desc: 'Show jumping under FEI rules — the sport\'s world governing body.' },
+    { num: '02', title: 'Bronze, Junior National 2025', desc: 'A national podium finish in the most recent championship.' },
+    { num: '03', title: 'Long-listed, Team India', desc: '2026 Asian Games — the pool from which India\'s squad is chosen.' },
   ];
 
   const siteMapCategories = [
-    { label: "Equestrian Core", items: ["1. Indoor Arena", "2. Outdoor Arena", "3. Lunging Pen", "4. Dressage Arena", "5. Stables & Storage Rooms", "6. Tack Shop"] },
-    { label: "Service", items: ["Office & Admin", "Buggy Point", "Security Cabin", "Staff Accommodation"] },
-    { label: "Public", items: ["Café", "Gallery"] },
-    { label: "Hospitality", items: ["Cottages", "Common Pavilion"] },
+    { label: 'Equestrian Core', items: ['Indoor Arena', 'Outdoor Arena', 'Lunging Pen', 'Dressage Arena', 'Stables', 'Tack Shop'] },
+    { label: 'Service', items: ['Office & Admin', 'Buggy Point', 'Security Cabin', 'Staff Accommodation'] },
+    { label: 'Public', items: ['Café', 'Gallery'] },
+    { label: 'Hospitality', items: ['Cottages', 'Common Pavilion'] },
   ];
 
   return (
-    <div className="min-h-screen bg-[#0C0922]">
-      <SectionDots chapters={CHAPTERS} />
+    <div className="min-h-screen bg-[#0C0922] overflow-hidden">
 
-      {/* ====== MAIN DARK SECTION ====== */}
-      <div className="overflow-hidden bg-[#0C0922] pb-16">
-        <div className="max-w-7xl mx-auto px-6">
+      {/* ============================================================ */}
+      {/* CINEMATIC HERO */}
+      {/* ============================================================ */}
+      <div ref={heroRef} className="relative h-screen w-full overflow-hidden nav-dark-hero">
+        <motion.div
+          className="absolute inset-0"
+          style={{ opacity: heroOpacity, scale: heroScale }}
+        >
+          <img
+            src="/page 2 gpt.png"
+            alt="Rider with horse"
+            className="h-full w-full object-cover object-center opacity-50"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0C0922]/70 via-[#0C0922]/50 to-[#0C0922]" />
+        </motion.div>
 
-          {/* CHAPTER: About Intro */}
-          <div id="chapter-about-intro">
-            <div className="nav-dark-hero pb-24 pt-32 md:pb-28 md:pt-44">
-              <Reveal as="div" y={8} duration={0.5}>
-                <h4 className="type-eyebrow mb-6">
-                  <ShinyText
-                    text="Who We Are"
-                    color="#C9A227"
-                    shineColor="#F5F1E8"
-                    speed={2.5}
-                    spread={120}
-                  />
-                </h4>
-              </Reveal>
+        {/* Content */}
+        <div className="relative z-10 flex h-full items-center justify-center px-6">
+          <motion.div
+            className="max-w-3xl text-center"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <motion.p
+              className="mb-6 font-mono text-[0.65rem] uppercase tracking-[0.4em] text-[#C9A227]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 1 }}
+            >
+              The Story
+            </motion.p>
 
-              <Reveal as="div" y={30} duration={0.7} delay={0.15} amount={0.3}>
-                <h1 className="type-page-title text-white leading-tight mb-6">
-                  Built by a Rider.{' '}
-                  <ShinyText
-                    text="Designed for Riders."
-                    color="#C9A227"
-                    shineColor="#F5F1E8"
-                    speed={2.5}
-                    spread={120}
-                  />
-                </h1>
-              </Reveal>
+            <motion.h1
+              className="type-display text-white mb-8"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            >
+              Built by a Rider.
+              <br />
+              <span className="text-[#C9A227]">Designed for Riders.</span>
+            </motion.h1>
 
-              <FadeUp
-                as="p"
-                size="text"
-                delay={0.35}
-                className="text-white/70 text-base md:text-lg max-w-2xl"
+            <motion.p
+              className="mx-auto max-w-xl text-base leading-relaxed text-white/70 md:text-lg"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.9, duration: 1 }}
+            >
+              Nakshath Equestrian Club is led by an active competitive rider with international show-jumping experience.
+            </motion.p>
+
+            {/* Scroll indicator */}
+            <motion.div
+              className="mt-16 flex flex-col items-center gap-3 text-[#C9A227]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.4, duration: 0.8 }}
+            >
+              <span className="font-mono text-[0.55rem] uppercase tracking-[0.3em]">
+                Scroll the story
+              </span>
+              <motion.svg
+                width="20"
+                height="30"
+                viewBox="0 0 20 30"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                animate={{ y: [0, 8, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               >
-                Nakshath Equestrian Club is led by an active competitive rider with international show-jumping experience.
-              </FadeUp>
-            </div>
-
-            {/* Founder Card Carousel */}
-            <div id="founder" className="relative left-1/2 z-10 -mt-12 w-screen -translate-x-1/2 overflow-hidden rounded-t-[3rem] bg-[#FDFCFA]">
-              <div className="mx-auto max-w-7xl px-6 py-24">
-                <div className="flex flex-col lg:flex-row">
-
-                  {/* LEFT: Image Carousel */}
-                  <div className="w-full lg:w-1/2 relative min-h-[400px] md:min-h-[500px] lg:min-h-[700px] overflow-hidden flex items-center justify-center p-4 md:p-8">
-                    <ImageReveal amount={0.15} className="w-full h-full flex items-center justify-center">
-                      <div className="w-full lg:h-[85%] relative rounded-[2rem] overflow-hidden shadow-xl ring-1 ring-black/5 aspect-[9/16] md:aspect-auto lg:aspect-auto md:h-[450px] bg-[#F2F0EB]">
-                        <div
-                          className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
-                          style={{ transform: `translate3d(-${currentSlide * 100}%, 0, 0)` }}
-                        >
-                          <div className="relative h-full w-full shrink-0">
-                            <img src="/founder 1.png" alt="Nakshath Venkatesh" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                          </div>
-                          <div className="relative h-full w-full shrink-0">
-                            <img src="/page 2 gpt.png" alt="Nakshath with Horse" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                          </div>
-                        </div>
-
-                        {/* Carousel Dots */}
-                        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 z-10">
-                          <button
-                            onClick={() => setCurrentSlide(0)}
-                            className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-125 ${currentSlide === 0 ? 'bg-[#C9A227] scale-110' : 'bg-[#5A5A66]/25'}`}
-                            aria-label="Slide 1"
-                          />
-                          <button
-                            onClick={() => setCurrentSlide(1)}
-                            className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-125 ${currentSlide === 1 ? 'bg-[#C9A227] scale-110' : 'bg-[#5A5A66]/25'}`}
-                            aria-label="Slide 2"
-                          />
-                        </div>
-                      </div>
-                    </ImageReveal>
-                  </div>
-
-                  {/* RIGHT: Details */}
-                  <div className="w-full lg:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col justify-center">
-                    <FadeUp size="text" delay={0} className="mb-4">
-                      <h4 className="type-eyebrow text-[#C9A227]">Who Leads The Academy</h4>
-                    </FadeUp>
-
-                    <SplitText
-                      as="h2"
-                      className="text-[1.5rem] md:text-[2.25rem] font-serif text-[#1A1A1A] leading-[1.15] mb-2"
-                      wordDelay={0.05}
-                      startDelay={0.1}
-                      amount={0.3}
-                    >
-                      Nakshath Venkatesh
-                    </SplitText>
-
-                    <FadeUp size="text" delay={0.2} className="mb-8">
-                      <p className="text-[#C9A227] text-sm uppercase tracking-widest border-b border-[#C9A227]/30 pb-4">Founder</p>
-                    </FadeUp>
-
-                    {/* Achievements */}
-                    <Stagger gap={0.12} amount={0.2} className="space-y-6 mb-10">
-                      {achievements.map((item, idx) => (
-                        <StaggerItem key={idx}>
-                          <h4 className="text-[#1A1A1A] font-bold mb-1 text-base md:text-lg">{item.title}</h4>
-                          <p className="text-[#5A5A66] text-sm font-normal leading-relaxed">{item.desc}</p>
-                        </StaggerItem>
-                      ))}
-                    </Stagger>
-
-                    {/* Bio */}
-                    <Stagger gap={0.1} amount={0.2} className="space-y-4 text-sm md:text-base text-[#5A5A66] font-normal leading-relaxed">
-                      <StaggerItem>
-                        <p>Nakshath competes at both national and international level, and built this academy while still riding. The technique taught here is the technique he is judged on.</p>
-                      </StaggerItem>
-                      <StaggerItem>
-                        <p>The club takes riders from a first session on a lead rein through to competition entry, in show jumping and dressage, on a campus built for training rather than display.</p>
-                      </StaggerItem>
-                      <StaggerItem>
-                        <div className="border-l-2 border-[#C9A227] pl-6 py-2 mt-6">
-                          <p className="text-[#1A1A1A]">To create a world-class environment and a gateway to the Olympics, where riders of all levels can develop confidence, skill, and the mindset required to succeed in competitive equestrianism.</p>
-                        </div>
-                      </StaggerItem>
-                    </Stagger>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* CHAPTER: In Practice */}
-          <div id="chapter-practice">
-            <div className="relative left-1/2 -mt-px mb-16 w-screen -translate-x-1/2 bg-[#FDFCFA] py-16 md:py-24">
-              <div className="mx-auto max-w-7xl px-6 md:px-24">
-                <FadeUp size="text" className="mb-4">
-                  <h4 className="type-eyebrow text-[#C9A227]">In Practice</h4>
-                </FadeUp>
-
-                <SplitText
-                  as="h2"
-                  className="type-section-title text-[#1A1A1A] mb-12"
-                  wordDelay={0.04}
-                  startDelay={0.1}
-                  amount={0.3}
-                >
-                  What that means for a rider here.
-                </SplitText>
-
-                <Stagger gap={0.1} amount={0.15} className="space-y-6">
-                  {practiceItems.map((item, idx) => (
-                    <StaggerItem key={idx}>
-                      <div className="group flex flex-col md:flex-row md:items-center border-b border-[#5A5A66]/20 pb-8 transition-all duration-300 hover:border-[#C9A227]/60">
-                        <h4 className="w-full md:w-1/2 text-lg md:text-xl font-serif text-[#1A1A1A] transition-transform duration-300 group-hover:translate-x-1">
-                          {item.title}
-                        </h4>
-                        <p className="w-full md:w-1/2 text-sm md:text-base text-[#5A5A66] font-normal md:pl-8 leading-relaxed">
-                          {item.desc}
-                        </p>
-                      </div>
-                    </StaggerItem>
-                  ))}
-                </Stagger>
-              </div>
-            </div>
-          </div>
-
-          {/* CHAPTER: Vision & Mission */}
-          <div id="chapter-vision" className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
-            <FadeUp size="text" delay={0}>
-              <h3 className="text-xl md:text-2xl font-serif text-[#C9A227] mb-4">Vision</h3>
-              <p className="text-white/80 font-normal leading-relaxed text-base">
-                To create a world-class environment and a gateway to the Olympics, where riders of all levels can develop confidence, skill, and the mindset required to succeed in competitive equestrianism.
-              </p>
-            </FadeUp>
-
-            <FadeUp size="text" delay={0.15}>
-              <h3 className="text-xl md:text-2xl font-serif text-[#C9A227] mb-4">Mission</h3>
-              <p className="text-white/80 font-normal leading-relaxed text-base">
-                To inspire discipline, strength, and excellence through world-class equestrian sports training and experiences in a professional, top-tier environment.
-              </p>
-            </FadeUp>
-          </div>
-
-          {/* CHAPTER: Campus */}
-          <div id="chapter-campus" className="mb-16 rounded-[3rem] bg-[#0C0922] px-6 py-16 md:px-5 md:py-20">
-            <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-10">
-
-              {/* Left: Text */}
-              <Stagger gap={0.12} amount={0.2} className="space-y-8 text-base text-white/80 font-normal leading-relaxed">
-                <StaggerItem>
-                  <h4 className="type-eyebrow text-[#C9A227] mb-4">The Campus</h4>
-                </StaggerItem>
-
-                <StaggerItem>
-                  <h2 className="type-section-title text-white mb-12">
-                    One property, laid out for training.
-                  </h2>
-                </StaggerItem>
-
-                <StaggerItem>
-                  <p>Three riding arenas sit at the centre of the site — a covered indoor arena, an outdoor arena, and a dressage arena built to standard competition dimensions. Stables, a lunging pen and the tack room sit alongside them.</p>
-                </StaggerItem>
-
-                <StaggerItem>
-                  <p>The café, pavilion and cottages are set apart from the working areas, so visitors and riders are never crossing the same ground.</p>
-                </StaggerItem>
-
-                <StaggerItem>
-                  <p>The campus is in its final phase of construction. Images shown are architectural drawings.</p>
-                </StaggerItem>
-              </Stagger>
-
-              {/* Right: Map & Legend Card */}
-              <Reveal as="div" y={20} duration={0.8} delay={0.15} amount={0.15}>
-                <InteractiveCard as="div" className="w-full rounded-3xl bg-[#FDFCFA] p-4 shadow-2xl md:p-6">
-                  <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-[minmax(0,1.5fr)_minmax(13rem,0.9fr)]">
-
-                    {/* Map */}
-                    <div className="min-h-[24rem] w-full overflow-hidden rounded-2xl bg-[#F5F1E8] md:min-h-[30rem]">
-                      <DriftImage
-                        src="/page 3 gpt.png"
-                        alt="Campus Map"
-                        drift="subtle"
-                        duration={40}
-                        targetOpacity={1}
-                        className="h-full w-full"
-                        imgClassName="block h-full w-full object-contain"
-                      />
-                    </div>
-
-                    {/* Categories */}
-                    <div className="grid w-full grid-cols-1 gap-3 rounded-2xl bg-[#0C0922] px-5 py-5 shadow-lg sm:grid-cols-2 md:grid-cols-1 md:px-5 md:py-5">
-                      {siteMapCategories.map((cat, idx) => (
-                        <div key={idx} className="border-b border-[#C9A227]/20 pb-3 last:border-b-0 last:pb-0 sm:last:border-b md:last:border-b-0">
-                          <h5 className="mb-2 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-[#C9A227]">{cat.label}</h5>
-                          <ul className="space-y-1 text-[0.75rem] font-normal leading-[1.45] text-white/85">
-                            {cat.items.map((item, i) => (
-                              <li key={i} className="transition-colors duration-200 hover:text-[#C9A227]">{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </InteractiveCard>
-              </Reveal>
-
-            </div>
-          </div>
-
+                <path d="M10 4V26M10 26L4 20M10 26L16 20" strokeLinecap="round" strokeLinejoin="round" />
+              </motion.svg>
+            </motion.div>
+          </motion.div>
         </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* TIMELINE CONTAINER */}
+      {/* ============================================================ */}
+      <div className="relative mx-auto max-w-6xl px-6 py-24 md:py-32">
+
+        {/* Vertical center line */}
+        <div className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-[#C9A227]/30 to-transparent md:block" />
+
+        {/* ============================================================ */}
+        {/* SECTION 01 — WHO LEADS */}
+        {/* ============================================================ */}
+        <TimelineSection
+          number="01"
+          eyebrow="Chapter 01"
+          title="Who Leads The Academy"
+          isLeft={true}
+        >
+          <div className="rounded-3xl border border-[#C9A227]/20 bg-[#FDFCFA]/[0.02] p-6 backdrop-blur-sm md:p-8">
+            {/* Image Carousel */}
+            <div className="relative mb-6 aspect-[16/10] w-full overflow-hidden rounded-2xl bg-[#F2F0EB]">
+              <div
+                className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                style={{ transform: `translate3d(-${currentSlide * 100}%, 0, 0)` }}
+              >
+                <img src="/founder 1.png" alt="Nakshath Venkatesh" className="h-full w-full shrink-0 object-cover" />
+                <img src="/page 2 gpt.png" alt="Nakshath with Horse" className="h-full w-full shrink-0 object-cover" />
+              </div>
+              <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                {[0, 1].map((idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentSlide(idx)}
+                    className={`h-2 rounded-full transition-all duration-300 ${currentSlide === idx ? 'w-6 bg-[#C9A227]' : 'w-2 bg-white/40'}`}
+                    aria-label={`Slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <h3 className="mb-1 font-serif text-xl text-white md:text-2xl">Nakshath Venkatesh</h3>
+            <p className="mb-6 font-mono text-[0.6rem] uppercase tracking-[0.3em] text-[#C9A227]">
+              Founder
+            </p>
+
+            <div className="space-y-3">
+              {achievements.map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  className="flex gap-4 border-l-2 border-[#C9A227]/40 pl-4"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={viewportOnce}
+                  transition={{ delay: idx * 0.1, duration: 0.7 }}
+                >
+                  <span className="font-mono text-[0.6rem] text-[#C9A227]">{item.num}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{item.title}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-white/50">{item.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-8 border-t border-[#C9A227]/20 pt-6">
+              <p className="text-sm italic leading-relaxed text-white/70">
+                "To create a world-class environment and a gateway to the Olympics, where riders of all levels can develop confidence, skill, and the mindset required to succeed in competitive equestrianism."
+              </p>
+            </div>
+          </div>
+        </TimelineSection>
+
+        {/* ============================================================ */}
+        {/* SECTION 02 — IN PRACTICE */}
+        {/* ============================================================ */}
+        <div className="mt-32 md:mt-48">
+          <TimelineSection
+            number="02"
+            eyebrow="Chapter 02"
+            title="In Practice"
+            isLeft={false}
+          >
+            <div className="space-y-4">
+              {practiceItems.map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  className="rounded-xl border border-[#C9A227]/15 bg-[#FDFCFA]/[0.02] p-4 backdrop-blur-sm md:p-5"
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={viewportOnce}
+                  transition={{ delay: idx * 0.08, duration: 0.6 }}
+                  whileHover={{ x: 6, borderColor: 'rgba(201,162,39,0.5)' }}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="font-mono text-[0.6rem] text-[#C9A227]">
+                      {String(idx + 1).padStart(2, '0')}
+                    </span>
+                    <div>
+                      <h4 className="font-serif text-sm text-white md:text-base">{item.title}</h4>
+                      <p className="mt-1 text-xs leading-relaxed text-white/50 md:text-sm">{item.desc}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </TimelineSection>
+        </div>
+
+        {/* ============================================================ */}
+        {/* SECTION 03 — VISION & MISSION */}
+        {/* ============================================================ */}
+        <div className="mt-32 md:mt-48">
+          <TimelineSection
+            number="03"
+            eyebrow="Chapter 03"
+            title="Vision & Mission"
+            isLeft={true}
+          >
+            <div className="space-y-6">
+              <motion.div
+                className="rounded-2xl border border-[#C9A227]/20 bg-gradient-to-br from-[#C9A227]/[0.08] to-transparent p-6"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={viewportOnce}
+                transition={{ duration: 0.7 }}
+              >
+                <p className="mb-3 font-mono text-[0.6rem] uppercase tracking-[0.3em] text-[#C9A227]">
+                  Vision
+                </p>
+                <p className="text-sm leading-relaxed text-white/85 md:text-base">
+                  To create a world-class environment and a gateway to the Olympics, where riders of all levels can develop confidence, skill, and the mindset required to succeed in competitive equestrianism.
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="rounded-2xl border border-[#C9A227]/20 bg-gradient-to-br from-[#C9A227]/[0.08] to-transparent p-6"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={viewportOnce}
+                transition={{ delay: 0.15, duration: 0.7 }}
+              >
+                <p className="mb-3 font-mono text-[0.6rem] uppercase tracking-[0.3em] text-[#C9A227]">
+                  Mission
+                </p>
+                <p className="text-sm leading-relaxed text-white/85 md:text-base">
+                  To inspire discipline, strength, and excellence through world-class equestrian sports training and experiences in a professional, top-tier environment.
+                </p>
+              </motion.div>
+            </div>
+          </TimelineSection>
+        </div>
+
+        {/* ============================================================ */}
+        {/* SECTION 04 — THE CAMPUS */}
+        {/* ============================================================ */}
+        <div className="mt-32 md:mt-48">
+          <TimelineSection
+            number="04"
+            eyebrow="Chapter 04"
+            title="The Campus"
+            isLeft={false}
+          >
+            <div className="space-y-6">
+              <p className="text-sm leading-relaxed text-white/70 md:text-base">
+                Three riding arenas sit at the centre of the site — a covered indoor arena, an outdoor arena, and a dressage arena built to standard competition dimensions. Stables, a lunging pen and the tack room sit alongside them.
+              </p>
+              <p className="text-sm leading-relaxed text-white/70 md:text-base">
+                The café, pavilion and cottages are set apart from the working areas, so visitors and riders are never crossing the same ground.
+              </p>
+              <p className="text-sm leading-relaxed text-white/70 md:text-base">
+                The campus is in its final phase of construction. Images shown are architectural drawings.
+              </p>
+
+              {/* Map */}
+              <motion.div
+                className="overflow-hidden rounded-2xl border border-[#C9A227]/20 bg-[#FDFCFA]/[0.02] p-4"
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={viewportOnce}
+                transition={{ duration: 1 }}
+              >
+                <div className="mb-4 overflow-hidden rounded-xl bg-[#F5F1E8]">
+                  <img
+                    src="/page 3 gpt.png"
+                    alt="Campus Map"
+                    className="h-auto w-full object-contain"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {siteMapCategories.map((cat, idx) => (
+                    <motion.div
+                      key={idx}
+                      className="border-b border-[#C9A227]/15 pb-3 last:border-b-0"
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={viewportOnce}
+                      transition={{ delay: idx * 0.08, duration: 0.5 }}
+                    >
+                      <h5 className="mb-2 font-mono text-[0.55rem] uppercase tracking-[0.2em] text-[#C9A227]">
+                        {cat.label}
+                      </h5>
+                      <ul className="space-y-0.5 text-[0.7rem] text-white/70">
+                        {cat.items.map((item, i) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          </TimelineSection>
+        </div>
+
+        {/* ============================================================ */}
+        {/* END MARKER */}
+        {/* ============================================================ */}
+        <motion.div
+          className="mt-32 flex flex-col items-center gap-4 md:mt-48"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={viewportOnce}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="h-16 w-px bg-gradient-to-b from-[#C9A227]/60 to-transparent" />
+          <span className="font-mono text-[0.6rem] uppercase tracking-[0.4em] text-[#C9A227]/60">
+            End of Chapter
+          </span>
+        </motion.div>
       </div>
     </div>
   );

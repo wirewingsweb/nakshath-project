@@ -1,159 +1,187 @@
-// src/pages/Landing/TrialRideCTA.jsx
-import { useEffect, useRef } from 'react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useEnquiry } from '../../context/EnquiryContext';
-import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
-import ShinyText from '../../components/ShinyText';
+import { viewportOnce } from '../../utils/animations';
 
 const TrialRideCTA = () => {
   const { openEnquiry } = useEnquiry();
-  const prefersReduced = usePrefersReducedMotion();
-  const sectionRef = useRef(null);
-
-  const scrollYProgress = useMotionValue(0);
-
-  useEffect(() => {
-    const update = () => {
-      const el = sectionRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const totalScroll = el.offsetHeight - window.innerHeight;
-      const currentScroll = Math.max(0, -rect.top);
-      const progress = totalScroll > 0 ? Math.min(1, currentScroll / totalScroll) : 0;
-      scrollYProgress.set(progress);
-    };
-
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, [scrollYProgress]);
-
-  // ── BACKGROUND — cinematic arrival, no exit ──
-  const bgOpacity = useTransform(scrollYProgress, [0, 0.14], [0, 1]);
-  const bgScale   = useTransform(scrollYProgress, [0, 0.72], [1.1, 1.02]);
-
-  // ── HEADING ──
-  const headingOpacity = useTransform(scrollYProgress, [0.10, 0.28], [0, 1]);
-  const headingY       = useTransform(scrollYProgress, [0.10, 0.28], [40, 0]);
-  const headingBlur    = useTransform(scrollYProgress, [0.10, 0.28], [14, 0]);
-  const headingFilter  = useTransform(headingBlur, (v) => `blur(${v}px)`);
-
-  // ── SUBTITLE ──
-  const subtitleOpacity = useTransform(scrollYProgress, [0.22, 0.36], [0, 1]);
-  const subtitleY       = useTransform(scrollYProgress, [0.22, 0.36], [25, 0]);
-
-  // ── CTA BUTTON ──
-  const ctaOpacity = useTransform(scrollYProgress, [0.34, 0.50], [0, 1]);
-  const ctaY       = useTransform(scrollYProgress, [0.34, 0.50], [20, 0]);
-  const ctaScale   = useTransform(scrollYProgress, [0.34, 0.50], [0.96, 1]);
-
-  // ── Reduced motion fallback ──
-  if (prefersReduced) {
-    return (
-      <section className="relative w-full py-24 md:py-32 px-5 sm:px-6 md:px-20 overflow-hidden">
-        <img
-          src="/come and ride.png"
-          alt="Trial Background"
-          loading="lazy"
-          decoding="async"
-          className="absolute inset-0 w-full h-full object-cover object-[72%_center] md:object-right brightness-[1.08] contrast-[1.08] saturate-[1.12] md:brightness-100 md:contrast-[1.1] md:saturate-[1.14]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0C0922]/76 via-[#0C0922]/46 to-[#0C0922]/14 md:from-[#0C0922]/55 md:via-[#0C0922]/32 md:to-transparent" />
-
-        <div className="relative z-10 max-w-7xl mx-auto flex flex-col items-start justify-center min-h-[400px] md:min-h-[500px]">
-          <div className="flex flex-col max-w-2xl [text-shadow:0_2px_16px_rgba(0,0,0,.76)]">
-            <h2 className="type-page-title text-white mb-4 leading-tight">
-              Come and sit<br />
-              <ShinyText
-                text="on a horse."
-                color="#C9A227"
-                shineColor="#F5F1E8"
-                speed={2.5}
-                spread={120}
-              />
-            </h2>
-            <p className="type-lead text-white/95 mb-10">
-              Ten minutes, no charge, no obligation.
-            </p>
-            <button
-              type="button"
-              onClick={() => openEnquiry('Trial Ride')}
-              className="type-button bg-[#C9A227] text-[#0C0922] px-10 py-4 rounded-full hover:bg-white transition-colors shadow-lg w-max"
-            >
-              Book Your Trial Ride
-            </button>
-          </div>
-        </div>
-      </section>
-    );
-  }
 
   return (
-    <div ref={sectionRef} className="relative w-full" style={{ height: '200vh' }}>
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
+    <div className="relative w-full bg-[#0C0922] overflow-hidden py-16 sm:py-24 md:py-32 px-5 sm:px-6 md:px-20">
 
-        {/* Background image — cinematic arrival */}
-        <motion.div
-          className="absolute inset-0"
-          style={{ opacity: bgOpacity, scale: bgScale }}
-        >
-          <img
-            src="/come and ride.png"
-            alt="Trial Background"
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-cover object-[72%_center] md:object-right brightness-[1.08] contrast-[1.08] saturate-[1.12] md:brightness-100 md:contrast-[1.1] md:saturate-[1.14]"
+      {/* ============================================================ */}
+      {/* Background Image — Ken Burns + Parallax */}
+      {/* ============================================================ */}
+      <motion.img
+        src="/come and ride.png"
+        alt="Trial Background"
+        loading="lazy"
+        decoding="async"
+        className="absolute inset-0 w-full h-full object-cover object-[72%_center] z-0 brightness-[1.08] contrast-[1.08] saturate-[1.12] md:object-right md:brightness-100 md:contrast-[1.1] md:saturate-[1.14]"
+        initial={{ scale: 1.15 }}
+        animate={{ scale: 1.05 }}
+        transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
+      />
+
+      {/* Continuous Ken Burns */}
+      <motion.div
+        className="absolute inset-0 z-0"
+        animate={{
+          scale: [1.05, 1.1, 1.05],
+          x: ['0%', '-1.5%', '0%'],
+        }}
+        transition={{
+          duration: 30,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+
+      {/* Dark gradient overlay */}
+      <div className="absolute inset-0 z-[1] bg-gradient-to-r from-[#0C0922]/76 via-[#0C0922]/46 to-[#0C0922]/14 md:from-[#0C0922]/55 md:via-[#0C0922]/32 md:to-transparent"></div>
+
+      {/* Golden light sweep */}
+      <motion.div
+        className="pointer-events-none absolute inset-0 z-[2]"
+        style={{
+          background:
+            'linear-gradient(120deg, transparent 30%, rgba(201,162,39,0.15) 50%, transparent 70%)',
+          backgroundSize: '200% 100%',
+        }}
+        animate={{
+          backgroundPosition: ['-150% 0%', '250% 0%'],
+        }}
+        transition={{
+          duration: 9,
+          repeat: Infinity,
+          repeatDelay: 5,
+          ease: 'easeInOut',
+        }}
+      />
+
+      {/* ============================================================ */}
+      {/* FLOATING PARTICLES */}
+      {/* ============================================================ */}
+      <div className="pointer-events-none absolute inset-0 z-[2] overflow-hidden">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <motion.span
+            key={i}
+            className="absolute rounded-full bg-[#C9A227]"
+            style={{
+              width: `${1.5 + Math.random() * 2}px`,
+              height: `${1.5 + Math.random() * 2}px`,
+              left: `${10 + Math.random() * 80}%`,
+              top: `${10 + Math.random() * 80}%`,
+            }}
+            animate={{
+              y: [0, -35, 0],
+              opacity: [0, 0.7, 0],
+              scale: [0.5, 1, 0.5],
+            }}
+            transition={{
+              duration: 7 + Math.random() * 4,
+              delay: i * 0.6,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0C0922]/76 via-[#0C0922]/46 to-[#0C0922]/14 md:from-[#0C0922]/55 md:via-[#0C0922]/32 md:to-transparent" />
-        </motion.div>
+        ))}
+      </div>
 
-        {/* Content — no exit group because this is the final section */}
-        <div className="relative z-10 h-full max-w-7xl mx-auto px-5 sm:px-6 md:px-20 flex flex-col items-start justify-center">
-          <div className="flex flex-col max-w-2xl [text-shadow:0_2px_16px_rgba(0,0,0,.76)]">
-            <motion.h2
-              className="type-page-title text-white mb-4 leading-tight"
-              style={{
-                opacity: headingOpacity,
-                y: headingY,
-                filter: headingFilter,
-              }}
-            >
-              Come and sit<br />
-              <ShinyText
-                text="on a horse."
-                color="#C9A227"
-                shineColor="#F5F1E8"
-                speed={2.5}
-                spread={120}
-              />
-            </motion.h2>
+      {/* ============================================================ */}
+      {/* MAIN CONTENT */}
+      {/* ============================================================ */}
+      <motion.div
+        className="relative z-10 max-w-7xl mx-auto flex flex-col items-start md:items-start justify-center min-h-[400px] md:min-h-[500px]"
+        initial="hidden"
+        whileInView="visible"
+        viewport={viewportOnce}
+        variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { staggerChildren: 0.2, delayChildren: 0.3 } },
+        }}
+      >
+        <div className="flex flex-col max-w-2xl [text-shadow:0_2px_16px_rgba(0,0,0,.76)]">
 
-            <motion.p
-              className="type-lead text-white/95 mb-10"
-              style={{ opacity: subtitleOpacity, y: subtitleY }}
-            >
-              Ten minutes, no charge, no obligation.
-            </motion.p>
+          {/* Heading */}
+          <motion.h2
+            className="type-page-title text-white mb-4 leading-tight"
+            variants={{
+              hidden: { opacity: 0, y: 30 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] } },
+            }}
+          >
+            Come and sit<br/>
+            on a horse.
+          </motion.h2>
 
+          {/* Subtitle */}
+          <motion.p
+            className="type-lead text-white/95 mb-10"
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
+            }}
+          >
+            Ten minutes, no charge, no obligation.
+          </motion.p>
+
+          {/* Book Button with Luxury Golden Glow Pulse */}
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
+            }}
+          >
             <motion.button
               type="button"
               onClick={() => openEnquiry('Trial Ride')}
-              className="type-button bg-[#C9A227] text-[#0C0922] px-10 py-4 rounded-full hover:bg-white transition-colors shadow-lg w-max"
-              style={{
-                opacity: ctaOpacity,
-                y: ctaY,
-                scale: ctaScale,
-              }}
+              className="type-button relative w-max bg-[#C9A227] text-[#0C0922] px-10 py-4 rounded-full hover:bg-white transition-colors shadow-lg"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
               Book Your Trial Ride
+
+              {/* Luxury Golden Glow Pulse */}
+              <motion.span
+                className="pointer-events-none absolute inset-0 rounded-full"
+                animate={{
+                  boxShadow: [
+                    '0 0 0 0 rgba(201,162,39,0)',
+                    '0 0 25px 4px rgba(201,162,39,0.6)',
+                    '0 0 0 0 rgba(201,162,39,0)',
+                  ],
+                }}
+                transition={{
+                  duration: 2.8,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
             </motion.button>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* ============================================================ */}
+      {/* SCROLL INDICATOR (optional) */}
+      {/* ============================================================ */}
+      <motion.div
+        className="relative z-10 flex justify-center mt-8"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={viewportOnce}
+        transition={{ delay: 1.2, duration: 0.8 }}
+      >
+        <motion.div
+          animate={{ y: [0, 6, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          className="flex flex-col items-center gap-2 text-[#C9A227]/70"
+        >
+          <svg width="12" height="20" viewBox="0 0 16 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M8 4V20M8 20L2 14M8 20L14 14" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

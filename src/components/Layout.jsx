@@ -1,14 +1,10 @@
-// src/components/Layout.jsx
 import React, { useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Navigation from './Navigation';
 import Footer from './Footer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EnquiryProvider, useEnquiry } from '../context/EnquiryContext';
 import EnquiryModal from './EnquiryModal';
-import PageTransition from './motion/PageTransition';
-import SplashCursor from './SplashCursor';
-import ShinyText from './ShinyText';
 
 // Sticky Button Component - WhatsApp only (Book Trial Ride removed from bottom)
 const StickyButtons = () => {
@@ -34,6 +30,7 @@ const StickyButtons = () => {
 
   return (
     <>
+      {/* Sticky WhatsApp Button */}
       <AnimatePresence>
         <motion.a
           href={waLink}
@@ -55,49 +52,12 @@ const StickyButtons = () => {
   );
 };
 
-// ── SplashCursor wrapper — z-40 so it sits BEHIND the Navigation (z-50) ──
-const BrandedSplashCursor = () => (
-  <div
-    aria-hidden="true"
-    style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 40,
-      pointerEvents: 'none',
-    }}
-  >
-    <SplashCursor
-      RAINBOW_MODE={false}
-      COLOR="#C9A227"
-      SPLAT_FORCE={4000}
-      SPLAT_RADIUS={0.15}
-      DENSITY_DISSIPATION={2.5}
-      VELOCITY_DISSIPATION={2}
-      CURL={3}
-      PRESSURE_ITERATIONS={20}
-      SHADING={true}
-      TRANSPARENT={true}
-    />
-  </div>
-);
-
 const Layout = () => {
-  const location = useLocation();
-
   return (
     <EnquiryProvider>
       <div className="min-h-screen bg-[#FDFCFA] overflow-x-hidden font-sans">
-
-        {/* SplashCursor — mount once, sits behind nav (z-40) */}
-        <BrandedSplashCursor />
-        
-
         <Navigation />
-        <AnimatePresence mode="wait" initial={false}>
-          <PageTransition key={location.pathname}>
-            <Outlet />
-          </PageTransition>
-        </AnimatePresence>
+        <Outlet />
         <Footer />
         <EnquiryModal />
         <StickyButtons />

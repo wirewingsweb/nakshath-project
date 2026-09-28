@@ -1,9 +1,5 @@
-// src/components/TimePicker.jsx
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { FiCheck, FiClock, FiChevronDown } from 'react-icons/fi';
-import { EASE_SECONDARY, DURATION } from '../utils/motion';
-import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 const formatTime = (value) => {
   if (!value) return 'Choose a time slot';
@@ -30,47 +26,10 @@ const TIME_GROUPS = [
   { label: 'Evening', slots: createSlots(16, 19) },
 ];
 
-// ─── Variants ────────────────────────────────────────────────
-
-const popoverVariants = (prefersReduced) => ({
-  hidden: {
-    opacity: 0,
-    scale: prefersReduced ? 1 : 0.98,
-    y: prefersReduced ? 0 : -4,
-  },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: {
-      duration: prefersReduced ? 0 : DURATION.popover,
-      ease: EASE_SECONDARY,
-    },
-  },
-  exit: {
-    opacity: 0,
-    scale: prefersReduced ? 1 : 0.98,
-    y: prefersReduced ? 0 : -4,
-    transition: {
-      duration: prefersReduced ? 0 : DURATION.popover,
-      ease: EASE_SECONDARY,
-    },
-  },
-});
-
-// ─── Component ───────────────────────────────────────────────
-
-const TimePicker = ({
-  name = 'time',
-  value = '',
-  onChange,
-  theme = 'light',
-  ariaLabel = 'Select time',
-}) => {
+const TimePicker = ({ name = 'time', value = '', onChange, theme = 'light', ariaLabel = 'Select time' }) => {
   const pickerRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
   const isDark = theme === 'dark';
-  const prefersReduced = usePrefersReducedMotion();
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -118,65 +77,46 @@ const TimePicker = ({
       >
         <span className="flex items-center gap-3">
           <FiClock className="shrink-0 text-[#C9A227]" aria-hidden="true" />
-          <span className={value ? '' : isDark ? 'text-white/55' : 'text-[#5A5A66]'}>
-            {formatTime(value)}
-          </span>
+          <span className={value ? '' : isDark ? 'text-white/55' : 'text-[#5A5A66]'}>{formatTime(value)}</span>
         </span>
-        <FiChevronDown
-          className={`shrink-0 text-[#C9A227] transition-transform duration-200 ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-          aria-hidden="true"
-        />
+        <FiChevronDown className={`shrink-0 text-[#C9A227] transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            role="listbox"
-            aria-label="Available trial ride times"
-            className={`modal-scrollbar absolute left-0 z-[80] mt-2 max-h-[19rem] w-full overflow-y-auto rounded-2xl border p-3 ${surfaceClasses}`}
-            variants={popoverVariants(prefersReduced)}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            style={{
-              transformOrigin: 'top left',
-              willChange: 'transform, opacity',
-            }}
-          >
-            {TIME_GROUPS.map((group) => (
-              <div key={group.label} className="mb-3 last:mb-0">
-                <p className="px-2 pb-2 pt-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#C9A227]">
-                  {group.label}
-                </p>
-                <div className="grid grid-cols-2 gap-1">
-                  {group.slots.map((time) => {
-                    const isSelected = time === value;
-                    return (
-                      <button
-                        key={time}
-                        type="button"
-                        role="option"
-                        aria-selected={isSelected}
-                        onClick={() => selectTime(time)}
-                        className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
-                          isSelected
-                            ? 'bg-[#C9A227] font-semibold text-[#0C0922]'
-                            : 'hover:bg-[#C9A227]/15 hover:text-[#C9A227]'
-                        }`}
-                      >
-                        <span>{formatTime(time)}</span>
-                        {isSelected && <FiCheck aria-hidden="true" />}
-                      </button>
-                    );
-                  })}
-                </div>
+      {isOpen && (
+        <div
+          role="listbox"
+          aria-label="Available trial ride times"
+          className={`modal-scrollbar absolute left-0 z-[80] mt-2 max-h-[19rem] w-full overflow-y-auto rounded-2xl border p-3 ${surfaceClasses}`}
+        >
+          {TIME_GROUPS.map((group) => (
+            <div key={group.label} className="mb-3 last:mb-0">
+              <p className="px-2 pb-2 pt-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#C9A227]">{group.label}</p>
+              <div className="grid grid-cols-2 gap-1">
+                {group.slots.map((time) => {
+                  const isSelected = time === value;
+                  return (
+                    <button
+                      key={time}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => selectTime(time)}
+                      className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
+                        isSelected
+                          ? 'bg-[#C9A227] font-semibold text-[#0C0922]'
+                          : 'hover:bg-[#C9A227]/15 hover:text-[#C9A227]'
+                      }`}
+                    >
+                      <span>{formatTime(time)}</span>
+                      {isSelected && <FiCheck aria-hidden="true" />}
+                    </button>
+                  );
+                })}
               </div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

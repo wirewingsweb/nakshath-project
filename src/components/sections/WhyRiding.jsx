@@ -1,171 +1,321 @@
-// src/components/sections/WhyRiding.jsx
 import { motion } from 'framer-motion';
-import { EASE_PRIMARY, DURATION } from '../../utils/motion';
-import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import { useInViewOnce } from '../../hooks/useInViewOnce';
-import { SplitText, DriftImage } from '../motion';
+import { viewportOnce } from '../../utils/animations';
 
+// ============================================================
+// BENEFITS DATA
+// ============================================================
 const benefits = [
-  { image: '/page 9 physical.png', title: 'Physical', items: ['Balance and coordination', 'Flexibility and posture', 'Core strength'] },
-  { image: '/page 9 mentals.png', title: 'Mental', items: ['Confidence', 'Focus and discipline', 'Calm under pressure'] },
-  { image: '/page 9 lifestyle.png', title: 'Lifestyle', items: ['Responsibility', 'Leadership', 'Sportsmanship'] },
+  {
+    image: '/page 9 physical.png',
+    title: 'Physical',
+    items: ['Balance and coordination', 'Flexibility and posture', 'Core strength'],
+  },
+  {
+    image: '/page 9 mentals.png',
+    title: 'Mental',
+    items: ['Confidence', 'Focus and discipline', 'Calm under pressure'],
+  },
+  {
+    image: '/page 9 lifestyle.png',
+    title: 'Lifestyle',
+    items: ['Responsibility', 'Leadership', 'Sportsmanship'],
+  },
 ];
 
-const headerContainerVariants = (prefersReduced) => ({
-  hidden: {},
-  visible: { transition: { staggerChildren: prefersReduced ? 0 : 0.08 } },
-});
-
-const headerItemVariants = (prefersReduced, isMobile, y = 12) => ({
-  hidden: { opacity: 0, y: prefersReduced ? 0 : (isMobile ? Math.round(y * 0.6) : y) },
-  visible: { opacity: 1, y: 0, transition: { duration: prefersReduced ? 0 : DURATION.normal, ease: EASE_PRIMARY } },
-});
-
-const benefitsContainerVariants = (prefersReduced) => ({
-  hidden: {},
-  visible: { transition: { staggerChildren: prefersReduced ? 0 : 0.1, delayChildren: prefersReduced ? 0 : 0.15 } },
-});
-
-const benefitGroupVariants = (prefersReduced, isMobile) => ({
-  hidden: { opacity: 0, y: prefersReduced ? 0 : (isMobile ? 8 : 12) },
-  visible: { opacity: 1, y: 0, transition: { duration: prefersReduced ? 0 : 0.5, ease: EASE_PRIMARY } },
-});
-
-const Benefit = ({ benefit, compact = false }) => (
-  <article className={compact ? 'grid grid-cols-[6.5rem_1fr] items-center gap-5' : 'grid grid-cols-[13.8vw_1fr] items-start gap-[1.8vw]'}>
-    <img src={benefit.image} alt="" loading="lazy" decoding="async" className={`block w-full mix-blend-multiply ${compact ? 'opacity-70' : 'opacity-75'}`} />
-    <div className={compact ? 'py-4' : 'pt-[3.2vw]'}>
-      <h3 className="type-eyebrow text-[#876B18]">{benefit.title}</h3>
-      <span className={`block border-t border-[#876B18] ${compact ? 'mb-5 mt-3 w-8' : 'mb-[2vw] mt-[1.15vw] w-[2vw]'}`} />
-      <ul className={compact ? 'space-y-4 text-sm leading-[1.45] text-[#1A1A1A]' : 'space-y-[2vw] text-sm leading-[1.45] text-[#1A1A1A]'}>
-        {benefit.items.map((item) => <li key={item}>{item}</li>)}
-      </ul>
-    </div>
-  </article>
-);
-
-const WhyRiding = () => {
-  const prefersReduced = usePrefersReducedMotion();
-  const isMobile = useIsMobile();
-  const [desktopHeaderRef, desktopHeaderInView] = useInViewOnce({ amount: 0.3 });
-  const [desktopBenefitsRef, desktopBenefitsInView] = useInViewOnce({ amount: 0.15 });
-  const [mobileHeaderRef, mobileHeaderInView] = useInViewOnce({ amount: 0.3 });
-  const [mobileBenefitsRef, mobileBenefitsInView] = useInViewOnce({ amount: 0.15 });
+// ============================================================
+// BENEFIT CARD — Desktop & Mobile versions
+// ============================================================
+const Benefit = ({ benefit, compact = false, index = 0 }) => {
+  const isCompact = compact;
 
   return (
-    <section className="w-full overflow-hidden bg-[#FDFCFA]">
+    <motion.article
+      className={
+        isCompact
+          ? 'grid grid-cols-[6.5rem_1fr] items-center gap-5'
+          : 'grid grid-cols-[13.8vw_1fr] items-start gap-[1.8vw]'
+      }
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={viewportOnce}
+      transition={{
+        delay: index * 0.15,
+        duration: 0.8,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+    >
+      {/* Icon Image */}
+      <motion.div
+        className="relative"
+        whileHover={{ scale: 1.08, rotate: [0, -3, 3, 0] }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {/* Golden glow behind icon (on hover) */}
+        <div className="pointer-events-none absolute inset-0 rounded-full bg-[#C9A227]/0 blur-2xl transition-all duration-500 group-hover:bg-[#C9A227]/30" />
 
-      {/* DESKTOP */}
+        <img
+          src={benefit.image}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className={`block w-full mix-blend-multiply ${
+            isCompact ? 'opacity-70' : 'opacity-75'
+          }`}
+        />
+      </motion.div>
+
+      {/* Text Content */}
+      <div className={isCompact ? 'py-4' : 'pt-[3.2vw]'}>
+        {/* Title */}
+        <motion.h3
+          className="type-eyebrow text-[#876B18]"
+          initial={{ opacity: 0, x: -10 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={viewportOnce}
+          transition={{
+            delay: index * 0.15 + 0.3,
+            duration: 0.6,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+        >
+          {benefit.title}
+        </motion.h3>
+
+        {/* Golden divider line — animated draw */}
+        <motion.span
+          className={`block border-t border-[#876B18] ${
+            isCompact ? 'mb-5 mt-3 w-8' : 'mb-[2vw] mt-[1.15vw] w-[2vw]'
+          }`}
+          initial={{ scaleX: 0, originX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={viewportOnce}
+          transition={{
+            delay: index * 0.15 + 0.5,
+            duration: 0.8,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+        />
+
+        {/* Items list — stagger */}
+        <motion.ul
+          className={
+            isCompact
+              ? 'space-y-4 text-sm leading-[1.45] text-[#1A1A1A]'
+              : 'space-y-[2vw] text-sm leading-[1.45] text-[#1A1A1A]'
+          }
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportOnce}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1,
+                delayChildren: index * 0.15 + 0.6,
+              },
+            },
+          }}
+        >
+          {benefit.items.map((item) => (
+            <motion.li
+              key={item}
+              variants={{
+                hidden: { opacity: 0, x: -10 },
+                visible: {
+                  opacity: 1,
+                  x: 0,
+                  transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+                },
+              }}
+              className="flex items-start gap-2"
+            >
+              {/* Golden dot bullet */}
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#876B18]" />
+              <span>{item}</span>
+            </motion.li>
+          ))}
+        </motion.ul>
+      </div>
+    </motion.article>
+  );
+};
+
+// ============================================================
+// MAIN COMPONENT
+// ============================================================
+const WhyRiding = () => {
+  return (
+    <section className="w-full overflow-hidden bg-[#FDFCFA]">
+      {/* ============================================================ */}
+      {/* DESKTOP VERSION — Full layout with image */}
+      {/* ============================================================ */}
       <div className="relative hidden aspect-[1672/941] w-full lg:block">
-        <div className="absolute right-0 top-0 h-[62%] w-[70%] overflow-hidden">
-          <DriftImage
+        {/* Image with subtle zoom on scroll */}
+        <motion.div
+          className="absolute right-0 top-0 h-[62%] w-[70%] overflow-hidden"
+          initial={{ opacity: 0, scale: 1.1 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={viewportOnce}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <img
             src="/page 9 gpt.png"
             alt="A child riding a white horse at sunset"
-            drift="subtle"
-            duration={30}
-            className="h-full w-full"
-            imgClassName="h-full w-full object-cover object-[63%_48%]"
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover object-[63%_48%]"
           />
-          <div className="absolute inset-y-0 left-0 w-[42%] bg-gradient-to-r from-[#FDFCFA] via-[#FDFCFA]/75 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-[30%] bg-gradient-to-t from-[#FDFCFA] via-[#FDFCFA]/65 to-transparent" />
-        </div>
 
+          {/* Left fade gradient */}
+          <div className="absolute inset-y-0 left-0 w-[42%] bg-gradient-to-r from-[#FDFCFA] via-[#FDFCFA]/75 to-transparent" />
+
+          {/* Bottom fade gradient */}
+          <div className="absolute inset-x-0 bottom-0 h-[30%] bg-gradient-to-t from-[#FDFCFA] via-[#FDFCFA]/65 to-transparent" />
+
+          {/* Grain texture */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+            }}
+          />
+        </motion.div>
+
+        {/* Header — top left */}
         <motion.header
-          ref={desktopHeaderRef}
           className="absolute left-[6.8%] top-[15.5%] z-10 w-[48%]"
-          variants={headerContainerVariants(prefersReduced)}
-          initial="hidden"
-          animate={desktopHeaderInView ? 'visible' : 'hidden'}
+          initial={{ opacity: 0, x: -40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={viewportOnce}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
         >
-          <motion.h4 className="type-eyebrow mb-[2.1vw] text-[#876B18]" variants={headerItemVariants(prefersReduced, isMobile, 8)}>
+          <motion.h4
+            className="mb-[2.1vw] type-eyebrow text-[#876B18]"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={viewportOnce}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
             Why Riding
           </motion.h4>
 
-          <SplitText
-            as="h2"
+          <motion.h2
             className="type-display text-[#1A1A1A]"
-            wordDelay={0.05}
-            startDelay={0.15}
-            amount={0.3}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={viewportOnce}
+            transition={{ delay: 0.4, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           >
-            What a child takes<br />home from the arena.
-          </SplitText>
+            What a child takes
+            <br />
+            home from the arena.
+          </motion.h2>
 
-          <motion.p className="mt-[1.6vw] text-base text-[#5A5A66]" variants={headerItemVariants(prefersReduced, isMobile, 12)}>
+          <motion.p
+            className="mt-[1.6vw] text-base text-[#5A5A66]"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={viewportOnce}
+            transition={{ delay: 0.6, duration: 0.7 }}
+          >
             Riding builds more than riding.
           </motion.p>
+
+          {/* Animated golden line */}
+          <motion.div
+            className="mt-6 h-px w-20 origin-left bg-[#876B18]/40"
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={viewportOnce}
+            transition={{ delay: 0.8, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          />
         </motion.header>
 
-        <motion.div
-          ref={desktopBenefitsRef}
-          className="absolute inset-x-[3.5%] bottom-[7.2%] z-10 grid grid-cols-3 gap-[2.2vw]"
-          variants={benefitsContainerVariants(prefersReduced)}
-          initial="hidden"
-          animate={desktopBenefitsInView ? 'visible' : 'hidden'}
-        >
-          {benefits.map((benefit) => (
-            <motion.div key={benefit.title} variants={benefitGroupVariants(prefersReduced, isMobile)}>
-              <Benefit benefit={benefit} />
-            </motion.div>
+        {/* Benefits grid — bottom */}
+        <div className="absolute inset-x-[3.5%] bottom-[7.2%] z-10 grid grid-cols-3 gap-[2.2vw]">
+          {benefits.map((benefit, index) => (
+            <Benefit key={benefit.title} benefit={benefit} index={index} />
           ))}
-        </motion.div>
+        </div>
       </div>
 
-      {/* MOBILE */}
+      {/* ============================================================ */}
+      {/* MOBILE VERSION */}
+      {/* ============================================================ */}
       <div className="lg:hidden">
+        {/* Header */}
         <motion.header
-          ref={mobileHeaderRef}
           className="px-6 pb-7 pt-14 sm:px-10"
-          variants={headerContainerVariants(prefersReduced)}
-          initial="hidden"
-          animate={mobileHeaderInView ? 'visible' : 'hidden'}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={viewportOnce}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
-          <motion.h4 className="type-eyebrow mb-4 text-[#876B18]" variants={headerItemVariants(prefersReduced, isMobile, 8)}>
-            Why Riding
-          </motion.h4>
+          <div className="mb-4 flex items-center gap-3">
+            <span className="type-eyebrow text-[#876B18]">Why Riding</span>
+            <motion.span
+              className="block h-px w-12 origin-left bg-[#876B18]/50"
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={viewportOnce}
+              transition={{ delay: 0.3, duration: 0.8 }}
+            />
+          </div>
 
-          <SplitText
-            as="h2"
-            className="type-page-title text-[#1A1A1A]"
-            wordDelay={0.05}
-            startDelay={0.15}
-            amount={0.3}
-          >
-            What a child takes<br />home from the arena.
-          </SplitText>
+          <h2 className="type-page-title text-[#1A1A1A]">
+            What a child takes
+            <br />
+            home from the arena.
+          </h2>
 
-          <motion.p className="mt-4 text-base leading-relaxed text-[#5A5A66]" variants={headerItemVariants(prefersReduced, isMobile, 12)}>
+          <p className="mt-4 text-base leading-relaxed text-[#5A5A66]">
             Riding builds more than riding.
-          </motion.p>
+          </p>
         </motion.header>
 
-        <div className="relative aspect-[16/10] w-full overflow-hidden">
-          <DriftImage
+        {/* Image with subtle parallax */}
+        <motion.div
+          className="relative aspect-[16/10] w-full overflow-hidden"
+          initial={{ opacity: 0, scale: 1.05 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={viewportOnce}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <img
             src="/page 9 gpt.png"
             alt="A child riding a white horse at sunset"
-            drift="subtle"
-            duration={30}
-            className="h-full w-full"
-            imgClassName="h-full w-full object-cover object-[72%_center]"
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover object-[72%_center]"
           />
-          <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#FDFCFA]/80 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#FDFCFA] to-transparent" />
-        </div>
 
-        <motion.div
-          ref={mobileBenefitsRef}
-          className="space-y-3 px-6 pb-16 sm:px-10"
-          variants={benefitsContainerVariants(prefersReduced)}
-          initial="hidden"
-          animate={mobileBenefitsInView ? 'visible' : 'hidden'}
-        >
-          {benefits.map((benefit) => (
-            <motion.div key={benefit.title} variants={benefitGroupVariants(prefersReduced, isMobile)}>
-              <Benefit benefit={benefit} compact />
-            </motion.div>
-          ))}
+          {/* Left gradient */}
+          <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#FDFCFA]/80 to-transparent" />
+
+          {/* Bottom gradient */}
+          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#FDFCFA] to-transparent" />
+
+          {/* Grain */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+            }}
+          />
         </motion.div>
+
+        {/* Benefits list */}
+        <div className="space-y-3 px-6 pb-16 sm:px-10">
+          {benefits.map((benefit, index) => (
+            <Benefit
+              key={benefit.title}
+              benefit={benefit}
+              compact
+              index={index}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
