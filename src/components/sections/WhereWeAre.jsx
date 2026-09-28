@@ -282,7 +282,7 @@ const WhereWeAre = () => {
               className="relative"
             >
               <motion.img
-                src="/page 12 gpt.png"
+                src="/page 12 gpt.webp"
                 alt="Equestrian Facility"
                 loading="lazy"
                 decoding="async"

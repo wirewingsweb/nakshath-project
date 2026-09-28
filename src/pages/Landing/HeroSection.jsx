@@ -125,7 +125,7 @@ const HeroSection = () => {
           initial={{ scale: 1.15, clipPath: 'inset(0 100% 0 0)' }}
           animate={{ scale: 1, clipPath: 'inset(0 0% 0 0)' }}
           transition={{ duration: 1.6, ease: EASE_SNAP }}
-          src="/landingHero.png"
+          src="/landingHero.webp"
           alt="Rider training at Nakshath Equestrian Club"
           fetchPriority="high"
           decoding="async"
@@ -193,7 +193,7 @@ const HeroSection = () => {
               className="mb-7 flex w-full justify-center lg:mb-2"
             >
               <img
-                src="/nakshath logo head.png"
+                src="/nakshath logo head.webp"
                 alt="Nakshath Equestrian Club"
                 decoding="async"
                 className="h-auto w-[min(72vw,290px)] object-contain lg:h-30 lg:w-auto"

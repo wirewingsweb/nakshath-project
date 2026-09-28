@@ -9,7 +9,7 @@ const InternationalClinics = () => {
           <h2 className="type-page-title mb-5 text-[#1A1A1A]">Coaches who<br/>travel to teach<br/>here.</h2>
           <p className="type-small mb-5 max-w-[20rem] text-[#5A5A66]">Ten to fifteen day intensive clinics led by visiting professionals from across the equestrian world. Open to members and outside riders, with stabling and on-site accommodation.</p>
           <div className="w-full mb-4 relative">
-            <img src="/international map.png" alt="World Map" className="w-full h-auto object-contain max-h-[180px] opacity-60 mix-blend-multiply" />
+            <img src="/international map.webp" alt="World Map" className="w-full h-auto object-contain max-h-[180px] opacity-60 mix-blend-multiply" />
           </div>
           <a href="#" className="text-[#1A1A1A] border-b-2 border-[#C9A227] pb-1 text-sm font-medium hover:text-[#C9A227] hover:border-[#C9A227] transition-colors w-max">See clinic details</a>
         </div>

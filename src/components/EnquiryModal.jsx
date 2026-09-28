@@ -360,7 +360,7 @@ const EnquiryModal = () => {
           <div className="relative w-full shrink-0 overflow-hidden bg-[#0C0922] md:w-[45%]">
             {/* Background image */}
             <motion.img
-              src="/enquiry-bg.png"
+              src="/enquiry-bg.webp"
               alt=""
               aria-hidden="true"
               initial={{ scale: 1.15, opacity: 0 }}
@@ -399,7 +399,7 @@ const EnquiryModal = () => {
                 initial={{ opacity: 0, y: -20, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                src="/nakshath logo head.png"
+                src="/nakshath logo head.webp"
                 alt="Nakshath Logo"
                 className="mb-6 h-24 object-contain md:h-32"
               />

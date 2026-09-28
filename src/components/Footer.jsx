@@ -84,7 +84,7 @@ const Footer = () => {
       >
         {/* Image — quiet scale settle, no brightness tricks */}
         <motion.img
-          src="/come and ride.png"
+          src="/come and ride.webp"
           alt="A rider beginning a trial lesson"
           loading="lazy"
           decoding="async"
@@ -156,7 +156,7 @@ const Footer = () => {
           <Column delay={0.3}>
             <Link to="/" className="inline-block">
               <img
-                src="/footer-logo-matched.png"
+                src="/footer-logo-matched.webp"
                 alt="Nakshath Global Sports"
                 loading="lazy"
                 decoding="async"

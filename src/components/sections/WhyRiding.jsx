@@ -4,17 +4,17 @@ import { EASE } from '../../utils/landing-motion';
 
 const benefits = [
   {
-    image: '/page 9 physical.png',
+    image: '/page 9 physical.webp',
     title: 'Physical',
     items: ['Balance and coordination', 'Flexibility and posture', 'Core strength'],
   },
   {
-    image: '/page 9 mentals.png',
+    image: '/page 9 mentals.webp',
     title: 'Mental',
     items: ['Confidence', 'Focus and discipline', 'Calm under pressure'],
   },
   {
-    image: '/page 9 lifestyle.png',
+    image: '/page 9 lifestyle.webp',
     title: 'Lifestyle',
     items: ['Responsibility', 'Leadership', 'Sportsmanship'],
   },
@@ -242,7 +242,7 @@ const WhyRiding = () => {
           className="absolute right-0 top-0 h-[62%] w-[70%] overflow-hidden"
         >
           <img
-            src="/page 9 gpt.png"
+            src="/page 9 gpt.webp"
             alt="A child riding a white horse at sunset"
             loading="lazy"
             decoding="async"
@@ -383,7 +383,7 @@ const WhyRiding = () => {
           className="relative aspect-[16/10] w-full overflow-hidden"
         >
           <img
-            src="/page 9 gpt.png"
+            src="/page 9 gpt.webp"
             alt="A child riding a white horse at sunset"
             loading="lazy"
             decoding="async"

@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 const offers = [
-  { img: '/page 11 2 gpt.png', num: '01', title: 'Free trial ride', desc: 'Ten minutes on a schooled horse. No charge, no obligation.' },
-  { img: '/page 11 3 gpt.png', num: '02', title: '10% off the first month', desc: 'Applied to any programme at enrolment.' },
-  { img: '/page 11 4 gpt.png', num: '03', title: 'Weekend batches', desc: 'Saturday and Sunday sessions for working schedules.' },
-  { img: '/page 11 5 gpt.png', num: '04', title: 'Kids summer camp', desc: 'A structured holiday programme for children.' },
-  { img: '/page 11 6 gpt.png', num: '05', title: 'Early registration', desc: 'Priority slots for riders who enrol before opening.' },
+  { img: '/page 11 2 gpt.webp', num: '01', title: 'Free trial ride', desc: 'Ten minutes on a schooled horse. No charge, no obligation.' },
+  { img: '/page 11 3 gpt.webp', num: '02', title: '10% off the first month', desc: 'Applied to any programme at enrolment.' },
+  { img: '/page 11 4 gpt.webp', num: '03', title: 'Weekend batches', desc: 'Saturday and Sunday sessions for working schedules.' },
+  { img: '/page 11 5 gpt.webp', num: '04', title: 'Kids summer camp', desc: 'A structured holiday programme for children.' },
+  { img: '/page 11 6 gpt.webp', num: '05', title: 'Early registration', desc: 'Priority slots for riders who enrol before opening.' },
 ];
 
 /* ============================================================
@@ -240,7 +240,7 @@ const OpeningSeason = () => {
           className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[16/9] xl:aspect-auto xl:h-full xl:w-[29%]"
         >
           <img
-            src="/page 11 1 gpt.png"
+            src="/page 11 1 gpt.webp"
             alt="Equestrian Facility"
             loading="lazy"
             decoding="async"

@@ -58,7 +58,7 @@ const TrialRideCTA = () => {
           <motion.img
             animate={{ scale: [1, 1.06, 1] }}
             transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
-            src="/come and ride.png"
+            src="/come and ride.webp"
             alt="Rider at Nakshath Equestrian Club"
             loading="lazy"
             decoding="async"

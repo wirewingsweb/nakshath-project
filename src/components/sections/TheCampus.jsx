@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button';
 import { EASE } from '../../utils/landing-motion';
 
 const facilities = [
-  { image: '/page 7 1 gpt.png', title: 'Indoor Arena', detail: 'All-weather', position: '50% 58%' },
-  { image: '/page 7 2 gpt.png', title: 'Outdoor Arena', detail: 'Sand surface', position: '50% 48%' },
-  { image: '/page 7 3 gpt.png', title: 'Stables', detail: 'Individual stalls', position: '50% 55%' },
-  { image: '/page 7 4 gpt.png', title: 'Café', detail: 'Open to visitors', position: '50% 52%' },
-  { image: '/page 7 5 gpt.png', title: 'Cottages', detail: 'On-site stay', position: '50% 55%' },
+  { image: '/page 7 1 gpt.webp', title: 'Indoor Arena', detail: 'All-weather', position: '50% 58%' },
+  { image: '/page 7 2 gpt.webp', title: 'Outdoor Arena', detail: 'Sand surface', position: '50% 48%' },
+  { image: '/page 7 3 gpt.webp', title: 'Stables', detail: 'Individual stalls', position: '50% 55%' },
+  { image: '/page 7 4 gpt.webp', title: 'Café', detail: 'Open to visitors', position: '50% 52%' },
+  { image: '/page 7 5 gpt.webp', title: 'Cottages', detail: 'On-site stay', position: '50% 55%' },
 ];
 
 const CARD_WIDTH = 400;

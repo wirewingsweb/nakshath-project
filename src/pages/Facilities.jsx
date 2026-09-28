@@ -240,7 +240,7 @@ const HorsesLiveSection = ({ stables }) => {
               <div className="group relative overflow-hidden rounded-2xl bg-[#0C0922] shadow-[0_30px_70px_-25px_rgba(0,0,0,0.7)]">
                 <div className="relative aspect-[4/5] w-full overflow-hidden">
                   <motion.img
-                    src="/horse live.png"
+                    src="/horse live.webp"
                     alt="Stables interior"
                     loading="lazy"
                     decoding="async"
@@ -585,25 +585,25 @@ const Facilities = () => {
       title: 'Indoor Arena',
       label: 'All-Weather',
       desc: 'A covered arena built so training does not stop for monsoon or for summer heat. International-standard geotextile footing, consistent underfoot, and lower injury risk for horse and rider.',
-      img: '/indoor arena.png',
+      img: '/indoor arena.webp',
     },
     {
       title: 'Outdoor Arena',
       label: 'Sand Surface',
       desc: 'An open sand arena for jumping and flatwork in good weather, with the space to ride a full course and the light to shoot in early morning or late evening.',
-      img: '/outdoor arena.png',
+      img: '/outdoor arena.webp',
     },
     {
       title: 'Dressage Arena',
       label: 'Standard Dimensions',
       desc: 'Built to competition dimensions, so riders practice on the same geometry they will be marked on. The riding area is larger than most people expect.',
-      img: '/dressage arena.png',
+      img: '/dressage arena.webp',
     },
     {
       title: 'Lunging Pen',
       label: 'Groundwork',
       desc: "A circular pen for working horses on the lunge — warming up, schooling young horses, and teaching riders to read a horse's movement from the ground.",
-      img: '/lunging pen.png',
+      img: '/lunging pen.webp',
     },
   ];
 
@@ -627,10 +627,10 @@ const Facilities = () => {
   ];
 
   const beyond = [
-    { title: 'Café', desc: 'Warm stone, arches, open through the day.', img: '/cafe.png' },
-    { title: 'Common Pavilion', desc: 'Shade and seating for spectators and families.', img: '/common pavillion.png' },
-    { title: 'Lounge Space', desc: 'Open landscaped areas across the campus.', img: '/lounge.png' },
-    { title: 'Cottages', desc: 'For visiting riders, trainers and guests.', img: '/cottages.png' },
+    { title: 'Café', desc: 'Warm stone, arches, open through the day.', img: '/cafe.webp' },
+    { title: 'Common Pavilion', desc: 'Shade and seating for spectators and families.', img: '/common pavillion.webp' },
+    { title: 'Lounge Space', desc: 'Open landscaped areas across the campus.', img: '/lounge.webp' },
+    { title: 'Cottages', desc: 'For visiting riders, trainers and guests.', img: '/cottages.webp' },
   ];
 
   return (

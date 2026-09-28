@@ -411,7 +411,7 @@ const NakshathDifference = () => {
         >
           <motion.img
             style={{ scale: bgScale, y: bgY }}
-            src="/find difference.png"
+            src="/find difference.webp"
             alt="Indoor Arena Background"
             loading="lazy"
             decoding="async"

@@ -461,7 +461,7 @@ const ProCompetitionCard = ({ onEnquire }) => {
                 className="relative"
               >
                 <motion.img
-                  src="/pro training.png"
+                  src="/pro training.webp"
                   alt="Professional Competition Training"
                   loading="lazy"
                   decoding="async"
@@ -718,17 +718,17 @@ const Courses = () => {
   ];
 
   const disciplines = [
-    { title: 'Show Jumping', status: 'Taught Here', desc: 'Riders guide horses over obstacle courses with speed and accuracy.', img: '/show jumping.png' },
-    { title: 'Dressage', status: 'Taught Here', desc: 'Harmony, control, and precise movements ridden to a set pattern.', img: '/dressage.png' },
-    { title: 'Eventing', status: 'Coming Soon', desc: 'Combines dressage, cross-country and show jumping.', img: '/eventing.png' },
+    { title: 'Show Jumping', status: 'Taught Here', desc: 'Riders guide horses over obstacle courses with speed and accuracy.', img: '/show jumping.webp' },
+    { title: 'Dressage', status: 'Taught Here', desc: 'Harmony, control, and precise movements ridden to a set pattern.', img: '/dressage.webp' },
+    { title: 'Eventing', status: 'Coming Soon', desc: 'Combines dressage, cross-country and show jumping.', img: '/eventing.webp' },
   ];
 
   const groupServices = [
-    { title: 'Guest Rides', desc: 'A one-off horse experience, no enrolment.', img: '/beyond ride 1.png' },
-    { title: 'Summer Camps', desc: 'Holiday programmes for children.', img: '/beyond ride 2.png' },
-    { title: 'School Visits', desc: 'Group sessions for schools.', img: '/beyond ride 3.png' },
-    { title: 'Corporate Days', desc: 'Team days on the property.', img: '/beyond ride 4.png' },
-    { title: 'Photoshoots', desc: 'The arenas and grounds, by arrangement.', img: '/beyond ride 5.png' },
+    { title: 'Guest Rides', desc: 'A one-off horse experience, no enrolment.', img: '/beyond ride 1.webp' },
+    { title: 'Summer Camps', desc: 'Holiday programmes for children.', img: '/beyond ride 2.webp' },
+    { title: 'School Visits', desc: 'Group sessions for schools.', img: '/beyond ride 3.webp' },
+    { title: 'Corporate Days', desc: 'Team days on the property.', img: '/beyond ride 4.webp' },
+    { title: 'Photoshoots', desc: 'The arenas and grounds, by arrangement.', img: '/beyond ride 5.webp' },
   ];
 
   return (
@@ -789,7 +789,7 @@ const Courses = () => {
           <div className="space-y-24">
             <ProgramBlock
               index={0}
-              image="/kids special.png"
+              image="/kids special.webp"
               imageAlt="Kids Program"
               eyebrow="From Five Years Old"
               title="Kids Special Riding Program"
@@ -802,7 +802,7 @@ const Courses = () => {
             <ProgramBlock
               index={1}
               reverse
-              image="/beginner program.png"
+              image="/beginner program.webp"
               imageAlt="Beginner Program"
               eyebrow="No Experience Needed"
               title="Beginner Program"
@@ -813,7 +813,7 @@ const Courses = () => {
 
             <ProgramBlock
               index={2}
-              image="/intermediate program.png"
+              image="/intermediate program.webp"
               imageAlt="Intermediate Training"
               eyebrow="For Riders Building Independence"
               title="Intermediate Training"
@@ -863,7 +863,7 @@ const Courses = () => {
           whileInView={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
           viewport={{ once: true, amount: 0 }}
           transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
-          src="/start 10 min.png"
+          src="/start 10 min.webp"
           alt="Horse Face"
           loading="lazy"
           decoding="async"

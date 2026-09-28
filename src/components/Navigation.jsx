@@ -144,7 +144,7 @@ const Navigation = () => {
           <motion.img
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
-            src="/nakshath logo head.png"
+            src="/nakshath logo head.webp"
             alt="Nakshath Logo"
             className={`object-contain transition-all duration-500 ${
               isPastHero ? 'h-12 sm:h-14 md:h-16' : 'h-16 sm:h-20 md:h-24'
@@ -248,7 +248,7 @@ const Navigation = () => {
                 <motion.img
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.3 }}
-                  src="/nakshath logo head.png"
+                  src="/nakshath logo head.webp"
                   alt="Nakshath Logo"
                   className="h-24 object-contain md:h-28"
                 />

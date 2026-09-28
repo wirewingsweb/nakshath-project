@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { EASE } from '../../utils/landing-motion';
 
 const coaches = [
-  { name: 'Nakshath Venkatesh', role: 'Founder', image: '/founder.png', offset: '' },
-  { name: 'Bharath Venna', role: 'Coordinator', image: '/page 10 2 gpt.png', offset: 'xl:mt-5' },
-  { name: 'Vani', role: 'Trainer', image: '/trainer.png', offset: 'xl:mt-10' },
+  { name: 'Nakshath Venkatesh', role: 'Founder', image: '/founder.webp', offset: '' },
+  { name: 'Bharath Venna', role: 'Coordinator', image: '/page 10 2 gpt.webp', offset: 'xl:mt-5' },
+  { name: 'Vani', role: 'Trainer', image: '/trainer.webp', offset: 'xl:mt-10' },
 ];
 
 /* ============================================================
@@ -146,7 +146,7 @@ const WhoTeaches = () => {
         whileInView={{ scale: 1, opacity: 0.55 }}
         viewport={{ once: true, amount: 0.15 }}
         transition={{ duration: 2.4, ease: EASE }}
-        src="/blue house.png"
+        src="/blue house.webp"
         alt=""
         loading="lazy"
         decoding="async"

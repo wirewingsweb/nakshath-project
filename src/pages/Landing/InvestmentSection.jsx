@@ -302,14 +302,14 @@ const InvestmentSection = () => {
   const bgY = useTransform(scrollYProgress, [0, 1], ['-2%', '2%']);
 
   const levels = [
-    { level: 'LEVEL 01', lessons: '10', price: '₹11,999', img: '/level 1.png', tone: 'light' },
-    { level: 'LEVEL 02', lessons: '20', price: '₹29,999', img: '/level 2.png', tone: 'light' },
-    { level: 'LEVEL 03', lessons: '20', price: '₹32,999', img: '/level 3.png', tone: 'dark' },
+    { level: 'LEVEL 01', lessons: '10', price: '₹11,999', img: '/level 1.webp', tone: 'light' },
+    { level: 'LEVEL 02', lessons: '20', price: '₹29,999', img: '/level 2.webp', tone: 'light' },
+    { level: 'LEVEL 03', lessons: '20', price: '₹32,999', img: '/level 3.webp', tone: 'dark' },
   ];
 
   const trials = [
     {
-      img: '/free ride.png',
+      img: '/free ride.webp',
       alt: 'Free Trial Ride',
       eyebrow: 'Free Trial Ride',
       title: '10 Minutes',
@@ -317,7 +317,7 @@ const InvestmentSection = () => {
       desc: 'An introductory riding experience for new registrations.',
     },
     {
-      img: '/paid ride.png',
+      img: '/paid ride.webp',
       alt: 'Paid Trial Ride',
       eyebrow: 'Paid Trial Ride',
       title: '45 Minutes',
@@ -344,7 +344,7 @@ const InvestmentSection = () => {
           {/* Parallax — only the image moves inside the wrapper */}
           <motion.img
             style={{ scale: bgScale, y: bgY }}
-            src="/trial-ride.png"
+            src="/trial-ride.webp"
             alt="Rider on Horse"
             loading="lazy"
             decoding="async"

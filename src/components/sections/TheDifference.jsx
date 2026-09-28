@@ -117,7 +117,7 @@ const TheDifference = () => {
           className="group relative overflow-hidden rounded-[2rem] md:rounded-r-none md:rounded-l-[2.25rem]"
         >
           <motion.img
-            src="/page 2 gpt.png"
+            src="/page 2 gpt.webp"
             alt="Indoor Arena"
             loading="lazy"
             decoding="async"

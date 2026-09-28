@@ -4,7 +4,7 @@ const Hero = () => {
       <h1 className="sr-only">Horse Riding Academy in Bengaluru</h1>
 
       <img
-        src="/heroImg.png"
+        src="/heroImg.webp"
         alt="Horse riding at Nakshath Equestrian Club"
         fetchPriority="high"
         decoding="async"

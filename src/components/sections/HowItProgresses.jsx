@@ -139,7 +139,7 @@ const HowItProgresses = () => {
           initial={{ scale: 1.15, opacity: 0 }}
           animate={mobileInView ? { scale: 1, opacity: 1 } : { scale: 1.15, opacity: 0 }}
           transition={{ duration: 1.4, ease: EASE }}
-          src="/page 5 gpt.png"
+          src="/page 5 gpt.webp"
           alt="Four riders demonstrating the progression from walk through competition"
           loading="lazy"
           decoding="async"
@@ -205,7 +205,7 @@ const HowItProgresses = () => {
           initial={{ scale: 1.08 }}
           animate={desktopInView ? { scale: 1 } : { scale: 1.08 }}
           transition={{ duration: 2, ease: EASE }}
-          src="/page 5 gpt.png"
+          src="/page 5 gpt.webp"
           alt="Four riders demonstrating the progression from walk through competition"
           loading="lazy"
           decoding="async"

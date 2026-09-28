@@ -4,37 +4,37 @@ import { EASE } from '../../utils/landing-motion';
 
 const features = [
   {
-    img: '/arena-indoor.png',
+    img: '/arena-indoor.webp',
     title: 'Indoor Arena',
     desc: 'Training in a safe, controlled, covered environment.',
     variant: 'breathing',
   },
   {
-    img: '/arena-weather.png',
+    img: '/arena-weather.webp',
     title: 'All-Weather Training',
     desc: 'Sessions run through monsoon and peak summer heat.',
     variant: 'weather',
   },
   {
-    img: '/arena-footing.png',
+    img: '/arena-footing.webp',
     title: 'International Footing',
     desc: 'Geotextile surface built for grip, cushioning and safety.',
     variant: 'stacking',
   },
   {
-    img: '/arena-batches.png',
+    img: '/arena-batches.webp',
     title: 'Small Batches',
     desc: 'Limited riders per session so every rider gets attention.',
     variant: 'popping',
   },
   {
-    img: '/arena-horses.png',
+    img: '/arena-horses.webp',
     title: 'Schooled Horses',
     desc: 'Calm, well-trained horses matched to rider level.',
     variant: 'trotting',
   },
   {
-    img: '/arena-progression.png',
+    img: '/arena-progression.webp',
     title: 'Structured Progression',
     desc: 'Walk, trot, canter, and on to national and international competition.',
     variant: 'growing',

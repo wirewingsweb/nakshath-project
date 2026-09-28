@@ -221,7 +221,7 @@ const RisingBeyond = () => {
 
   const trials = [
     {
-      img: '/free ride.png',
+      img: '/free ride.webp',
       alt: 'Free Trial Ride',
       eyebrow: 'Free Trial Ride',
       title: '10 Minutes',
@@ -229,7 +229,7 @@ const RisingBeyond = () => {
       desc: 'An introductory riding experience for new registrations.',
     },
     {
-      img: '/paid ride.png',
+      img: '/paid ride.webp',
       alt: 'Paid Trial Ride',
       eyebrow: 'Paid Trial Ride',
       title: '45 Minutes',
@@ -267,7 +267,7 @@ const RisingBeyond = () => {
         >
           <motion.img
             style={{ y: bgY }}
-            src="/rising-beyond-bg.png"
+            src="/rising-beyond-bg.webp"
             alt=""
             aria-hidden="true"
             loading="lazy"

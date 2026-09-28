@@ -8,7 +8,7 @@ const OurHorses = () => {
     <section className="w-full bg-[#FDFCFA] px-[1.8vw] py-8 md:py-[2.3vw]">
       <div className="relative h-[32rem] w-full overflow-hidden rounded-[1.5rem] md:h-auto">
         <motion.img
-          src="/page 8 gpt.png"
+          src="/page 8 gpt.webp"
           alt="Horse at sunset"
           loading="lazy"
           decoding="async"

@@ -249,7 +249,7 @@ const MoreThanFirstRide = () => {
                 <div className="relative overflow-hidden rounded-sm">
                   <motion.img
                     style={{ y: imageY, scale: imageScale }}
-                    src="/page 2 gpt.png"
+                    src="/page 2 gpt.webp"
                     alt="Rider with horse"
                     loading="lazy"
                     decoding="async"

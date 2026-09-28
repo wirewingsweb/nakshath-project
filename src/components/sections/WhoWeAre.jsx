@@ -156,7 +156,7 @@ const WhoWeAre = () => {
                   whileInView={{ opacity: 1, filter: 'blur(0px) brightness(1)' }}
                   viewport={{ once: true, amount: 0 }}
                   transition={{ duration: 1.4, delay: 0.4, ease: EASE }}
-                  src="/page 3 gpt.png"
+                  src="/page 3 gpt.webp"
                   alt="Campus Map"
                   loading="lazy"
                   decoding="async"
@@ -303,7 +303,7 @@ const WhoWeAre = () => {
               style={{ transformStyle: 'preserve-3d' }}
             >
               <motion.img
-                src="/page 3 gpt.png"
+                src="/page 3 gpt.webp"
                 alt="Campus Map — Fullscreen"
                 initial={{ filter: 'brightness(1) drop-shadow(0 20px 40px rgba(0,0,0,0.4))' }}
                 whileHover={{ filter: 'brightness(1.05) drop-shadow(0 40px 60px rgba(201,162,35,0.35))' }}

@@ -120,7 +120,7 @@ const GoldParticles = () => {
    WHO LEADS THE ACADEMY
    ============================================================ */
 const WhoLeadsTheAcademy = () => {
-  const slides = ['/founder-nakshath-rounded.png', '/founder-nakshath-rounded.png'];
+  const slides = ['/founder-nakshath-rounded.webp', '/founder-nakshath-rounded.webp'];
   const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
