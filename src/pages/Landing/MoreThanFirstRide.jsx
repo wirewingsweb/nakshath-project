@@ -1,235 +1,392 @@
-// src/pages/Landing/MoreThanFirstRide.jsx
-import { useEffect, useRef } from 'react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
-import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
-import { FilmGrain } from '../../components/scrollytelling';
+import { useRef, useState, useMemo } from 'react';
+import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+import ShinyText from '../../components/ShinyText';
+import { EASE, EASE_SNAP } from '../../utils/landing-motion';
 
-const MoreThanFirstRide = () => {
-  const prefersReduced = usePrefersReducedMotion();
-  const sectionRef = useRef(null);
+/* ============================================================
+   LETTER CASCADE — each char rotates in on X-axis
+   ============================================================ */
+const CascadeText = ({ text, delay = 0, className = '' }) => {
+  const chars = text.split('');
+  return (
+    <span className={className}>
+      {chars.map((c, i) => (
+        <motion.span
+          key={`${c}-${i}`}
+          initial={{ opacity: 0, y: 50, rotateX: -90 }}
+          whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+          viewport={{ once: true, amount: 0 }}
+          transition={{
+            duration: 0.75,
+            delay: delay + i * 0.03,
+            ease: EASE,
+          }}
+          style={{ display: 'inline-block', transformOrigin: 'bottom center' }}
+        >
+          {c === ' ' ? '\u00A0' : c}
+        </motion.span>
+      ))}
+    </span>
+  );
+};
 
-  const scrollYProgress = useMotionValue(0);
+/* ============================================================
+   CURSOR SPOTLIGHT — gold halo follows the mouse over the image
+   ============================================================ */
+const CursorSpotlight = ({ containerRef }) => {
+  const [pos, setPos] = useState({ x: '50%', y: '50%', visible: false });
 
-  useEffect(() => {
-    const update = () => {
-      const el = sectionRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const totalScroll = el.offsetHeight - window.innerHeight;
-      const currentScroll = Math.max(0, -rect.top);
-      const progress = totalScroll > 0 ? Math.min(1, currentScroll / totalScroll) : 0;
-      scrollYProgress.set(progress);
-    };
-
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, [scrollYProgress]);
-
-  // ── CARD (image + container as one unit) ──
-  const cardOpacity = useTransform(scrollYProgress, [0, 0.14], [0, 1]);
-  const cardScale   = useTransform(scrollYProgress, [0, 0.14], [0.96, 1]);
-  const cardY       = useTransform(scrollYProgress, [0, 0.14], [32, 0]);
-
-  // ── EYEBROW ──
-  const eyebrowOpacity = useTransform(scrollYProgress, [0.14, 0.24], [0, 1]);
-  const eyebrowX       = useTransform(scrollYProgress, [0.14, 0.24], [-20, 0]);
-
-  // ── HEADING ──
-  const headingOpacity = useTransform(scrollYProgress, [0.18, 0.32], [0, 1]);
-  const headingY       = useTransform(scrollYProgress, [0.18, 0.32], [30, 0]);
-  const headingBlur    = useTransform(scrollYProgress, [0.18, 0.32], [10, 0]);
-  const headingFilter  = useTransform(headingBlur, (v) => `blur(${v}px)`);
-
-  // ── DIVIDER ──
-  const dividerScale = useTransform(scrollYProgress, [0.28, 0.38], [0, 1]);
-
-  // ── DESCRIPTION ──
-  const descOpacity = useTransform(scrollYProgress, [0.32, 0.46], [0, 1]);
-  const descY       = useTransform(scrollYProgress, [0.32, 0.46], [20, 0]);
-
-  // ── FEATURES ──
-  const featuresOpacity = useTransform(scrollYProgress, [0.44, 0.60], [0, 1]);
-  const featuresY       = useTransform(scrollYProgress, [0.44, 0.60], [30, 0]);
-
-  // ── CINEMATIC EXIT ──
-  const exitOpacity = useTransform(scrollYProgress, [0.74, 0.94], [1, 0]);
-  const exitScale   = useTransform(scrollYProgress, [0.74, 0.94], [1, 1.05]);
-  const exitY       = useTransform(scrollYProgress, [0.74, 0.94], [0, -48]);
-
-  // ── Reduced motion fallback ──
-  if (prefersReduced) {
-    return (
-      <section className="relative w-full py-20 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-5 sm:px-6">
-          <div className="flex flex-col lg:flex-row gap-0 items-stretch overflow-hidden rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
-            <div className="w-full lg:w-1/2">
-              <img
-                src="/page 2 gpt.png"
-                alt="Rider with horse"
-                loading="lazy"
-                decoding="async"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="w-full lg:w-1/2 flex flex-col justify-center px-5 sm:px-8 md:px-12 lg:px-16 py-10 sm:py-12">
-              <div className="flex items-center gap-4 mb-6">
-                <span className="type-eyebrow text-[#C9A227]">More Than</span>
-                <div className="h-[1px] flex-1 bg-[#C9A227]/30 max-w-[100px]" />
-              </div>
-              <h2 className="type-page-title mb-8">
-                <span className="text-white">A</span> <span className="text-[#C9A227]">First Ride</span>
-              </h2>
-              <div className="w-16 h-[2px] bg-[#C9A227]/40 mb-8" />
-              <p className="type-lead text-white/85 mb-8 sm:mb-12 text-left max-w-xl mx-0">
-                Equestrian sports bring together athletic skill, partnership
-                with horses, discipline and training. At Nakshath,
-                your first ride is an introduction to that world.
-              </p>
-              <FeatureRow />
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  const onMove = (e) => {
+    if (!containerRef.current) return;
+    const r = containerRef.current.getBoundingClientRect();
+    setPos({
+      x: `${e.clientX - r.left}px`,
+      y: `${e.clientY - r.top}px`,
+      visible: true,
+    });
+  };
+  const onLeave = () => setPos((p) => ({ ...p, visible: false }));
 
   return (
-    <div ref={sectionRef} className="relative w-full" style={{ height: '150vh' }}>
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
+    <div
+      className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-300"
+      style={{
+        opacity: pos.visible ? 1 : 0,
+        background: `radial-gradient(320px circle at ${pos.x} ${pos.y}, rgba(201,162,39,0.28), transparent 60%)`,
+      }}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+    />
+  );
+};
 
-        {/* Film grain overlay — subtle during hold, prominent on exit */}
-        <FilmGrain
-          progress={scrollYProgress}
-          baseOpacity={0.06}
-          exitOpacity={0.18}
-          range={[0.7, 1]}
-        />
+/* ============================================================
+   FEATURE ROW — numbered editorial row, expands on hover
+   ============================================================ */
+const FeatureRow = ({ feature, idx }) => {
+  const [hovered, setHovered] = useState(false);
 
-        {/* ═══ CINEMATIC EXIT GROUP ═══ */}
-        <motion.div
-          className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-6"
-          style={{
-            opacity: exitOpacity,
-            scale: exitScale,
-            y: exitY,
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40, filter: 'blur(8px)' }}
+      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      viewport={{ once: true, amount: 0 }}
+      transition={{ duration: 0.8, delay: 0.3 + idx * 0.15, ease: EASE }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="group relative border-t border-[#1A1A1A]/10 py-7 last:border-b"
+    >
+      {/* Gold sweep on hover */}
+      <motion.span
+        initial={false}
+        animate={{ scaleX: hovered ? 1 : 0 }}
+        transition={{ duration: 0.6, ease: EASE }}
+        className="pointer-events-none absolute left-0 top-0 h-full w-full origin-left bg-[#C9A227]/[0.05]"
+      />
+
+      <div className="relative flex items-start gap-5 md:gap-8">
+        {/* Number — big italic serif */}
+        <motion.span
+          animate={{
+            x: hovered ? 4 : 0,
+            color: hovered ? '#C9A227' : 'rgba(201,162,39,0.35)',
           }}
+          transition={{ duration: 0.4, ease: EASE }}
+          className="mt-1 shrink-0 font-serif text-2xl italic tabular-nums md:text-3xl"
         >
-          {/* Card as one unit */}
-          <motion.div
-            className="flex flex-col lg:flex-row gap-0 items-stretch overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-md shadow-[0_18px_50px_rgba(0,0,0,0.35)]"
-            style={{
-              opacity: cardOpacity,
-              scale: cardScale,
-              y: cardY,
-            }}
-          >
-            {/* Left: Image */}
-            <div className="w-full lg:w-1/2 overflow-hidden">
-              <img
-                src="/page 2 gpt.png"
-                alt="Rider with horse"
-                loading="lazy"
-                decoding="async"
-                className="w-full h-full object-cover"
-              />
-            </div>
+          {String(idx + 1).padStart(2, '0')}
+        </motion.span>
 
-            {/* Right: Content */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-center px-5 sm:px-8 md:px-12 lg:px-16 py-10 sm:py-12">
-
-              {/* Eyebrow */}
-              <motion.div
-                className="flex items-center gap-4 mb-6"
-                style={{ opacity: eyebrowOpacity, x: eyebrowX }}
-              >
-                <span className="type-eyebrow text-[#C9A227]">More Than</span>
-                <div className="h-[1px] flex-1 bg-[#C9A227]/30 max-w-[100px]" />
-              </motion.div>
-
-              {/* Heading */}
-              <motion.h2
-                className="type-page-title mb-8"
-                style={{
-                  opacity: headingOpacity,
-                  y: headingY,
-                  filter: headingFilter,
-                }}
-              >
-                <span className="text-white">A</span> <span className="text-[#C9A227]">First Ride</span>
-              </motion.h2>
-
-              {/* Divider */}
-              <motion.div
-                className="w-16 h-[2px] bg-[#C9A227]/40 mb-8 origin-left"
-                style={{ scaleX: dividerScale }}
-              />
-
-              {/* Description */}
-              <motion.p
-                className="type-lead text-white/85 mb-8 sm:mb-12 text-left max-w-xl mx-0"
-                style={{ opacity: descOpacity, y: descY }}
-              >
-                Equestrian sports bring together athletic skill, partnership
-                with horses, discipline and training. At Nakshath,
-                your first ride is an introduction to that world.
-              </motion.p>
-
-              {/* Features */}
-              <motion.div style={{ opacity: featuresOpacity, y: featuresY }}>
-                <FeatureRow />
-              </motion.div>
-            </div>
-          </motion.div>
+        {/* Icon — spins on hover */}
+        <motion.div
+          animate={{
+            rotate: hovered ? 12 : 0,
+            scale: hovered ? 1.08 : 1,
+          }}
+          transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
+          className="mt-1 shrink-0"
+        >
+          {feature.icon}
         </motion.div>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <motion.h4
+            animate={{ letterSpacing: hovered ? '0.02em' : '0em' }}
+            transition={{ duration: 0.4, ease: EASE }}
+            className="mb-2 text-base font-bold uppercase tracking-wider text-[#1A1A1A] transition-colors duration-500 group-hover:text-[#876B18] md:text-lg"
+          >
+            {feature.title}
+          </motion.h4>
+
+          <p className="type-small max-w-md text-[#1A1A1A]/70 transition-colors duration-500 group-hover:text-[#1A1A1A]/90">
+            {feature.desc}
+          </p>
+
+          {/* Hidden detail line — reveals on hover */}
+          <motion.div
+            initial={false}
+            animate={{
+              height: hovered ? 'auto' : 0,
+              opacity: hovered ? 1 : 0,
+            }}
+            transition={{ duration: 0.5, ease: EASE }}
+            className="overflow-hidden"
+          >
+            <p className="mt-3 flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-[#C9A227]">
+              <span className="inline-block h-px w-6 bg-[#C9A227]" />
+              Part of every session
+            </p>
+          </motion.div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+const MoreThanFirstRide = () => {
+  const sectionRef = useRef(null);
+  const imageWrapRef = useRef(null);
+
+  // Scroll-linked parallax on the image
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+  const imageY = useTransform(scrollYProgress, [0, 1], ['-5%', '5%']);
+  const imageScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.08, 1.02, 1.08]);
+
+  // Gold thread on the right column that fills as you scroll
+  const threadProgress = useTransform(scrollYProgress, [0.25, 0.9], [0, 1]);
+
+  const features = [
+    {
+      title: 'Professional Coaching',
+      desc: 'Guidance within a structured riding environment — not corrections after the fact.',
+      icon: (
+        <svg className="h-9 w-9 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+        </svg>
+      ),
+    },
+    {
+      title: 'Well-Trained Horses',
+      desc: 'Well-schooled, safe and reliable horses matched to riders of different levels.',
+      icon: (
+        <svg className="h-9 w-9 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      ),
+    },
+    {
+      title: 'Structured Progression',
+      desc: 'Walk → Trot → Canter → National & International Competitions.',
+      icon: (
+        <svg className="h-9 w-9 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+        </svg>
+      ),
+    },
+  ];
+
+  return (
+    <div
+      ref={sectionRef}
+      className="relative w-full overflow-hidden bg-[#F2F0EB] py-14 sm:py-20 lg:py-28"
+    >
+      <div className="mx-auto max-w-7xl px-5 sm:px-6">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
+
+          {/* ==================================================
+              LEFT — Sticky image with cursor spotlight + curtain
+              ================================================== */}
+          <div className="lg:col-span-5">
+            <div className="lg:sticky lg:top-32">
+              <div ref={imageWrapRef} className="group relative">
+                {/* Curtain reveal — two side panels slide apart */}
+                <motion.div
+                  initial={{ scaleX: 1 }}
+                  whileInView={{ scaleX: 0 }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{ duration: 1.3, ease: EASE_SNAP, delay: 0.1 }}
+                  className="pointer-events-none absolute inset-0 z-30 origin-left bg-[#F2F0EB]"
+                />
+                <motion.div
+                  initial={{ scaleX: 1 }}
+                  whileInView={{ scaleX: 0 }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{ duration: 1.3, ease: EASE_SNAP, delay: 0.1 }}
+                  className="pointer-events-none absolute inset-0 z-30 origin-right bg-[#F2F0EB]"
+                />
+
+                {/* Gold frame that draws after the curtain opens */}
+                <motion.span
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{ duration: 1, delay: 1.4, ease: EASE }}
+                  className="pointer-events-none absolute left-0 top-0 h-[2px] w-full origin-left bg-[#C9A227] z-20"
+                />
+                <motion.span
+                  initial={{ scaleY: 0 }}
+                  whileInView={{ scaleY: 1 }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{ duration: 1, delay: 1.6, ease: EASE }}
+                  className="pointer-events-none absolute right-0 top-0 h-full w-[2px] origin-top bg-[#C9A227] z-20"
+                />
+                <motion.span
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{ duration: 1, delay: 1.8, ease: EASE }}
+                  className="pointer-events-none absolute bottom-0 right-0 h-[2px] w-full origin-right bg-[#C9A227] z-20"
+                />
+
+                {/* Image with parallax */}
+                <div className="relative overflow-hidden rounded-sm">
+                  <motion.img
+                    style={{ y: imageY, scale: imageScale }}
+                    src="/page 2 gpt.png"
+                    alt="Rider with horse"
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                  {/* Warm gradient overlay */}
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0C0922]/45 via-transparent to-transparent" />
+
+                  {/* Cursor spotlight */}
+                  <CursorSpotlight containerRef={imageWrapRef} />
+                </div>
+
+                {/* Corner accent brackets */}
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{ duration: 0.6, delay: 2, ease: [0.34, 1.56, 0.64, 1] }}
+                  className="pointer-events-none absolute -left-3 -top-3 h-5 w-5 border-l-2 border-t-2 border-[#C9A227]"
+                />
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{ duration: 0.6, delay: 2.1, ease: [0.34, 1.56, 0.64, 1] }}
+                  className="pointer-events-none absolute -bottom-3 -right-3 h-5 w-5 border-b-2 border-r-2 border-[#C9A227]"
+                />
+
+                {/* Caption tag on the image */}
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{ duration: 0.8, delay: 2.2, ease: EASE }}
+                  className="absolute bottom-5 left-5 z-20 flex items-center gap-3"
+                >
+                  <span className="inline-block h-px w-8 bg-[#C9A227]" />
+                  <span className="text-[0.6rem] font-semibold uppercase tracking-[0.24em] text-white/90">
+                    Sarjapura · Bengaluru
+                  </span>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+
+          {/* ==================================================
+              RIGHT — Editorial content with numbered rows
+              ================================================== */}
+          <div className="lg:col-span-7">
+            {/* Eyebrow */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0 }}
+              transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
+              className="mb-6 flex items-center gap-4"
+            >
+              <span className="type-eyebrow text-[#C9A227]">More Than</span>
+              <motion.div
+                initial={{ width: 0 }}
+                whileInView={{ width: 100 }}
+                viewport={{ once: true, amount: 0 }}
+                transition={{ duration: 1, delay: 0.5, ease: EASE }}
+                className="h-[1px] bg-[#C9A227]/40"
+              />
+            </motion.div>
+
+            {/* Massive title with letter cascade + ShinyText */}
+            <h2 className="type-page-title mb-5 leading-[1.05]">
+              <span className="block text-[#1A1A1A]">
+                <CascadeText text="A" delay={0.3} />
+              </span>
+              <span className="block">
+                <ShinyText
+                  text="First Ride"
+                  speed={3}
+                  className="text-[#C9A227]"
+                  disabled={false}
+                />
+              </span>
+            </h2>
+
+            {/* Draw line */}
+            <motion.div
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true, amount: 0 }}
+              transition={{ duration: 1, delay: 0.9, ease: EASE }}
+              className="mb-8 h-[2px] w-20 origin-left bg-[#C9A227]/50"
+            />
+
+            {/* Description with line-by-line mask */}
+            <motion.p
+              initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              viewport={{ once: true, amount: 0 }}
+              transition={{ duration: 0.9, delay: 0.6, ease: EASE }}
+              className="type-lead mb-10 max-w-xl text-[#1A1A1A]/85"
+            >
+              Equestrian sports bring together athletic skill, partnership with
+              horses, discipline and training. At Nakshath, your first ride is an
+              introduction to that world.
+            </motion.p>
+
+            {/* Feature rows with vertical gold thread */}
+            <div className="relative">
+              {/* Vertical rail on the left */}
+              <span className="pointer-events-none absolute left-0 top-0 hidden h-full w-px bg-[#1A1A1A]/10 md:block" />
+              {/* Gold thread that fills with scroll */}
+              <motion.span
+                style={{ scaleY: threadProgress }}
+                className="pointer-events-none absolute left-0 top-0 hidden h-full w-px origin-top bg-[#C9A227] md:block"
+              />
+
+              <div className="md:pl-0">
+                {features.map((feature, idx) => (
+                  <FeatureRow key={idx} feature={feature} idx={idx} />
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom caption */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true, amount: 0 }}
+              transition={{ duration: 0.8, delay: 1, ease: EASE }}
+              className="mt-8 flex items-center gap-3 text-[0.6rem] font-semibold uppercase tracking-[0.24em] text-[#1A1A1A]/40"
+            >
+              <span className="h-px w-6 bg-[#C9A227]/60" />
+              Hover a line to preview
+            </motion.div>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
-
-// ─── Feature row ──────────────────────────────────────────────
-const FeatureRow = () => (
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t border-[#C9A227]/20 md:border-t-0">
-    <div className="flex items-start gap-4 px-0 py-6 text-left border-b border-[#C9A227]/20 md:block md:px-6 md:py-0 md:text-center md:border-b-0 md:border-r md:border-[#C9A227]/20">
-      <div className="flex shrink-0 justify-start md:justify-center mb-0 md:mb-4">
-        <svg className="w-12 h-12 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-        </svg>
-      </div>
-      <div>
-        <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-2 md:mb-3">Professional Coaching</h4>
-        <p className="type-small text-white/70">Guidance within a structured riding environment.</p>
-      </div>
-    </div>
-
-    <div className="flex items-start gap-4 px-0 py-6 text-left border-b border-[#C9A227]/20 md:block md:px-6 md:py-0 md:text-center md:border-b-0 md:border-r md:border-[#C9A227]/20">
-      <div className="flex shrink-0 justify-start md:justify-center mb-0 md:mb-4">
-        <svg className="w-12 h-12 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-        </svg>
-      </div>
-      <div>
-        <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-2 md:mb-3">Well-Trained Horses</h4>
-        <p className="type-small text-white/70">Well-schooled, safe and reliable horses for riders of different levels.</p>
-      </div>
-    </div>
-
-    <div className="flex items-start gap-4 px-0 py-6 text-left md:block md:px-6 md:py-0 md:text-center">
-      <div className="flex shrink-0 justify-start md:justify-center mb-0 md:mb-4">
-        <svg className="w-12 h-12 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-        </svg>
-      </div>
-      <div>
-        <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-2 md:mb-3">Structured Progression</h4>
-        <p className="type-small text-white/70">Walk → Trot → Canter → National &amp; International Competitions.</p>
-      </div>
-    </div>
-  </div>
-);
 
 export default MoreThanFirstRide;

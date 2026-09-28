@@ -1,10 +1,6 @@
-// src/components/DatePicker.jsx
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { FiCalendar, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { getLocalToday } from '../utils/dateInput';
-import { EASE_SECONDARY, DURATION } from '../utils/motion';
-import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
@@ -39,43 +35,7 @@ const buildCalendarDays = (monthDate) => {
   });
 };
 
-// ─── Variants ────────────────────────────────────────────────
-
-const popoverVariants = (prefersReduced) => ({
-  hidden: {
-    opacity: 0,
-    scale: prefersReduced ? 1 : 0.98,
-    y: prefersReduced ? 0 : -4,
-  },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: {
-      duration: prefersReduced ? 0 : DURATION.popover,
-      ease: EASE_SECONDARY,
-    },
-  },
-  exit: {
-    opacity: 0,
-    scale: prefersReduced ? 1 : 0.98,
-    y: prefersReduced ? 0 : -4,
-    transition: {
-      duration: prefersReduced ? 0 : DURATION.popover,
-      ease: EASE_SECONDARY,
-    },
-  },
-});
-
-// ─── Component ───────────────────────────────────────────────
-
-const DatePicker = ({
-  name = 'date',
-  value = '',
-  onChange,
-  theme = 'light',
-  ariaLabel = 'Select date',
-}) => {
+const DatePicker = ({ name = 'date', value = '', onChange, theme = 'light', ariaLabel = 'Select date' }) => {
   const pickerRef = useRef(null);
   const selectedDate = parseDate(value);
   const todayValue = getLocalToday();
@@ -83,7 +43,6 @@ const DatePicker = ({
   const [isOpen, setIsOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState(() => selectedDate || today);
   const isDark = theme === 'dark';
-  const prefersReduced = usePrefersReducedMotion();
 
   const calendarDays = useMemo(() => buildCalendarDays(visibleMonth), [visibleMonth]);
   const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -145,108 +104,81 @@ const DatePicker = ({
         onClick={openPicker}
         className={`flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors focus:outline-none focus:border-[#C9A227] ${fieldClasses}`}
       >
-        <span className={value ? '' : isDark ? 'text-white/55' : 'text-[#5A5A66]'}>
-          {formatDate(value)}
-        </span>
+        <span className={value ? '' : isDark ? 'text-white/55' : 'text-[#5A5A66]'}>{formatDate(value)}</span>
         <FiCalendar className="shrink-0 text-[#C9A227]" aria-hidden="true" />
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            role="dialog"
-            aria-label="Choose a booking date"
-            className={`absolute left-0 z-[80] mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border p-4 ${surfaceClasses}`}
-            variants={popoverVariants(prefersReduced)}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            style={{ transformOrigin: 'top left' }}
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <button
-                type="button"
-                aria-label="Previous month"
-                disabled={!canGoBack}
-                onClick={() => changeMonth(-1)}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-[#C9A227] transition-colors hover:bg-[#C9A227]/15 disabled:cursor-not-allowed disabled:opacity-20"
-              >
-                <FiChevronLeft aria-hidden="true" />
-              </button>
-              <p className="font-serif text-lg tracking-wide">
-                {visibleMonth.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
-              </p>
-              <button
-                type="button"
-                aria-label="Next month"
-                onClick={() => changeMonth(1)}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-[#C9A227] transition-colors hover:bg-[#C9A227]/15"
-              >
-                <FiChevronRight aria-hidden="true" />
-              </button>
-            </div>
-
-            <div className="mb-1 grid grid-cols-7 text-center text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#C9A227]">
-              {WEEKDAYS.map((day) => (
-                <span key={day} className="py-2">{day}</span>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 place-items-center gap-y-1">
-              {calendarDays.map((date) => {
-                const dateValue = toDateValue(date);
-                const isPast = dateValue < todayValue;
-                const isSelected = dateValue === value;
-                const isToday = dateValue === todayValue;
-                const isOutsideMonth = date.getMonth() !== visibleMonth.getMonth();
-
-                return (
-                  <button
-                    key={dateValue}
-                    type="button"
-                    disabled={isPast}
-                    aria-label={date.toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                    aria-current={isToday ? 'date' : undefined}
-                    onClick={() => selectDate(date)}
-                    className={`flex h-9 w-9 items-center justify-center rounded-full text-sm transition-colors ${
-                      isSelected
-                        ? 'bg-[#C9A227] font-semibold text-[#0C0922]'
-                        : isPast
-                          ? 'cursor-not-allowed opacity-20'
-                          : 'hover:bg-[#C9A227]/15 hover:text-[#C9A227]'
-                    } ${isOutsideMonth && !isSelected ? 'opacity-40' : ''} ${
-                      isToday && !isSelected ? 'ring-1 ring-inset ring-[#C9A227]/70' : ''
-                    }`}
-                  >
-                    {date.getDate()}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div
-              className={`mt-4 flex items-center justify-between border-t pt-3 text-xs ${
-                isDark ? 'border-white/10' : 'border-[#5A5A66]/15'
-              }`}
+      {isOpen && (
+        <div
+          role="dialog"
+          aria-label="Choose a booking date"
+          className={`absolute left-0 z-[80] mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-2xl border p-4 ${surfaceClasses}`}
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <button
+              type="button"
+              aria-label="Previous month"
+              disabled={!canGoBack}
+              onClick={() => changeMonth(-1)}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[#C9A227] transition-colors hover:bg-[#C9A227]/15 disabled:cursor-not-allowed disabled:opacity-20"
             >
-              <span className={isDark ? 'text-white/55' : 'text-[#5A5A66]'}>
-                Past dates are unavailable
-              </span>
-              <button
-                type="button"
-                onClick={() => selectDate(today)}
-                className="font-semibold uppercase tracking-[0.12em] text-[#C9A227]"
-              >
-                Today
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <FiChevronLeft aria-hidden="true" />
+            </button>
+            <p className="font-serif text-lg tracking-wide">
+              {visibleMonth.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}
+            </p>
+            <button
+              type="button"
+              aria-label="Next month"
+              onClick={() => changeMonth(1)}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[#C9A227] transition-colors hover:bg-[#C9A227]/15"
+            >
+              <FiChevronRight aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="mb-1 grid grid-cols-7 text-center text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[#C9A227]">
+            {WEEKDAYS.map((day) => <span key={day} className="py-2">{day}</span>)}
+          </div>
+
+          <div className="grid grid-cols-7 place-items-center gap-y-1">
+            {calendarDays.map((date) => {
+              const dateValue = toDateValue(date);
+              const isPast = dateValue < todayValue;
+              const isSelected = dateValue === value;
+              const isToday = dateValue === todayValue;
+              const isOutsideMonth = date.getMonth() !== visibleMonth.getMonth();
+
+              return (
+                <button
+                  key={dateValue}
+                  type="button"
+                  disabled={isPast}
+                  aria-label={date.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  aria-current={isToday ? 'date' : undefined}
+                  onClick={() => selectDate(date)}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full text-sm transition-colors ${
+                    isSelected
+                      ? 'bg-[#C9A227] font-semibold text-[#0C0922]'
+                      : isPast
+                        ? 'cursor-not-allowed opacity-20'
+                        : 'hover:bg-[#C9A227]/15 hover:text-[#C9A227]'
+                  } ${isOutsideMonth && !isSelected ? 'opacity-40' : ''} ${isToday && !isSelected ? 'ring-1 ring-inset ring-[#C9A227]/70' : ''}`}
+                >
+                  {date.getDate()}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className={`mt-4 flex items-center justify-between border-t pt-3 text-xs ${isDark ? 'border-white/10' : 'border-[#5A5A66]/15'}`}>
+            <span className={isDark ? 'text-white/55' : 'text-[#5A5A66]'}>Past dates are unavailable</span>
+            <button type="button" onClick={() => selectDate(today)} className="font-semibold uppercase tracking-[0.12em] text-[#C9A227]">
+              Today
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

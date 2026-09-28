@@ -1,232 +1,444 @@
-// src/pages/Landing/RisingBeyond.jsx
-import { useEffect, useRef } from 'react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { useState } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef } from 'react';
 import { GiHorseHead, GiHorseshoe } from 'react-icons/gi';
 import { useEnquiry } from '../../context/EnquiryContext';
-import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import ShinyText from '../../components/ShinyText';
+import { EASE, EASE_SNAP } from '../../utils/landing-motion';
 
-const RisingBeyond = () => {
-  const { openEnquiry } = useEnquiry();
-  const prefersReduced = usePrefersReducedMotion();
-  const sectionRef = useRef(null);
-
-  const scrollYProgress = useMotionValue(0);
-
-  useEffect(() => {
-    const update = () => {
-      const el = sectionRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const totalScroll = el.offsetHeight - window.innerHeight;
-      const currentScroll = Math.max(0, -rect.top);
-      const progress = totalScroll > 0 ? Math.min(1, currentScroll / totalScroll) : 0;
-      scrollYProgress.set(progress);
-    };
-
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-    };
-  }, [scrollYProgress]);
-
-  // ── BACKGROUND ──
-  const bgOpacity    = useTransform(scrollYProgress, [0, 0.12], [0, 1]);
-  const bgScale      = useTransform(scrollYProgress, [0, 0.72, 1], [1.05, 1, 1.15]);
-  const bgBrightness = useTransform(scrollYProgress, [0, 0.72, 1], [1, 0.95, 0.82]);
-
-  // ── EYEBROW ──
-  const eyebrowOpacity = useTransform(scrollYProgress, [0.06, 0.16], [0, 1]);
-  const eyebrowX       = useTransform(scrollYProgress, [0.06, 0.16], [-20, 0]);
-
-  // ── HEADING ──
-  const headingOpacity = useTransform(scrollYProgress, [0.08, 0.22], [0, 1]);
-  const headingY       = useTransform(scrollYProgress, [0.08, 0.22], [30, 0]);
-  const headingBlur    = useTransform(scrollYProgress, [0.08, 0.22], [10, 0]);
-  const headingFilter  = useTransform(headingBlur, (v) => `blur(${v}px)`);
-
-  // ── DIVIDER ──
-  const dividerScale = useTransform(scrollYProgress, [0.16, 0.26], [0, 1]);
-
-  // ── SUBTITLE ──
-  const subtitleOpacity = useTransform(scrollYProgress, [0.20, 0.32], [0, 1]);
-  const subtitleY       = useTransform(scrollYProgress, [0.20, 0.32], [20, 0]);
-
-  // ── TRIAL CARDS ──
-  const trialCardsOpacity = useTransform(scrollYProgress, [0.32, 0.46], [0, 1]);
-  const trialCardsY       = useTransform(scrollYProgress, [0.32, 0.46], [30, 0]);
-  const trialCardsScale   = useTransform(scrollYProgress, [0.32, 0.46], [0.95, 1]);
-
-  // ── CTA ──
-  const ctaOpacity = useTransform(scrollYProgress, [0.46, 0.60], [0, 1]);
-  const ctaY       = useTransform(scrollYProgress, [0.46, 0.60], [20, 0]);
-
-  // ── BOTTOM LINE ──
-  const bottomOpacity = useTransform(scrollYProgress, [0.56, 0.68], [0, 1]);
-  const bottomY       = useTransform(scrollYProgress, [0.56, 0.68], [15, 0]);
-
-  // ── CINEMATIC EXIT ──
-  const exitOpacity = useTransform(scrollYProgress, [0.78, 0.94], [1, 0]);
-  const exitScale   = useTransform(scrollYProgress, [0.78, 0.94], [1, 1.04]);
-  const exitY       = useTransform(scrollYProgress, [0.78, 0.94], [0, -48]);
-
-  // ── Reduced motion fallback ──
-  if (prefersReduced) {
-    return (
-      <section className="relative w-full py-20 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-5 sm:px-6">
-          <div className="max-w-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <h4 className="type-eyebrow text-[#C9A227]">Final Booking</h4>
-              <div className="h-[1px] w-12 bg-[#C9A227]/40" />
-            </div>
-            <h2 className="type-page-title mb-6">
-              <span className="text-white">Rising Beyond</span>
-              <br />
-              <span className="text-[#C9A227]">Every Jump</span>
-            </h2>
-            <div className="w-16 h-[2px] bg-[#C9A227]/40 mb-6" />
-            <p className="type-lead text-white/90 mb-10">
-              Begin Your Journey at <span className="text-[#C9A227]">Nakshath.</span>
-            </p>
-            <TrialCards />
-            <button
-              type="button"
-              onClick={() => openEnquiry('Trial Ride')}
-              className="type-button w-full bg-[#C9A227] text-[#0C0922] py-4 rounded-full hover:bg-white transition-colors mb-8"
-            >
-              → Book Your Trial Ride
-            </button>
-            <p className="text-center text-white/60 text-sm tracking-wider">
-              Kids <span className="mx-2 text-[#C9A227]">•</span> Teens <span className="mx-2 text-[#C9A227]">•</span> Adults
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
+/* ============================================================
+   LETTER CASCADE
+   ============================================================ */
+const CascadeText = ({ text, delay = 0, className = '' }) => {
+  const chars = text.split('');
   return (
-    <div ref={sectionRef} className="relative w-full" style={{ height: '200vh' }}>
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
-
-        {/* Background image */}
-        <motion.div
-          className="absolute inset-0 -z-10"
-          style={{
-            opacity: bgOpacity,
-            scale: bgScale,
-            filter: useTransform(bgBrightness, (b) => `brightness(${b})`),
-          }}
+    <span className={className}>
+      {chars.map((c, i) => (
+        <motion.span
+          key={`${c}-${i}`}
+          initial={{ opacity: 0, y: 40, rotateX: -90 }}
+          whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+          viewport={{ once: true, amount: 0 }}
+          transition={{ duration: 0.7, delay: delay + i * 0.03, ease: EASE }}
+          style={{ display: 'inline-block', transformOrigin: 'bottom center' }}
         >
-          <img
-            src="/rising-beyond-bg.png"
-            alt="Rider on White Horse"
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-cover object-[76%_center] sm:object-right brightness-[.55] contrast-[1.08] saturate-[1.08]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0C0922]/95 via-[#0C0922]/70 to-[#0C0922]/30" />
-        </motion.div>
+          {c === ' ' ? '\u00A0' : c}
+        </motion.span>
+      ))}
+    </span>
+  );
+};
 
-        {/* Content — cinematic exit group */}
-        <motion.div
-          className="w-full max-w-7xl mx-auto px-5 sm:px-6"
-          style={{
-            opacity: exitOpacity,
-            scale: exitScale,
-            y: exitY,
-          }}
-        >
-          <div className="max-w-xl">
-            <motion.div
-              className="flex items-center gap-3 mb-4"
-              style={{ opacity: eyebrowOpacity, x: eyebrowX }}
-            >
-              <h4 className="type-eyebrow text-[#C9A227]">Final Booking</h4>
-              <div className="h-[1px] w-12 bg-[#C9A227]/40" />
-            </motion.div>
+/* ============================================================
+   ROTATING MEDALLION
+   ============================================================ */
+const RotatingMedallion = ({ delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.5, rotate: -40 }}
+    whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+    viewport={{ once: true, amount: 0 }}
+    transition={{ duration: 1.2, delay, ease: [0.34, 1.56, 0.64, 1] }}
+    className="relative flex h-16 w-16 items-center justify-center"
+  >
+    <motion.span
+      animate={{ rotate: 360 }}
+      transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
+      className="absolute inset-0 rounded-full border border-dashed border-[#C9A227]/60"
+    />
+    <span className="absolute inset-1.5 rounded-full border border-[#C9A227]/30" />
+    <GiHorseHead className="relative h-7 w-7 text-[#C9A227]" aria-hidden="true" />
+  </motion.div>
+);
 
-            <motion.h2
-              className="type-page-title mb-6"
-              style={{ opacity: headingOpacity, y: headingY, filter: headingFilter }}
-            >
-              <span className="text-white">Rising Beyond</span>
-              <br />
-              <span className="text-[#C9A227]">Every Jump</span>
-            </motion.h2>
-
-            <motion.div
-              className="w-16 h-[2px] bg-[#C9A227]/40 mb-6 origin-left"
-              style={{ scaleX: dividerScale }}
-            />
-
-            <motion.p
-              className="type-lead text-white/90 mb-10"
-              style={{ opacity: subtitleOpacity, y: subtitleY }}
-            >
-              Begin Your Journey at <span className="text-[#C9A227]">Nakshath.</span>
-            </motion.p>
-
-            <motion.div
-              style={{
-                opacity: trialCardsOpacity,
-                y: trialCardsY,
-                scale: trialCardsScale,
-              }}
-            >
-              <TrialCards />
-            </motion.div>
-
-            <motion.button
-              type="button"
-              onClick={() => openEnquiry('Trial Ride')}
-              className="type-button w-full bg-[#C9A227] text-[#0C0922] py-4 rounded-full hover:bg-white transition-colors mb-8"
-              style={{ opacity: ctaOpacity, y: ctaY }}
-            >
-              → Book Your Trial Ride
-            </motion.button>
-
-            <motion.p
-              className="text-center text-white/60 text-sm tracking-wider"
-              style={{ opacity: bottomOpacity, y: bottomY }}
-            >
-              Kids <span className="mx-2 text-[#C9A227]">•</span> Teens <span className="mx-2 text-[#C9A227]">•</span> Adults
-            </motion.p>
-          </div>
-        </motion.div>
-      </div>
+/* ============================================================
+   MARQUEE
+   ============================================================ */
+const Marquee = ({ items, speed = 32 }) => {
+  const tripled = [...items, ...items, ...items];
+  return (
+    <div className="relative flex w-full overflow-hidden py-4">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#0C0922] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#0C0922] to-transparent" />
+      <motion.div
+        animate={{ x: ['0%', '-33.33%'] }}
+        transition={{ duration: speed, repeat: Infinity, ease: 'linear' }}
+        className="flex shrink-0 items-center gap-10 whitespace-nowrap"
+      >
+        {tripled.map((item, i) => (
+          <span
+            key={i}
+            className="flex items-center gap-10 font-serif text-lg italic text-white/70 md:text-2xl"
+          >
+            {item}
+            <span className="text-[#C9A227]">•</span>
+          </span>
+        ))}
+      </motion.div>
     </div>
   );
 };
 
-const TrialCards = () => (
-  <div className="flex items-start gap-4 mb-10">
-    <div className="bg-white rounded-2xl p-6 shadow-lg flex-1 text-center">
-      <div className="flex justify-center mb-3">
-        <GiHorseshoe aria-hidden="true" className="h-11 w-11 text-[#C9A227]" />
-      </div>
-      <p className="type-eyebrow text-[#1A1A1A] mb-2">Free Trial Ride</p>
-      <div className="type-page-title text-[#1A1A1A] mb-1">10</div>
-      <p className="type-caption text-[#1A1A1A]/70 uppercase tracking-wider mb-4">Minutes</p>
-    </div>
+/* ============================================================
+   FULL-BLEED TRIAL CARD
+   ============================================================ */
+const TrialCard = ({ trial, idx, icon, onBook }) => {
+  const [hovered, setHovered] = useState(false);
+  const fromY = 60 + idx * 20;
 
-    <div className="flex flex-col items-center justify-center pt-8">
-      <span className="text-[#C9A227] text-sm font-medium">or</span>
-      <div className="h-8 w-[1px] bg-[#C9A227]/30 mt-2" />
-    </div>
+  return (
+    <motion.button
+      type="button"
+      onClick={onBook}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      initial={{ opacity: 0, y: fromY, rotate: idx === 0 ? -3 : 3, filter: 'blur(12px)' }}
+      whileInView={{ opacity: 1, y: 0, rotate: 0, filter: 'blur(0px)' }}
+      viewport={{ once: true, amount: 0 }}
+      transition={{ duration: 1.1, delay: 0.3 + idx * 0.18, ease: EASE }}
+      className="group relative aspect-[3/4] w-full cursor-pointer overflow-hidden rounded-3xl bg-[#0C0922] text-left shadow-[0_30px_70px_-30px_rgba(0,0,0,0.6)]"
+    >
+      <motion.img
+        animate={{ scale: hovered ? 1.08 : 1 }}
+        transition={{ duration: 1.4, ease: EASE }}
+        src={trial.img}
+        alt={trial.alt}
+        loading="lazy"
+        decoding="async"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
 
-    <div className="bg-white rounded-2xl p-6 shadow-lg flex-1 text-center">
-      <div className="flex justify-center mb-3">
-        <GiHorseHead aria-hidden="true" className="h-11 w-11 text-[#C9A227]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#0C0922] via-[#0C0922]/60 to-transparent" />
+
+      <motion.div
+        initial={{ opacity: 0, x: -16, y: -16 }}
+        whileInView={{ opacity: 1, x: 0, y: 0 }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: 0.8, delay: 1.1 + idx * 0.18, ease: [0.34, 1.56, 0.64, 1] }}
+        className="absolute left-5 top-5 z-10 flex h-12 w-12 items-center justify-center rounded-full border border-[#C9A227]/70 bg-[#0C0922]/70 backdrop-blur-md transition-all duration-500 group-hover:bg-[#C9A227] group-hover:border-[#C9A227]"
+      >
+        <span className="text-[#C9A227] transition-colors duration-500 group-hover:text-[#0C0922]">
+          {icon}
+        </span>
+      </motion.div>
+
+      <motion.span
+        initial={{ opacity: 0, x: 16 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: 0.7, delay: 1.3 + idx * 0.18, ease: EASE }}
+        className="absolute right-5 top-5 z-10 font-serif text-xs italic tabular-nums text-white/60"
+      >
+        {String(idx + 1).padStart(2, '0')} / 02
+      </motion.span>
+
+      <div className="absolute inset-x-0 bottom-0 z-10 p-6 md:p-7">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0 }}
+          transition={{ duration: 0.7, delay: 1.4 + idx * 0.18, ease: EASE }}
+          className="mb-3 flex items-center gap-3"
+        >
+          <span className="inline-block h-px w-6 bg-[#C9A227]" />
+          <span className="text-[0.6rem] font-semibold uppercase tracking-[0.24em] text-[#C9A227]">
+            {trial.eyebrow}
+          </span>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0 }}
+          transition={{ duration: 0.8, delay: 1.5 + idx * 0.18, ease: EASE }}
+          className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1"
+        >
+          <span className="font-serif text-3xl leading-none text-white md:text-4xl">
+            {trial.title}
+          </span>
+          <span className="font-serif text-xl text-[#C9A227] md:text-2xl">
+            · {trial.price}
+          </span>
+        </motion.div>
+
+        <motion.p
+          initial={false}
+          animate={{
+            opacity: hovered ? 1 : 0,
+            height: hovered ? 'auto' : 0,
+            marginBottom: hovered ? 16 : 0,
+          }}
+          transition={{ duration: 0.55, ease: EASE }}
+          className="overflow-hidden text-sm leading-relaxed text-white/75"
+        >
+          {trial.desc}
+        </motion.p>
+
+        <div className="flex items-center gap-3 text-[0.6rem] font-semibold uppercase tracking-[0.24em] text-white/60">
+          <motion.span
+            animate={{ x: hovered ? 4 : 0 }}
+            transition={{ duration: 0.4, ease: EASE }}
+            className="inline-block"
+          >
+            {hovered ? 'Tap to book' : 'Hover to explore'}
+          </motion.span>
+          <motion.span
+            animate={{ x: hovered ? [0, 6, 0] : 0 }}
+            transition={{ duration: 1.6, repeat: hovered ? Infinity : 0, ease: 'easeInOut' }}
+            className="text-[#C9A227]"
+          >
+            →
+          </motion.span>
+        </div>
       </div>
-      <p className="type-eyebrow text-[#1A1A1A] mb-2">Trial Ride</p>
-      <div className="type-page-title text-[#1A1A1A] mb-1">45</div>
-      <p className="type-caption text-[#1A1A1A]/70 uppercase tracking-wider mb-4">Minutes · ₹1,999</p>
-    </div>
-  </div>
-);
+
+      <div className="pointer-events-none absolute inset-0 rounded-3xl border border-transparent transition-colors duration-700 group-hover:border-[#C9A227]/60" />
+
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl">
+        <motion.div
+          initial={false}
+          animate={{ x: hovered ? '250%' : '-150%' }}
+          transition={{ duration: 1.2, ease: EASE }}
+          className="absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+        />
+      </div>
+    </motion.button>
+  );
+};
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+const RisingBeyond = () => {
+  const { openEnquiry } = useEnquiry();
+  const sectionRef = useRef(null);
+
+  // Scroll-linked parallax for the background image
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+  const bgY = useTransform(scrollYProgress, [0, 1], ['-6%', '6%']);
+
+  const trials = [
+    {
+      img: '/free ride.png',
+      alt: 'Free Trial Ride',
+      eyebrow: 'Free Trial Ride',
+      title: '10 Minutes',
+      price: 'Free',
+      desc: 'An introductory riding experience for new registrations.',
+    },
+    {
+      img: '/paid ride.png',
+      alt: 'Paid Trial Ride',
+      eyebrow: 'Paid Trial Ride',
+      title: '45 Minutes',
+      price: '₹1,999',
+      desc: 'An extended trial riding session.',
+    },
+  ];
+
+  const marqueeItems = [
+    'Kids',
+    'Teens',
+    'Adults',
+    'Beginners',
+    'Competitors',
+    'Riders of every age',
+  ];
+
+  return (
+    <section
+      ref={sectionRef}
+      className="relative w-full overflow-hidden bg-[#0C0922] py-20 sm:py-24"
+    >
+      {/* ==================================================
+          BACKGROUND IMAGE — full section coverage
+          ================================================== */}
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+
+        {/* Clip-path reveal from the left + continuous parallax */}
+        <motion.div
+          initial={{ clipPath: 'inset(0 100% 0 0)' }}
+          whileInView={{ clipPath: 'inset(0 0% 0 0)' }}
+          viewport={{ once: true, amount: 0 }}
+          transition={{ duration: 1.6, ease: EASE_SNAP }}
+          className="absolute inset-0"
+        >
+          <motion.img
+            style={{ y: bgY }}
+            src="/rising-beyond-bg.png"
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-[112%] w-full object-cover object-center"
+          />
+        </motion.div>
+
+        {/* Uniform navy wash — photo is visible but text always readable */}
+        <div className="absolute inset-0 bg-[#0C0922]/72" />
+
+        {/* Soft top-to-bottom vignette — deepens the edges for framing */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0C0922]/45 via-transparent to-[#0C0922]/65" />
+      </div>
+
+      {/* ==================================================
+          AMBIENT GLOWS — float above the photo
+          ================================================== */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.7 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: 2, ease: EASE }}
+        className="pointer-events-none absolute -left-40 top-20 z-[1] h-[500px] w-[500px] rounded-full bg-[#C9A227]/10 blur-[160px]"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.7 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: 2, delay: 0.4, ease: EASE }}
+        className="pointer-events-none absolute -right-40 bottom-20 z-[1] h-[500px] w-[500px] rounded-full bg-[#C9A227]/8 blur-[160px]"
+      />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6">
+        {/* ==================================================
+            HEADER — centered
+            ================================================== */}
+        <div className="mb-14 flex flex-col items-center text-center sm:mb-20">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
+            className="mb-6 flex items-center gap-4"
+          >
+            <span className="inline-block h-px w-8 bg-[#C9A227]/50" />
+            <span className="text-[#C9A227] type-eyebrow">Final Booking</span>
+            <span className="inline-block h-px w-8 bg-[#C9A227]/50" />
+          </motion.div>
+
+          <h2 className="type-page-title mb-6 leading-[1.05] [text-shadow:0_2px_20px_rgba(0,0,0,0.6)]">
+            <span className="block text-white">
+              <CascadeText text="Rising Beyond" delay={0.2} />
+            </span>
+            <span className="block">
+              <ShinyText
+                text="Every Jump"
+                speed={3}
+                className="text-[#C9A227]"
+                disabled={false}
+              />
+            </span>
+          </h2>
+
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true, amount: 0 }}
+            transition={{ duration: 1, delay: 0.9, ease: EASE }}
+            className="mb-6 h-[2px] w-20 origin-center bg-[#C9A227]/50"
+          />
+
+          <motion.p
+            initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+            whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            viewport={{ once: true, amount: 0 }}
+            transition={{ duration: 0.9, delay: 0.6, ease: EASE }}
+            className="type-lead max-w-xl text-white/85 [text-shadow:0_1px_12px_rgba(0,0,0,0.5)]"
+          >
+            Begin Your Journey at{' '}
+            <span className="text-[#C9A227] font-semibold">Nakshath.</span>
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0 }}
+            transition={{ duration: 0.8, delay: 1, ease: EASE }}
+            className="mt-10 flex items-center gap-4"
+          >
+            <RotatingMedallion delay={1.1} />
+            <p className="max-w-xs text-left text-sm leading-relaxed text-white/70">
+              Structured training from first walk to competitive rounds —
+              coached by riders who compete.
+            </p>
+          </motion.div>
+        </div>
+
+        {/* ==================================================
+            TRIAL CARDS
+            ================================================== */}
+        <div className="mx-auto mb-14 grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2">
+          <TrialCard
+            trial={trials[0]}
+            idx={0}
+            icon={<GiHorseshoe className="h-6 w-6" aria-hidden="true" />}
+            onBook={() => openEnquiry('Trial Ride')}
+          />
+          <TrialCard
+            trial={trials[1]}
+            idx={1}
+            icon={<GiHorseHead className="h-6 w-6" aria-hidden="true" />}
+            onBook={() => openEnquiry('Trial Ride')}
+          />
+        </div>
+
+        {/* ==================================================
+            CTA
+            ================================================== */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0 }}
+          transition={{ duration: 0.8, delay: 0.6, ease: EASE }}
+          className="flex justify-center"
+        >
+          <motion.button
+            whileHover={{ scale: 1.04, y: -3 }}
+            whileTap={{ scale: 0.97 }}
+            type="button"
+            onClick={() => openEnquiry('Trial Ride')}
+            className="group/btn relative inline-flex items-center gap-4 overflow-hidden rounded-full border border-[#C9A227]/40 bg-[#0C0922]/70 px-12 py-5 text-white backdrop-blur-md transition-colors duration-500 hover:border-[#C9A227] hover:bg-[#C9A227] hover:text-[#0C0922]"
+          >
+            <motion.span
+              initial={{ x: '-150%' }}
+              animate={{ x: '250%' }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                repeatDelay: 2,
+              }}
+              className="pointer-events-none absolute inset-y-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+            />
+
+            <span className="type-button relative">Book Your Trial Ride</span>
+            <motion.span
+              animate={{ x: [0, 6, 0] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+              className="relative inline-block"
+            >
+              →
+            </motion.span>
+          </motion.button>
+        </motion.div>
+      </div>
+
+      {/* ==================================================
+          MARQUEE
+          ================================================== */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: 1, delay: 0.9, ease: EASE }}
+        className="relative z-10 mt-16 border-y border-white/10 bg-[#0C0922]/50 backdrop-blur-sm"
+      >
+        <Marquee items={marqueeItems} speed={32} />
+      </motion.div>
+    </section>
+  );
+};
 
 export default RisingBeyond;

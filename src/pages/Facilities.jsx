@@ -1,37 +1,629 @@
-// src/pages/Facilities.jsx
-import SectionDots from '../components/SectionDots';
-import ShinyText from '../components/ShinyText';
-import {
-  Reveal,
-  FadeUp,
-  ImageReveal,
-  Stagger,
-  StaggerItem,
-  SplitText,
-  DriftImage,
-  InteractiveCard,
-} from '../components/motion';
+import { useRef, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { fadeInUp, staggerContainer } from '../utils/animations';
+import SplitText from '@/components/SplitText';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 
-const CHAPTERS = [
-  { id: 'chapter-facility-intro', label: 'Property' },
-  { id: 'chapter-arenas',         label: 'Arenas' },
-  { id: 'chapter-stables',        label: 'Stables' },
-  { id: 'chapter-beyond',         label: 'Beyond' },
-];
+/* ============================================================
+   3D TILT HOOK — mouse-following rotateX/rotateY with spring
+   ============================================================ */
+const useTilt = ({ max = 8, scale = 1.02 } = {}) => {
+  const ref = useRef(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0, hovered: false });
 
+  const onMove = useCallback(
+    (e) => {
+      if (!ref.current) return;
+      const r = ref.current.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      setTilt({ x: py * -max, y: px * max, hovered: true });
+    },
+    [max]
+  );
+
+  const onLeave = useCallback(() => {
+    setTilt({ x: 0, y: 0, hovered: false });
+  }, []);
+
+  return { ref, tilt, onMove, onLeave, scale };
+};
+
+/* ============================================================
+   TILT WRAPPER — 3D perspective container
+   ============================================================ */
+const TiltCard = ({
+  children,
+  className = '',
+  max = 8,
+  scale = 1.02,
+  style = {},
+}) => {
+  const { ref, tilt, onMove, onLeave } = useTilt({ max, scale });
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      style={{ perspective: '1400px', ...style }}
+      className={className}
+    >
+      <motion.div
+        animate={{
+          rotateX: tilt.x,
+          rotateY: tilt.y,
+          scale: tilt.hovered ? scale : 1,
+        }}
+        transition={{ type: 'spring', stiffness: 150, damping: 18, mass: 0.6 }}
+        style={{ transformStyle: 'preserve-3d' }}
+        className="relative h-full w-full"
+      >
+        {children}
+      </motion.div>
+    </div>
+  );
+};
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const BlurPara = ({ children, delay = 0, className = '' }) => (
+  <motion.p
+    initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
+    whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+    viewport={{ once: true, amount: 0 }}
+    transition={{ duration: 0.9, delay, ease: [0.22, 1, 0.36, 1] }}
+    className={className}
+  >
+    {children}
+  </motion.p>
+);
+
+/* ============================================================
+   ARENA IMAGE — 3D with layered Z-depth
+   ============================================================ */
+const ArenaImage3D = ({ src, alt, index, delay = 0, aspect = 'aspect-[4/3]' }) => (
+  <TiltCard max={9} scale={1.03}>
+    <div className="group relative w-full">
+      <div className="relative w-full overflow-hidden rounded-3xl bg-[#0C0922] shadow-[0_30px_70px_-25px_rgba(12,9,34,0.55)]">
+        <div className={`relative ${aspect} w-full overflow-hidden`}>
+          <motion.img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+            initial={{ scale: 1.18, filter: 'blur(14px) brightness(0.7)' }}
+            whileInView={{ scale: 1, filter: 'blur(0px) brightness(1)' }}
+            viewport={{ once: true, amount: 0 }}
+            transition={{ duration: 1.6, delay: delay + 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
+          />
+        </div>
+
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,_rgba(201,162,39,0.22),_transparent_60%)] opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+          style={{ transform: 'translateZ(15px)' }}
+        />
+
+        <div
+          className="pointer-events-none absolute inset-0 rounded-3xl border border-transparent transition-colors duration-700 group-hover:border-[#C9A227]/60"
+          style={{ transform: 'translateZ(20px)' }}
+        />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20, rotate: -8 }}
+        whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: 0.9, delay: delay + 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+        className="pointer-events-none absolute -right-5 -top-5 z-20 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#C9A227]/50 bg-[#0C0922] shadow-[0_20px_40px_-15px_rgba(201,162,39,0.4)] backdrop-blur-md"
+        style={{ transform: 'translateZ(70px)' }}
+      >
+        <span className="font-serif text-2xl italic leading-none text-[#C9A227] tabular-nums">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+      </motion.div>
+    </div>
+  </TiltCard>
+);
+
+/* ============================================================
+   ARENA TEXT — 3D lifted text block
+   ============================================================ */
+const ArenaText3D = ({ item, delay = 0, titleClass = 'type-card-title' }) => (
+  <TiltCard max={5} scale={1.01}>
+    <div className="relative">
+      <motion.span
+        initial={{ scaleY: 0 }}
+        whileInView={{ scaleY: 1 }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: 0.9, delay: delay + 0.2, ease: [0.22, 1, 0.36, 1] }}
+        className="pointer-events-none absolute -left-4 top-0 hidden h-full w-px origin-top bg-gradient-to-b from-[#C9A227] via-[#C9A227]/40 to-transparent md:block"
+        style={{ transform: 'translateZ(30px)' }}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, x: -12 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: 0.8, delay: delay + 0.2, ease: [0.22, 1, 0.36, 1] }}
+        className="mb-5"
+        style={{ transform: 'translateZ(40px)' }}
+      >
+        <Badge
+          variant="outline"
+          className="rounded-full border-[#C9A227]/50 bg-transparent px-3 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-[#876B18] hover:bg-transparent"
+        >
+          {item.label}
+        </Badge>
+      </motion.div>
+
+      <h3 className={`${titleClass} mb-4 text-[#1A1A1A]`} style={{ transform: 'translateZ(50px)' }}>
+        <SplitText
+          text={item.title}
+          className="inline-block"
+          delay={delay + 0.35}
+          duration={0.7}
+          ease="power3.out"
+          splitType="words"
+          from={{ opacity: 0, y: 40 }}
+          to={{ opacity: 1, y: 0 }}
+          threshold={0.15}
+          rootMargin="0px"
+          textAlign="left"
+        />
+      </h3>
+
+      <BlurPara
+        delay={delay + 0.75}
+        className="text-[#5A5A66] font-normal leading-relaxed"
+      >
+        {item.desc}
+      </BlurPara>
+    </div>
+  </TiltCard>
+);
+
+/* ============================================================
+   ARENA BLOCK — alternating
+   ============================================================ */
+const ArenaBlock3D = ({ item, index, reverse = false }) => (
+  <div
+    className={`flex flex-col items-center gap-10 lg:gap-16 ${
+      reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'
+    }`}
+  >
+    <div className="w-full lg:w-1/2">
+      <ArenaImage3D
+        src={item.img}
+        alt={item.title}
+        index={index}
+        delay={0.2}
+        aspect="aspect-[4/3]"
+      />
+    </div>
+    <div className="w-full lg:w-1/2">
+      <ArenaText3D item={item} delay={0.2} />
+    </div>
+  </div>
+);
+
+/* ============================================================
+   HORSES LIVE — interactive hover index
+   ============================================================ */
+const HorsesLiveSection = ({ stables }) => {
+  const [active, setActive] = useState(0);
+
+  return (
+    <div className="relative w-full overflow-hidden bg-[#0C0922] py-24">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.7 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, amount: 0 }}
+        transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
+        className="pointer-events-none absolute -left-40 top-20 h-[420px] w-[420px] rounded-full bg-[#C9A227]/8 blur-[140px]"
+      />
+
+      <div className="relative mx-auto max-w-7xl px-6">
+        <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-12 lg:gap-16">
+
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, amount: 0 }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="lg:col-span-5"
+          >
+            <TiltCard max={6} scale={1.01}>
+              <div className="group relative overflow-hidden rounded-2xl bg-[#0C0922] shadow-[0_30px_70px_-25px_rgba(0,0,0,0.7)]">
+                <div className="relative aspect-[4/5] w-full overflow-hidden">
+                  <motion.img
+                    src="/horse live.png"
+                    alt="Stables interior"
+                    loading="lazy"
+                    decoding="async"
+                    initial={{ scale: 1.12, filter: 'brightness(0.7) blur(8px)' }}
+                    whileInView={{ scale: 1, filter: 'brightness(1) blur(0px)' }}
+                    viewport={{ once: true, amount: 0 }}
+                    transition={{ duration: 1.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+                  />
+
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0C0922] via-[#0C0922]/30 to-transparent" />
+
+                  <div className="pointer-events-none absolute bottom-6 left-6 z-10 flex items-end gap-4">
+                    <div className="relative h-[5.5rem] w-[7rem] overflow-hidden">
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={active}
+                          initial={{ y: '60%', opacity: 0, filter: 'blur(8px)' }}
+                          animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }}
+                          exit={{ y: '-60%', opacity: 0, filter: 'blur(8px)' }}
+                          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                          className="absolute inset-0 flex items-end font-serif text-[5rem] italic leading-none text-[#C9A227] tabular-nums"
+                        >
+                          {String(active + 1).padStart(2, '0')}
+                        </motion.span>
+                      </AnimatePresence>
+                    </div>
+
+                    <div className="pb-3">
+                      <p className="text-[0.55rem] font-semibold uppercase tracking-[0.24em] text-white/50">
+                        Now viewing
+                      </p>
+                      <AnimatePresence mode="wait">
+                        <motion.p
+                          key={active}
+                          initial={{ y: 8, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          exit={{ y: -8, opacity: 0 }}
+                          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                          className="font-serif text-base text-white"
+                        >
+                          {stables[active].title}
+                        </motion.p>
+                      </AnimatePresence>
+                    </div>
+                  </div>
+
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl border border-transparent transition-colors duration-700 group-hover:border-[#C9A227]/40" />
+
+                  <div
+                    className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,_rgba(201,162,39,0.20),_transparent_60%)] opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+                    style={{ transform: 'translateZ(15px)' }}
+                  />
+                </div>
+              </div>
+            </TiltCard>
+          </motion.div>
+
+          <div className="lg:col-span-7">
+            <motion.h4
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0 }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="mb-4 text-[#C9A227] type-eyebrow"
+            >
+              Equestrian Core
+            </motion.h4>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0 }}
+              transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+              className="type-section-title mb-10 text-white"
+            >
+              Where the horses live.
+            </motion.h2>
+
+            <div className="relative">
+              <span className="pointer-events-none absolute left-0 top-0 hidden h-full w-px bg-white/10 md:block" />
+              <motion.span
+                animate={{ scaleY: (active + 1) / stables.length }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                className="pointer-events-none absolute left-0 top-0 hidden h-full w-px origin-top bg-[#C9A227] md:block"
+              />
+
+              <div className="md:pl-8">
+                {stables.map((item, idx) => {
+                  const isActive = active === idx;
+                  return (
+                    <motion.button
+                      key={idx}
+                      type="button"
+                      onMouseEnter={() => setActive(idx)}
+                      onFocus={() => setActive(idx)}
+                      onClick={() => setActive(idx)}
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true, amount: 0 }}
+                      transition={{
+                        duration: 0.7,
+                        delay: 0.15 + idx * 0.1,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      className="group block w-full cursor-pointer border-b border-white/10 py-6 text-left last:border-b-0"
+                    >
+                      <div className="flex items-baseline gap-5">
+                        <span
+                          className={`font-serif text-xs italic tabular-nums transition-colors duration-500 ${
+                            isActive ? 'text-[#C9A227]' : 'text-white/30'
+                          }`}
+                        >
+                          {String(idx + 1).padStart(2, '0')}
+                        </span>
+                        <span
+                          className={`text-lg font-semibold uppercase tracking-[0.14em] transition-all duration-500 md:text-xl ${
+                            isActive
+                              ? 'text-[#C9A227]'
+                              : 'text-white/70 group-hover:text-white'
+                          }`}
+                        >
+                          {item.title}
+                        </span>
+                      </div>
+
+                      <AnimatePresence initial={false}>
+                        {isActive && (
+                          <motion.div
+                            key="desc"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                            className="overflow-hidden"
+                          >
+                            <p className="max-w-lg pl-10 pt-4 text-sm font-normal leading-relaxed text-white/60">
+                              {item.desc}
+                            </p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true, amount: 0 }}
+              transition={{ duration: 0.8, delay: 1, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-10 flex items-center gap-3 text-[0.6rem] font-semibold uppercase tracking-[0.22em] text-white/40 md:pl-8"
+            >
+              <span className="h-px w-6 bg-[#C9A227]/60" />
+              Hover a room to preview
+            </motion.p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ============================================================
+   BEYOND CARD — Magazine editorial
+   Tilted card straightens on scroll, alternating vertical
+   offsets, paper-drop shadow, corner index, SplitText title.
+   ============================================================ */
+const BeyondCardEditorial = ({ item, idx }) => {
+  // Alternate the initial rotation and vertical offset
+  const tiltDirection = idx % 2 === 0 ? -1 : 1;
+  const isOffset = idx % 2 === 1;
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <motion.div
+          initial={{
+            opacity: 0,
+            rotate: tiltDirection * 5,
+            y: 60,
+            scale: 0.94,
+          }}
+          whileInView={{
+            opacity: 1,
+            rotate: 0,
+            y: 0,
+            scale: 1,
+          }}
+          viewport={{ once: true, amount: 0 }}
+          transition={{
+            duration: 1.2,
+            delay: 0.15 + idx * 0.12,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          style={{ transformOrigin: isOffset ? 'top left' : 'top right' }}
+          className={`group relative ${isOffset ? 'lg:mt-24' : ''}`}
+        >
+          <button type="button" className="block w-full cursor-pointer text-left">
+            {/* Paper-drop shadow that softens as the card settles */}
+            <motion.div
+              initial={{ opacity: 0.5, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, amount: 0 }}
+              transition={{ duration: 1.4, delay: 0.15 + idx * 0.12, ease: [0.22, 1, 0.36, 1] }}
+              className="pointer-events-none absolute -inset-x-2 bottom-0 h-12 translate-y-6 rounded-[50%] bg-[radial-gradient(ellipse_at_center,_rgba(12,9,34,0.22),_transparent_70%)] blur-2xl"
+            />
+
+            {/* Image frame */}
+            <div className="relative mb-6 overflow-hidden rounded-2xl bg-[#0C0922] shadow-[0_30px_60px_-30px_rgba(12,9,34,0.55)] transition-shadow duration-700 group-hover:shadow-[0_40px_80px_-30px_rgba(12,9,34,0.7)]">
+              <motion.img
+                src={item.img}
+                alt={item.title}
+                loading="lazy"
+                decoding="async"
+                initial={{ scale: 1.08, filter: 'brightness(0.85)' }}
+                whileInView={{ scale: 1, filter: 'brightness(1)' }}
+                viewport={{ once: true, amount: 0 }}
+                transition={{ duration: 1.5, delay: 0.3 + idx * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                className="aspect-[16/10] w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+              />
+
+              {/* Gold rim on hover */}
+              <div className="pointer-events-none absolute inset-0 rounded-2xl border border-transparent transition-colors duration-700 group-hover:border-[#C9A227]/50" />
+
+              {/* Corner index — top-right of image */}
+              <motion.div
+                initial={{ opacity: 0, x: 12, y: -12 }}
+                whileInView={{ opacity: 1, x: 0, y: 0 }}
+                viewport={{ once: true, amount: 0 }}
+                transition={{
+                  duration: 0.9,
+                  delay: 0.85 + idx * 0.12,
+                  ease: [0.34, 1.56, 0.64, 1],
+                }}
+                className="pointer-events-none absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#C9A227]/60 bg-[#0C0922]/80 font-serif text-sm italic text-[#C9A227] backdrop-blur-md"
+              >
+                {String(idx + 1).padStart(2, '0')}
+              </motion.div>
+
+              {/* Small view pill on hover */}
+              <div className="pointer-events-none absolute bottom-4 right-4 z-10 flex items-center gap-2 rounded-full border border-[#C9A227]/50 bg-[#0C0922]/85 px-3 py-1 text-[0.55rem] font-semibold uppercase tracking-[0.18em] text-[#C9A227] opacity-0 backdrop-blur-md transition-opacity duration-500 group-hover:opacity-100">
+                View
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="7" y1="17" x2="17" y2="7" />
+                  <polyline points="7 7 17 7 17 17" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Gold hairline that draws under the image */}
+            <motion.span
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true, amount: 0 }}
+              transition={{
+                duration: 1,
+                delay: 0.95 + idx * 0.12,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="mb-5 block h-px w-16 origin-left bg-[#C9A227] transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:w-24"
+            />
+
+            {/* Title — SplitText word reveal */}
+            <h4 className="mb-2 text-xl font-bold uppercase tracking-wider text-[#1A1A1A] transition-colors duration-500 group-hover:text-[#876B18] md:text-2xl">
+              <SplitText
+                text={item.title}
+                className="inline-block"
+                delay={1.05 + idx * 0.12}
+                duration={0.65}
+                ease="power3.out"
+                splitType="words"
+                from={{ opacity: 0, y: 26 }}
+                to={{ opacity: 1, y: 0 }}
+                threshold={0.15}
+                rootMargin="0px"
+                textAlign="left"
+              />
+            </h4>
+
+            {/* Description */}
+            <motion.p
+              initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
+              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              viewport={{ once: true, amount: 0 }}
+              transition={{
+                duration: 0.8,
+                delay: 1.3 + idx * 0.12,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="text-sm leading-relaxed text-[#5A5A66]"
+            >
+              {item.desc}
+            </motion.p>
+          </button>
+        </motion.div>
+      </DialogTrigger>
+
+      <DialogContent
+        className="max-w-4xl border-[#C9A227]/30 bg-[#0C0922] p-0 sm:rounded-2xl [&>button]:text-white [&>button]:opacity-70 [&>button:hover]:opacity-100 [&>button:hover]:text-[#C9A227]"
+        showCloseButton
+      >
+        <div className="overflow-hidden rounded-2xl">
+          <img
+            src={item.img}
+            alt={item.title}
+            className="h-auto max-h-[65vh] w-full object-cover"
+          />
+          <div className="flex items-center justify-between gap-6 border-t border-white/10 px-6 py-5">
+            <div>
+              <p className="text-[0.55rem] font-semibold uppercase tracking-[0.24em] text-[#C9A227]">
+                Beyond the Arena · {String(idx + 1).padStart(2, '0')}
+              </p>
+              <p className="mt-1 font-serif text-xl text-white">{item.title}</p>
+            </div>
+            <p className="max-w-xs text-right text-sm leading-relaxed text-white/60">
+              {item.desc}
+            </p>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+/* ============================================================
+   MAIN PAGE
+   ============================================================ */
 const Facilities = () => {
   const arenas = [
-    { title: 'Indoor Arena', label: 'All-Weather', desc: 'A covered arena built so training does not stop for monsoon or for summer heat. International-standard geotextile footing, consistent underfoot, and lower injury risk for horse and rider.', img: '/indoor arena.png' },
-    { title: 'Outdoor Arena', label: 'Sand Surface', desc: 'An open sand arena for jumping and flatwork in good weather, with the space to ride a full course and the light to shoot in early morning or late evening.', img: '/outdoor arena.png' },
-    { title: 'Dressage Arena', label: 'Standard Dimensions', desc: 'Built to competition dimensions, so riders practice on the same geometry they will be marked on. The riding area is larger than most people expect.', img: '/dressage arena.png' },
-    { title: 'Lunging Pen', label: 'Groundwork', desc: 'A circular pen for working horses on the lunge — warming up, schooling young horses, and teaching riders to read a horse\'s movement from the ground.', img: '/lunging pen.png' },
+    {
+      title: 'Indoor Arena',
+      label: 'All-Weather',
+      desc: 'A covered arena built so training does not stop for monsoon or for summer heat. International-standard geotextile footing, consistent underfoot, and lower injury risk for horse and rider.',
+      img: '/indoor arena.png',
+    },
+    {
+      title: 'Outdoor Arena',
+      label: 'Sand Surface',
+      desc: 'An open sand arena for jumping and flatwork in good weather, with the space to ride a full course and the light to shoot in early morning or late evening.',
+      img: '/outdoor arena.png',
+    },
+    {
+      title: 'Dressage Arena',
+      label: 'Standard Dimensions',
+      desc: 'Built to competition dimensions, so riders practice on the same geometry they will be marked on. The riding area is larger than most people expect.',
+      img: '/dressage arena.png',
+    },
+    {
+      title: 'Lunging Pen',
+      label: 'Groundwork',
+      desc: "A circular pen for working horses on the lunge — warming up, schooling young horses, and teaching riders to read a horse's movement from the ground.",
+      img: '/lunging pen.png',
+    },
   ];
 
   const stables = [
-    { title: 'Stables', desc: 'Individual stalls with feeding and grooming areas.' },
-    { title: 'Saddle Room', desc: 'Tack stored, cleaned and checked in one place.' },
-    { title: 'Medical Room', desc: 'A dedicated space for treatment and recovery.' },
-    { title: 'Tack Shop', desc: 'Riding gear and equipment on site.' },
+    {
+      title: 'Stables',
+      desc: 'Individual stalls with feeding and grooming areas. Each horse has its own routine, its own space, and the same handlers every day.',
+    },
+    {
+      title: 'Saddle Room',
+      desc: 'Tack stored, cleaned and checked in one place. Every saddle is inspected after every ride.',
+    },
+    {
+      title: 'Medical Room',
+      desc: 'A dedicated space for treatment and recovery — for horses and for riders, staffed and equipped for both.',
+    },
+    {
+      title: 'Tack Shop',
+      desc: 'Riding gear and equipment on site. Helmets, boots, gloves, and anything else you may need before your first ride.',
+    },
   ];
 
   const beyond = [
@@ -43,269 +635,149 @@ const Facilities = () => {
 
   return (
     <div className="min-h-screen bg-[#FDFCFA]">
-      <SectionDots chapters={CHAPTERS} />
 
-      {/* CHAPTER: Property Intro */}
-      <div id="chapter-facility-intro" className="nav-dark-hero bg-[#0C0922] pb-24 pt-32 md:pb-28 md:pt-44">
-        <div className="max-w-7xl mx-auto px-6">
-          <Reveal as="div" y={8} duration={0.5}>
-            <h4 className="type-eyebrow mb-4">
-              <ShinyText
-                text="The Property"
-                color="#C9A227"
-                shineColor="#F5F1E8"
-                speed={2.5}
-                spread={120}
-              />
-            </h4>
-          </Reveal>
+      {/* ====== HEADER — floating 3D text layers ====== */}
+      <div
+        className="nav-dark-hero relative overflow-hidden bg-[#0C0922] pb-24 pt-32 md:pb-28 md:pt-44"
+        style={{ perspective: '1400px' }}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1] }}
+          className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-[#C9A227]/10 blur-[140px]"
+          style={{ transform: 'translateZ(-100px)' }}
+        />
+        <motion.div
+          animate={{ x: [0, 30, 0], y: [0, 18, 0] }}
+          transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
+          className="pointer-events-none absolute inset-[-10%] opacity-[0.05]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, rgba(201,162,39,1) 1px, transparent 1px)',
+            backgroundSize: '36px 36px',
+          }}
+        />
 
-          <Reveal as="div" y={30} duration={0.7} delay={0.15} amount={0.3}>
-            <h1 className="type-page-title text-white leading-tight mb-4">
-              Built to be trained on,<br />
-              <ShinyText
-                text="not looked at."
-                color="#C9A227"
-                shineColor="#F5F1E8"
-                speed={2.5}
-                spread={120}
-              />
-            </h1>
-          </Reveal>
-
-          <FadeUp
-            as="p"
-            size="text"
-            delay={0.35}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+          className="relative mx-auto max-w-7xl px-6"
+          style={{ transformStyle: 'preserve-3d' }}
+        >
+          <motion.h4
+            variants={fadeInUp}
+            className="mb-4 text-[#C9A227] type-eyebrow"
+            style={{ transform: 'translateZ(20px)' }}
+          >
+            The Property
+          </motion.h4>
+          <motion.h1
+            variants={fadeInUp}
+            className="type-page-title mb-4 leading-tight text-white"
+            style={{ transform: 'translateZ(50px)' }}
+          >
+            Built to be trained on,
+            <br />
+            not looked at.
+          </motion.h1>
+          <motion.p
+            variants={fadeInUp}
             className="type-lead text-white/70"
+            style={{ transform: 'translateZ(30px)' }}
           >
-            Indoor arena, lunging pen, stables and a café, on one campus in Sarjapura.
-          </FadeUp>
+            Indoor arena, lunging pen, stables and a café, on one campus in
+            Sarjapura.
+          </motion.p>
+
+          <motion.span
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true, amount: 0 }}
+            transition={{ duration: 1.4, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-10 block h-px w-32 origin-left bg-[#C9A227]/70"
+            style={{ transform: 'translateZ(40px)' }}
+          />
+        </motion.div>
+      </div>
+
+      {/* ====== ARENAS — 3D tilt cards ====== */}
+      <div
+        className="relative z-10 -mt-12 w-full rounded-t-[3rem] bg-[#FDFCFA] py-24"
+        style={{ perspective: '1600px' }}
+      >
+        <div className="space-y-20 lg:space-y-28">
+          <div className="mx-auto max-w-7xl px-6">
+            <ArenaBlock3D item={arenas[0]} index={0} />
+          </div>
+
+          <div className="mx-auto max-w-7xl px-6">
+            <ArenaBlock3D item={arenas[1]} index={1} reverse />
+          </div>
+
+          <div className="mx-auto max-w-7xl px-6">
+            <ArenaBlock3D item={arenas[2]} index={2} />
+          </div>
+
+          <div className="w-full bg-[#F2F0EB] py-16 lg:py-24">
+            <div className="mx-auto max-w-7xl px-6">
+              <div className="flex flex-col items-center gap-10 lg:flex-row-reverse lg:gap-16">
+                <div className="w-full lg:w-[58%]">
+                  <ArenaImage3D
+                    src={arenas[3].img}
+                    alt={arenas[3].title}
+                    index={3}
+                    delay={0.25}
+                    aspect="aspect-[16/10]"
+                  />
+                </div>
+                <div className="w-full lg:w-[42%]">
+                  <ArenaText3D
+                    item={arenas[3]}
+                    delay={0.25}
+                    titleClass="type-section-title"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* CHAPTER: Arenas */}
-      <div id="chapter-arenas" className="relative z-10 -mt-12 w-full rounded-t-[3rem] bg-[#FDFCFA] py-24">
-        <div className="space-y-20">
+      {/* ====== WHERE THE HORSES LIVE — interactive hover index ====== */}
+      <HorsesLiveSection stables={stables} />
 
-          {/* Indoor Arena — image left, text right */}
-          <div className="w-full">
-            <div className="max-w-7xl mx-auto px-6">
-              <div className="flex flex-col lg:flex-row gap-10 items-center">
-                <div className="w-full lg:w-1/2">
-                  <ImageReveal amount={0.2} className="w-full">
-                    <img
-                      src={arenas[0].img}
-                      alt={arenas[0].title}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full rounded-3xl shadow-xl object-cover aspect-[4/3]"
-                    />
-                  </ImageReveal>
-                </div>
-                <Stagger gap={0.1} amount={0.2} className="w-full lg:w-1/2">
-                  <StaggerItem>
-                    <h4 className="text-[#876B18] type-eyebrow mb-2">{arenas[0].label}</h4>
-                  </StaggerItem>
-                  <StaggerItem>
-                    <h3 className="type-card-title text-[#1A1A1A] mb-4">{arenas[0].title}</h3>
-                  </StaggerItem>
-                  <StaggerItem>
-                    <p className="text-[#5A5A66] font-normal leading-relaxed">{arenas[0].desc}</p>
-                  </StaggerItem>
-                </Stagger>
-              </div>
-            </div>
-          </div>
-
-          {/* Outdoor Arena — image right, text left */}
-          <div className="w-full">
-            <div className="max-w-7xl mx-auto px-6">
-              <div className="flex flex-col lg:flex-row-reverse gap-10 items-center">
-                <div className="w-full lg:w-1/2">
-                  <ImageReveal amount={0.2} className="w-full">
-                    <img
-                      src={arenas[1].img}
-                      alt={arenas[1].title}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full rounded-3xl shadow-xl object-cover aspect-[4/3]"
-                    />
-                  </ImageReveal>
-                </div>
-                <Stagger gap={0.1} amount={0.2} className="w-full lg:w-1/2">
-                  <StaggerItem>
-                    <h4 className="text-[#876B18] type-eyebrow mb-2">{arenas[1].label}</h4>
-                  </StaggerItem>
-                  <StaggerItem>
-                    <h3 className="type-card-title text-[#1A1A1A] mb-4">{arenas[1].title}</h3>
-                  </StaggerItem>
-                  <StaggerItem>
-                    <p className="text-[#5A5A66] font-normal leading-relaxed">{arenas[1].desc}</p>
-                  </StaggerItem>
-                </Stagger>
-              </div>
-            </div>
-          </div>
-
-          {/* Dressage Arena — image left, text right */}
-          <div className="w-full">
-            <div className="max-w-7xl mx-auto px-6">
-              <div className="flex flex-col lg:flex-row gap-10 items-center">
-                <div className="w-full lg:w-1/2">
-                  <ImageReveal amount={0.2} className="w-full">
-                    <img
-                      src={arenas[2].img}
-                      alt={arenas[2].title}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full rounded-3xl shadow-xl object-cover aspect-[4/3]"
-                    />
-                  </ImageReveal>
-                </div>
-                <Stagger gap={0.1} amount={0.2} className="w-full lg:w-1/2">
-                  <StaggerItem>
-                    <h4 className="text-[#876B18] type-eyebrow mb-2">{arenas[2].label}</h4>
-                  </StaggerItem>
-                  <StaggerItem>
-                    <h3 className="type-card-title text-[#1A1A1A] mb-4">{arenas[2].title}</h3>
-                  </StaggerItem>
-                  <StaggerItem>
-                    <p className="text-[#5A5A66] font-normal leading-relaxed">{arenas[2].desc}</p>
-                  </StaggerItem>
-                </Stagger>
-              </div>
-            </div>
-          </div>
-
-          {/* Lunging Pen — full width with background */}
-          <div className="w-screen">
-            <div className="w-screen mx-auto">
-              <div className="flex flex-col lg:flex-row-reverse gap-10 items-center bg-[#F2F0EB] p-8 md:p-12 lg:p-16">
-                <div className="w-full lg:w-[60%]">
-                  <ImageReveal amount={0.2} className="w-full">
-                    <img
-                      src={arenas[3].img}
-                      alt={arenas[3].title}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full rounded-[2rem] shadow-xl object-cover aspect-[16/10]"
-                    />
-                  </ImageReveal>
-                </div>
-                <Stagger gap={0.1} amount={0.2} className="w-full lg:w-[40%]">
-                  <StaggerItem>
-                    <h4 className="text-[#876B18] type-eyebrow mb-2">{arenas[3].label}</h4>
-                  </StaggerItem>
-                  <StaggerItem>
-                    <h3 className="type-section-title text-[#1A1A1A] mb-4">{arenas[3].title}</h3>
-                  </StaggerItem>
-                  <StaggerItem>
-                    <p className="text-[#5A5A66] font-normal leading-relaxed">{arenas[3].desc}</p>
-                  </StaggerItem>
-                </Stagger>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* CHAPTER: Stables */}
-      <div id="chapter-stables" className="w-full bg-[#0C0922] py-0 lg:pt-24 lg:pb-12">
-        <div className="w-full flex flex-col lg:flex-row items-center">
-          <div className="w-full lg:w-[45%] relative bg-[#0C0922]">
-            <div className="pb-8 pr-4 lg:py-12">
-              <ImageReveal amount={0.15} className="w-full h-full">
-                <DriftImage
-                  src="/horse live.png"
-                  alt="Stables interior"
-                  drift="subtle"
-                  duration={40}
-                  targetOpacity={1}
-                  className="w-full h-full rounded-r-[3rem] shadow-2xl overflow-hidden"
-                  imgClassName="w-full h-full object-cover"
-                />
-              </ImageReveal>
-            </div>
-          </div>
-
-          <div className="flex w-full flex-col justify-center pt-12 pb-16 pr-6 pl-6 lg:w-[55%] lg:py-12 lg:pr-24 lg:pl-16">
-            <FadeUp size="text" delay={0}>
-              <h4 className="type-eyebrow mb-4">
-                <ShinyText
-                  text="Equestrian Core"
-                  color="#C9A227"
-                  shineColor="#F5F1E8"
-                  speed={2.5}
-                  spread={120}
-                />
-              </h4>
-            </FadeUp>
-
-            <SplitText
-              as="h2"
-              className="type-section-title text-white mb-10"
-              wordDelay={0.04}
-              startDelay={0.1}
-              amount={0.3}
+      {/* ====== BEYOND THE ARENA — Magazine editorial cards ====== */}
+      <div
+        className="relative z-10 -mt-12 rounded-t-[3rem] bg-[#FDFCFA] py-24"
+        style={{ perspective: '1600px' }}
+      >
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0 }}
+            variants={staggerContainer}
+          >
+            <motion.h4 variants={fadeInUp} className="mb-4 text-[#876B18] type-eyebrow">
+              Beyond the Arena
+            </motion.h4>
+            <motion.h2
+              variants={fadeInUp}
+              className="type-section-title mb-12 text-[#1A1A1A]"
             >
-              Where the horses live.
-            </SplitText>
+              Somewhere to wait, and somewhere to stay.
+            </motion.h2>
+          </motion.div>
 
-            <Stagger gap={0.1} amount={0.15} className="space-y-8">
-              {stables.map((item, idx) => (
-                <StaggerItem key={idx}>
-                  <div className="border-b border-white/10 pb-6 transition-colors duration-300 hover:border-[#C9A227]/40">
-                    <h5 className="text-[#C9A227] font-bold text-sm uppercase tracking-wider mb-2">{item.title}</h5>
-                    <p className="text-white/60 text-base font-normal leading-relaxed">{item.desc}</p>
-                  </div>
-                </StaggerItem>
-              ))}
-            </Stagger>
+          <div className="grid grid-cols-1 gap-x-12 gap-y-20 lg:grid-cols-2 lg:gap-y-8">
+            {beyond.map((item, idx) => (
+              <BeyondCardEditorial key={idx} item={item} idx={idx} />
+            ))}
           </div>
         </div>
       </div>
-
-      {/* CHAPTER: Beyond */}
-      <div id="chapter-beyond" className="relative z-10 -mt-12 w-full rounded-t-[3rem] bg-[#FDFCFA] py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <FadeUp size="text" className="mb-4">
-            <h4 className="type-eyebrow text-[#876B18]">Beyond the Arena</h4>
-          </FadeUp>
-
-          <SplitText
-            as="h2"
-            className="type-section-title text-[#1A1A1A] mb-12"
-            wordDelay={0.04}
-            startDelay={0.1}
-            amount={0.3}
-          >
-            Somewhere to wait, and somewhere to stay.
-          </SplitText>
-
-          <Stagger gap={0.12} amount={0.15} className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-14">
-            {beyond.map((item, idx) => (
-              <StaggerItem key={idx}>
-                <InteractiveCard as="div" className="group">
-                  <div className="rounded-2xl overflow-hidden mb-5">
-                    <img
-                      src={item.img}
-                      alt={item.title}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full aspect-[16/9] object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <h4 className="font-bold text-[#1A1A1A] text-xl uppercase tracking-wider">{item.title}</h4>
-                  <p className="text-sm text-[#5A5A66] mt-2 leading-relaxed">{item.desc}</p>
-                </InteractiveCard>
-              </StaggerItem>
-            ))}
-          </Stagger>
-        </div>
-      </div>
-
     </div>
   );
 };
