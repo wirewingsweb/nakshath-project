@@ -30,6 +30,45 @@ body {
   font-weight: 400;
 }
 
+/* Keep every visible scrollbar aligned with the site's refined gold accent. */
+html,
+* {
+  scrollbar-color: var(--color-brand-gold) transparent;
+  scrollbar-width: thin;
+}
+
+@supports selector(::-webkit-scrollbar) {
+  html,
+  * {
+    scrollbar-color: auto;
+    scrollbar-width: auto;
+  }
+
+  *::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .modal-scrollbar::-webkit-scrollbar-track {
+    margin-block: 1.5rem;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--color-brand-gold);
+    border-radius: 999px;
+  }
+
+  *::-webkit-scrollbar-button,
+  *::-webkit-scrollbar-corner {
+    display: none;
+    background: transparent;
+  }
+}
+
 .nav-overlay {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -181,7 +220,7 @@ textarea {
   }
 
   .faq-tabs-scrollbar::-webkit-scrollbar {
-    height: 1px;
+    height: 2px;
   }
 
   .faq-tabs-scrollbar::-webkit-scrollbar-track {
@@ -198,6 +237,12 @@ textarea {
   aspect-ratio: var(--facility-ratio, 4 / 3);
 }
 
+/* ── Campus carousel — continuous drift ───────────────────────
+   No scroll-snap. No scroll-behavior: smooth. JS increments
+   scrollLeft every animation frame for a constant, seamless flow.
+   Card scale / brightness / blur / z-index are all driven by JS
+   per frame (see TheCampus.jsx). CSS provides only layout, base
+   fallback state, and a hover override. */
 .campus-carousel {
   display: flex;
   align-items: center;
@@ -206,8 +251,6 @@ textarea {
   overflow-x: auto;
   overflow-y: visible;
   padding-block: 2rem 1rem;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
   overscroll-behavior-inline: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -224,45 +267,24 @@ textarea {
 
 .campus-carousel-card {
   flex: 0 0 clamp(12rem, 22vw, 23rem);
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
-  opacity: 0;
-  transform: scale(0.72);
   transform-origin: center;
-  transition:
-    transform 800ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 600ms ease,
-    filter 800ms ease;
-  filter: saturate(0.72) brightness(0.9);
-  will-change: transform, opacity;
+  opacity: 1;
+  will-change: transform, filter;
+  /* Fallback state — will be overwritten per-frame by JS inline styles */
+  transform: scale(0.94);
+  filter: brightness(0.65) blur(2px);
 }
 
+/* Hover override — beats the inline JS styles */
+.campus-carousel-card:hover {
+  transform: scale(1.05) !important;
+  filter: brightness(1) blur(0) !important;
+  z-index: 10;
+}
+
+/* Rebasing — instant, no visible jump */
 .campus-carousel--rebasing {
   scroll-behavior: auto;
-  scroll-snap-type: none;
-}
-
-.campus-carousel--rebasing .campus-carousel-card {
-  transition: none;
-}
-
-.campus-carousel-card[data-distance="0"] {
-  z-index: 3;
-  opacity: 1;
-  transform: scale(1);
-  filter: none;
-}
-
-.campus-carousel-card[data-distance="1"] {
-  z-index: 2;
-  opacity: 0.82;
-  transform: scale(0.88);
-}
-
-.campus-carousel-card[data-distance="2"] {
-  z-index: 1;
-  opacity: 0.58;
-  transform: scale(0.77);
 }
 
 @media (max-width: 767px) {
@@ -277,12 +299,15 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .campus-carousel {
-    scroll-behavior: auto;
+  .campus-carousel-card {
+    transform: scale(0.96);
+    filter: brightness(0.85);
+    will-change: auto;
   }
 
-  .campus-carousel-card {
-    transition: none;
+  .campus-carousel-card:hover {
+    transform: scale(1);
+    filter: brightness(1);
   }
 }
 
@@ -309,5 +334,81 @@ textarea {
   .founder-carousel-track {
     --founder-carousel-gap: 1.5vw;
     --founder-carousel-half-gap: 0.75vw;
+  }
+}
+
+/* ── Reduced-motion safety net ───────────────────────────────
+   Belt-and-suspenders: even if a component misses the JS check,
+   this CSS ensures decorative transitions don't run.            */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ── Global card hover lift ─────────────────────────────────── */
+.hover-lift {
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(12, 9, 34, 0.12);
+}
+
+/* ── Link underline reveal ──────────────────────────────────── */
+.link-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.link-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.link-underline:hover::after {
+  transform: scaleX(1);
+}
+
+/* ── Icon micro-interaction ─────────────────────────────────── */
+.icon-shift {
+  transition: transform 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.icon-shift:hover {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-lift,
+  .hover-lift:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .link-underline::after {
+    transition: none;
+    transform: scaleX(1);
+  }
+
+  .icon-shift,
+  .icon-shift:hover {
+    transform: none;
   }
 }

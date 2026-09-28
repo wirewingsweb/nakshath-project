@@ -1,5 +1,11 @@
-import React from 'react';
+// src/components/sections/WhoTeaches.jsx
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { EASE_PRIMARY, DURATION } from '../../utils/motion';
+import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { useInViewOnce } from '../../hooks/useInViewOnce';
+import { SplitText, DriftImage } from '../motion';
 
 const coaches = [
   { name: 'Nakshath Venkatesh', role: 'Founder', image: '/founder.png', offset: '' },
@@ -7,30 +13,100 @@ const coaches = [
   { name: 'Vani', role: 'Trainer', image: '/trainer.png', offset: 'xl:mt-10' },
 ];
 
+const headerContainerVariants = (prefersReduced) => ({
+  hidden: {},
+  visible: { transition: { staggerChildren: prefersReduced ? 0 : 0.08 } },
+});
+
+const headerItemVariants = (prefersReduced, isMobile, y = 12) => ({
+  hidden: { opacity: 0, y: prefersReduced ? 0 : (isMobile ? Math.round(y * 0.6) : y) },
+  visible: { opacity: 1, y: 0, transition: { duration: prefersReduced ? 0 : DURATION.normal, ease: EASE_PRIMARY } },
+});
+
+const gridContainerVariants = (prefersReduced) => ({
+  hidden: {},
+  visible: { transition: { staggerChildren: prefersReduced ? 0 : 0.15, delayChildren: prefersReduced ? 0 : 0.2 } },
+});
+
+const coachItemVariants = (prefersReduced, isMobile) => ({
+  hidden: { opacity: 0, y: prefersReduced ? 0 : (isMobile ? 20 : 40) },
+  visible: { opacity: 1, y: 0, transition: { duration: prefersReduced ? 0 : 0.7, ease: EASE_PRIMARY } },
+});
+
 const WhoTeaches = () => {
+  const prefersReduced = usePrefersReducedMotion();
+  const isMobile = useIsMobile();
+  const [headerRef, headerInView] = useInViewOnce({ amount: 0.3 });
+  const [gridRef, gridInView] = useInViewOnce({ amount: 0.2 });
+
   return (
-    <section className="relative w-full min-h-[42rem] overflow-hidden bg-[#0C0922] px-6 pb-14 pt-14 md:px-10 md:py-20 xl:min-h-0 xl:aspect-[1920/1327] xl:px-[5.4vw] xl:pb-0 xl:pt-[6.4vw]">
-      <img src="/blue house.png" alt="" className="absolute inset-0 block h-full w-full object-cover opacity-75" />
-      <div className="absolute inset-0 bg-[#0C0922]/35"></div>
+    <section className="relative min-h-[42rem] w-full overflow-hidden bg-[#0C0922] px-6 pb-14 pt-14 md:px-10 md:py-20 xl:aspect-[1920/1327] xl:min-h-0 xl:px-[5.4vw] xl:pb-0 xl:pt-[6.4vw]">
+
+      <div className="absolute inset-0">
+        <DriftImage
+          src="/blue house.png"
+          alt=""
+          targetOpacity={0.75}
+          drift="subtle"
+          duration={40}
+          className="h-full w-full"
+          imgClassName="block h-full w-full object-cover"
+        />
+      </div>
+
+      <div className="absolute inset-0 bg-[#0C0922]/35" />
 
       <div className="relative z-10">
-        <h4 className="text-[#C9A227] type-eyebrow mb-4">Who Teaches</h4>
-        <h2 className="type-page-title text-white">
-          Small batches,<br />named coaches.
-        </h2>
+        <motion.div
+          ref={headerRef}
+          variants={headerContainerVariants(prefersReduced)}
+          initial="hidden"
+          animate={headerInView ? 'visible' : 'hidden'}
+        >
+          <motion.h4 className="type-eyebrow mb-4 text-[#C9A227]" variants={headerItemVariants(prefersReduced, isMobile, 8)}>
+            Who Teaches
+          </motion.h4>
 
-        <div className="mt-14 grid grid-cols-1 items-start gap-8 sm:grid-cols-2 xl:grid-cols-[1.05fr_1fr_0.95fr_0.55fr] xl:gap-[2.8vw]">
+          <SplitText
+            as="h2"
+            className="type-page-title text-white"
+            wordDelay={0.05}
+            startDelay={0.15}
+            amount={0.3}
+          >
+            Small batches,<br />named coaches.
+          </SplitText>
+        </motion.div>
+
+        <motion.div
+          ref={gridRef}
+          className="mt-14 grid grid-cols-1 items-start gap-8 sm:grid-cols-2 xl:grid-cols-[1.05fr_1fr_0.95fr_0.55fr] xl:gap-[2.8vw]"
+          variants={gridContainerVariants(prefersReduced)}
+          initial="hidden"
+          animate={gridInView ? 'visible' : 'hidden'}
+        >
           {coaches.map((coach) => (
-            <article key={coach.name} className={coach.offset}>
-              <h3 className="type-card-title text-white">{coach.name}</h3>
-              <p className="type-caption mt-1 mb-3 font-semibold uppercase tracking-[0.14em] text-white/75">{coach.role}</p>
-              <div className="w-full aspect-[3/5] overflow-hidden rounded-t-[1.6rem]">
-                <img src={coach.image} alt={coach.name} className="block w-full h-full object-cover" />
+            <motion.article key={coach.name} className={`hover-lift rounded-lg ${coach.offset}`} variants={coachItemVariants(prefersReduced, isMobile)}>
+              <div className="p-2">
+                <h3 className="type-card-title text-white">{coach.name}</h3>
+                <p className="type-caption mb-3 mt-1 font-semibold uppercase tracking-[0.14em] text-white/75">
+                  {coach.role}
+                </p>
+                <motion.div
+                  className="aspect-[3/5] w-full overflow-hidden rounded-t-[1.6rem]"
+                  whileHover={prefersReduced ? undefined : { scale: 1.02 }}
+                  transition={{ duration: 0.4, ease: EASE_PRIMARY }}
+                >
+                  <img src={coach.image} alt={coach.name} loading="lazy" decoding="async" className="block h-full w-full object-cover" />
+                </motion.div>
               </div>
-            </article>
+            </motion.article>
           ))}
 
-          <div className="self-end pb-2 text-white/85 xl:mt-[15vw] xl:self-auto xl:pb-0">
+          <motion.div
+            className="self-end pb-2 text-white/85 xl:mt-[15vw] xl:self-auto xl:pb-0"
+            variants={coachItemVariants(prefersReduced, isMobile)}
+          >
             <p className="type-small">Limited riders<br />per session.</p>
             <Link
               to="/trainers"
@@ -38,8 +114,8 @@ const WhoTeaches = () => {
             >
               Meet the team
             </Link>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );
