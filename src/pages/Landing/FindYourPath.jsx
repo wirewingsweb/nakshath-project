@@ -32,10 +32,10 @@ const FindYourPath = () => {
   }, [scrollYProgress]);
 
   const programs = [
-    { num: '01', title: 'KIDS SPECIAL RIDING PROGRAM', subtitle: 'A fun-filled learning experience for children.', img: '/kid path.png', features: ['Pony riding', 'Confidence building', 'Physical coordination', 'Interactive horse sessions'] },
-    { num: '02', title: 'BEGINNER PROGRAM', subtitle: 'Perfect for first-time riders.', img: '/begin path.png', features: ['Introduction to horses', 'Riding basics', 'Balance & posture', 'Safety training', 'Horse handling'] },
-    { num: '03', title: 'INTERMEDIATE TRAINING', subtitle: 'For riders seeking skill advancement.', img: '/inter path.png', features: ['Riding techniques', 'Trotting & Cantering', 'Horse Communication & Handling'] },
-    { num: '04', title: 'PROFESSIONAL COMPETITION TRAINING', subtitle: 'Designed for competitive riders.', img: '/advance path.png', features: ['Show Jumping preparation', 'Techniques', 'Performance assessment', 'Advanced Training'] },
+    { num: '01', title: 'KIDS SPECIAL RIDING PROGRAM', subtitle: 'A fun-filled learning experience for children.', img: '/kid path.webp', features: ['Pony riding', 'Confidence building', 'Physical coordination', 'Interactive horse sessions'] },
+    { num: '02', title: 'BEGINNER PROGRAM', subtitle: 'Perfect for first-time riders.', img: '/begin path.webp', features: ['Introduction to horses', 'Riding basics', 'Balance & posture', 'Safety training', 'Horse handling'] },
+    { num: '03', title: 'INTERMEDIATE TRAINING', subtitle: 'For riders seeking skill advancement.', img: '/inter path.webp', features: ['Riding techniques', 'Trotting & Cantering', 'Horse Communication & Handling'] },
+    { num: '04', title: 'PROFESSIONAL COMPETITION TRAINING', subtitle: 'Designed for competitive riders.', img: '/advance path.webp', features: ['Show Jumping preparation', 'Techniques', 'Performance assessment', 'Advanced Training'] },
   ];
 
   // ── HEADER ──

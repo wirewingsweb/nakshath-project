@@ -36,7 +36,7 @@ const OurHorses = () => {
 
         {/* Background image — Ken Burns now */}
         <KenBurnsImage
-          src="/page 8 gpt.png"
+          src="/page 8 gpt.webp"
           alt="Horse at sunset"
           cinematic={false}
           targetOpacity={1}

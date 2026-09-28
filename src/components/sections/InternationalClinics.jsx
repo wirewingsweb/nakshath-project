@@ -97,7 +97,7 @@ const InternationalClinics = () => {
             variants={leftItemVariants(prefersReduced, isMobile, 10)}
           >
             <img
-              src="/international map.png"
+              src="/international map.webp"
               alt="World Map"
               className="h-auto max-h-[180px] w-full object-contain opacity-60 mix-blend-multiply"
             />

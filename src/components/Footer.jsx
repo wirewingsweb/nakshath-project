@@ -82,7 +82,7 @@ const Footer = () => {
           className="absolute inset-0"
         >
           <img
-            src="/come and ride.png"
+            src="/come and ride.webp"
             alt="A rider beginning a trial lesson"
             loading="lazy"
             decoding="async"
@@ -165,7 +165,7 @@ const Footer = () => {
           <motion.div {...columnMotion(columnsInView, prefersReduced, 0)}>
             <Link to="/" className="inline-block">
               <img
-                src="/footer-logo-matched.png"
+                src="/footer-logo-matched.webp"
                 alt="Nakshath Global Sports"
                 loading="lazy"
                 decoding="async"

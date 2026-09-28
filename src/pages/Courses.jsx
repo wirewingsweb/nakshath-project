@@ -31,17 +31,17 @@ const Courses = () => {
   ];
 
   const disciplines = [
-    { title: 'Show Jumping', status: 'Taught Here', desc: 'Riders guide horses over obstacle courses with speed and accuracy.', img: '/show jumping.png' },
-    { title: 'Dressage', status: 'Taught Here', desc: 'Harmony, control, and precise movements ridden to a set pattern.', img: '/dressage.png' },
-    { title: 'Eventing', status: 'Coming Soon', desc: 'Combines dressage, cross-country and show jumping.', img: '/eventing.png' },
+    { title: 'Show Jumping', status: 'Taught Here', desc: 'Riders guide horses over obstacle courses with speed and accuracy.', img: '/show jumping.webp' },
+    { title: 'Dressage', status: 'Taught Here', desc: 'Harmony, control, and precise movements ridden to a set pattern.', img: '/dressage.webp' },
+    { title: 'Eventing', status: 'Coming Soon', desc: 'Combines dressage, cross-country and show jumping.', img: '/eventing.webp' },
   ];
 
   const groupServices = [
-    { title: 'Guest Rides', desc: 'A one-off horse experience, no enrolment.', img: '/beyond ride 1.png' },
-    { title: 'Summer Camps', desc: 'Holiday programmes for children.', img: '/beyond ride 2.png' },
-    { title: 'School Visits', desc: 'Group sessions for schools.', img: '/beyond ride 3.png' },
-    { title: 'Corporate Days', desc: 'Team days on the property.', img: '/beyond ride 4.png' },
-    { title: 'Photoshoots', desc: 'The arenas and grounds, by arrangement.', img: '/beyond ride 5.png' },
+    { title: 'Guest Rides', desc: 'A one-off horse experience, no enrolment.', img: '/beyond ride 1.webp' },
+    { title: 'Summer Camps', desc: 'Holiday programmes for children.', img: '/beyond ride 2.webp' },
+    { title: 'School Visits', desc: 'Group sessions for schools.', img: '/beyond ride 3.webp' },
+    { title: 'Corporate Days', desc: 'Team days on the property.', img: '/beyond ride 4.webp' },
+    { title: 'Photoshoots', desc: 'The arenas and grounds, by arrangement.', img: '/beyond ride 5.webp' },
   ];
 
   return (
@@ -91,7 +91,7 @@ const Courses = () => {
             <div className="flex flex-col lg:flex-row gap-10 items-center">
               <div className="w-full lg:w-1/2">
                 <ImageReveal amount={0.2} className="w-full">
-                  <img src="/kids special.png" alt="Kids Program" loading="lazy" decoding="async" className="w-full rounded-3xl shadow-lg object-cover aspect-[4/3]" />
+                  <img src="/kids special.webp" alt="Kids Program" loading="lazy" decoding="async" className="w-full rounded-3xl shadow-lg object-cover aspect-[4/3]" />
                 </ImageReveal>
               </div>
               <Stagger gap={0.1} amount={0.2} className="w-full lg:w-1/2">
@@ -114,7 +114,7 @@ const Courses = () => {
             <div className="flex flex-col lg:flex-row-reverse gap-10 items-center">
               <div className="w-full lg:w-1/2">
                 <ImageReveal amount={0.2} className="w-full">
-                  <img src="/beginner program.png" alt="Beginner Program" loading="lazy" decoding="async" className="w-full rounded-3xl shadow-lg object-cover aspect-[4/3]" />
+                  <img src="/beginner program.webp" alt="Beginner Program" loading="lazy" decoding="async" className="w-full rounded-3xl shadow-lg object-cover aspect-[4/3]" />
                 </ImageReveal>
               </div>
               <Stagger gap={0.1} amount={0.2} className="w-full lg:w-1/2">
@@ -134,7 +134,7 @@ const Courses = () => {
             <div className="flex flex-col lg:flex-row gap-10 items-center">
               <div className="w-full lg:w-1/2">
                 <ImageReveal amount={0.2} className="w-full">
-                  <img src="/intermediate program.png" alt="Intermediate Training" loading="lazy" decoding="async" className="w-full rounded-3xl shadow-lg object-cover aspect-[4/3]" />
+                  <img src="/intermediate program.webp" alt="Intermediate Training" loading="lazy" decoding="async" className="w-full rounded-3xl shadow-lg object-cover aspect-[4/3]" />
                 </ImageReveal>
               </div>
               <Stagger gap={0.1} amount={0.2} className="w-full lg:w-1/2">
@@ -172,7 +172,7 @@ const Courses = () => {
                   <div className="w-full lg:w-[45%] flex justify-center">
                     <div className="w-full max-w-md">
                       <ImageReveal amount={0.2} className="w-full">
-                        <img src="/pro training.png" alt="Professional Competition Training" loading="lazy" decoding="async" className="w-full h-auto object-cover rounded-3xl shadow-2xl" />
+                        <img src="/pro training.webp" alt="Professional Competition Training" loading="lazy" decoding="async" className="w-full h-auto object-cover rounded-3xl shadow-2xl" />
                       </ImageReveal>
                     </div>
                   </div>
@@ -233,7 +233,7 @@ const Courses = () => {
 
       {/* CHAPTER: Trial */}
       <div id="chapter-trial" className="relative w-full bg-[#0C0922] py-32 overflow-hidden">
-        <img src="/start 10 min.png" alt="Horse Face" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover object-right z-0" />
+        <img src="/start 10 min.webp" alt="Horse Face" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover object-right z-0" />
         <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#0C0922] via-[#0C0922]/85 to-transparent"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row gap-12 md:gap-24">

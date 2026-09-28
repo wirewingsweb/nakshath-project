@@ -24,19 +24,19 @@ const Trainers = () => {
     {
       role: 'Founder - Competition Coaching',
       name: 'Nakshath Venkatesh',
-      img: '/founder.png',
+      img: '/founder.webp',
       text: 'Nakshath competes internationally in show jumping under Federation Equestre Internationale rules, and is long-listed for Team India for the 2026 Asian Games. He coaches the competition track himself, training against the same standards he is judged on. Course technique, round planning, and the discipline of riding a plan rather than riding a feeling.'
     },
     {
       role: 'Coordinator',
       name: 'Bharath Venna',
-      img: '/coordinator.png',
+      img: '/coordinator.webp',
       text: 'Bharath runs the day to day of the academy: who rides which horse, how a rider’s programme is paced, and when someone is ready to move up a level. He works on the principle that every rider has more in them than they think, and that consistent guidance is what gets it out.'
     },
     {
       role: 'Trainer',
       name: 'Vani',
-      img: '/trainer.png',
+      img: '/trainer.webp',
       text: 'Vani teaches riders from their first session on a lead rein through to independent work at canter. Her sessions start on the ground. Riders learn to approach, handle and tack up a horse before they learn to sit on one. She works often with children and with adults returning to riding after a long gap.'
     },
   ];

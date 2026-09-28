@@ -56,7 +56,7 @@ const TrialRideCTA = () => {
     return (
       <section className="relative w-full py-24 md:py-32 px-5 sm:px-6 md:px-20 overflow-hidden">
         <img
-          src="/come and ride.png"
+          src="/come and ride.webp"
           alt="Trial Background"
           loading="lazy"
           decoding="async"
@@ -102,7 +102,7 @@ const TrialRideCTA = () => {
           style={{ opacity: bgOpacity, scale: bgScale }}
         >
           <img
-            src="/come and ride.png"
+            src="/come and ride.webp"
             alt="Trial Background"
             loading="lazy"
             decoding="async"

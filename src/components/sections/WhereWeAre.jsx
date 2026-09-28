@@ -141,7 +141,7 @@ const WhereWeAre = () => {
 
           <div className="mt-10 w-full overflow-hidden rounded-xl shadow-lg lg:mt-0">
             <DriftImage
-              src="/page 12 gpt.png"
+              src="/page 12 gpt.webp"
               alt="Equestrian Facility"
               drift="subtle"
               duration={36}

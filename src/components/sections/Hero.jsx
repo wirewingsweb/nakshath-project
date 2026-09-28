@@ -109,7 +109,7 @@ const Hero = () => {
           }
         >
           <img
-            src="/heroImg.png"
+            src="/heroImg.webp"
             alt="Horse riding at Nakshath Equestrian Club"
             fetchPriority="high"
             decoding="async"

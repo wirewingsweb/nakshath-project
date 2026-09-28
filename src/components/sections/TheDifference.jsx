@@ -107,7 +107,7 @@ const TheDifference = () => {
             }
           >
             <img
-              src="/page 2 gpt.png"
+              src="/page 2 gpt.webp"
               alt="Indoor Arena"
               loading="lazy"
               decoding="async"

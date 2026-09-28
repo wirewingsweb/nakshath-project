@@ -10,7 +10,7 @@ import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
  *
  * Usage:
  *   <KenBurnsImage
- *     src="/heroImg.png"
+ *     src="/heroImg.webp"
  *     alt="..."
  *     className="h-full w-full"
  *     imgClassName="h-full w-full object-cover"

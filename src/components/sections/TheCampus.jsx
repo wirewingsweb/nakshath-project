@@ -8,11 +8,11 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { useInViewOnce } from '../../hooks/useInViewOnce';
 
 const facilities = [
-  { image: '/page 7 1 gpt.png', title: 'Indoor Arena', detail: 'All-weather', ratio: '0.91', position: '50% 58%' },
-  { image: '/page 7 2 gpt.png', title: 'Outdoor Arena', detail: 'Sand surface', ratio: '0.86', position: '50% 48%' },
-  { image: '/page 7 3 gpt.png', title: 'Stables', detail: 'Individual stalls', ratio: '0.79', position: '50% 55%' },
-  { image: '/page 7 4 gpt.png', title: 'Café', detail: 'Open to visitors', ratio: '0.78', position: '50% 52%' },
-  { image: '/page 7 5 gpt.png', title: 'Cottages', detail: 'On-site stay', ratio: '0.93', position: '50% 55%' },
+  { image: '/page 7 1 gpt.webp', title: 'Indoor Arena', detail: 'All-weather', ratio: '0.91', position: '50% 58%' },
+  { image: '/page 7 2 gpt.webp', title: 'Outdoor Arena', detail: 'Sand surface', ratio: '0.86', position: '50% 48%' },
+  { image: '/page 7 3 gpt.webp', title: 'Stables', detail: 'Individual stalls', ratio: '0.79', position: '50% 55%' },
+  { image: '/page 7 4 gpt.webp', title: 'Café', detail: 'Open to visitors', ratio: '0.78', position: '50% 52%' },
+  { image: '/page 7 5 gpt.webp', title: 'Cottages', detail: 'On-site stay', ratio: '0.93', position: '50% 55%' },
 ];
 
 const carouselFacilities = [...facilities, ...facilities, ...facilities];

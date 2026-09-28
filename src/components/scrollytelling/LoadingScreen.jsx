@@ -55,7 +55,7 @@ const LoadingScreen = ({ onComplete, duration = 2000 }) => {
         >
           {/* Logo */}
           <motion.img
-            src="/nakshath logo head.png"
+            src="/nakshath logo head.webp"
             alt="Nakshath"
             className="mb-12 h-20 w-auto object-contain md:h-24"
             initial={{ opacity: 0, y: 10 }}

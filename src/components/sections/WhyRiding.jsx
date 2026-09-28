@@ -7,9 +7,9 @@ import { useInViewOnce } from '../../hooks/useInViewOnce';
 import { SplitText, DriftImage } from '../motion';
 
 const benefits = [
-  { image: '/page 9 physical.png', title: 'Physical', items: ['Balance and coordination', 'Flexibility and posture', 'Core strength'] },
-  { image: '/page 9 mentals.png', title: 'Mental', items: ['Confidence', 'Focus and discipline', 'Calm under pressure'] },
-  { image: '/page 9 lifestyle.png', title: 'Lifestyle', items: ['Responsibility', 'Leadership', 'Sportsmanship'] },
+  { image: '/page 9 physical.webp', title: 'Physical', items: ['Balance and coordination', 'Flexibility and posture', 'Core strength'] },
+  { image: '/page 9 mentals.webp', title: 'Mental', items: ['Confidence', 'Focus and discipline', 'Calm under pressure'] },
+  { image: '/page 9 lifestyle.webp', title: 'Lifestyle', items: ['Responsibility', 'Leadership', 'Sportsmanship'] },
 ];
 
 const headerContainerVariants = (prefersReduced) => ({
@@ -60,7 +60,7 @@ const WhyRiding = () => {
       <div className="relative hidden aspect-[1672/941] w-full lg:block">
         <div className="absolute right-0 top-0 h-[62%] w-[70%] overflow-hidden">
           <DriftImage
-            src="/page 9 gpt.png"
+            src="/page 9 gpt.webp"
             alt="A child riding a white horse at sunset"
             drift="subtle"
             duration={30}
@@ -142,7 +142,7 @@ const WhyRiding = () => {
 
         <div className="relative aspect-[16/10] w-full overflow-hidden">
           <DriftImage
-            src="/page 9 gpt.png"
+            src="/page 9 gpt.webp"
             alt="A child riding a white horse at sunset"
             drift="subtle"
             duration={30}

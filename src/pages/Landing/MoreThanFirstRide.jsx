@@ -69,7 +69,7 @@ const MoreThanFirstRide = () => {
           <div className="flex flex-col lg:flex-row gap-0 items-stretch overflow-hidden rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md">
             <div className="w-full lg:w-1/2">
               <img
-                src="/page 2 gpt.png"
+                src="/page 2 gpt.webp"
                 alt="Rider with horse"
                 loading="lazy"
                 decoding="async"
@@ -131,7 +131,7 @@ const MoreThanFirstRide = () => {
             {/* Left: Image */}
             <div className="w-full lg:w-1/2 overflow-hidden">
               <img
-                src="/page 2 gpt.png"
+                src="/page 2 gpt.webp"
                 alt="Rider with horse"
                 loading="lazy"
                 decoding="async"

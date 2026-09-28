@@ -237,7 +237,7 @@ const Navigation = () => {
           className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
         >
           <img
-            src="/nakshath logo head.png"
+            src="/nakshath logo head.webp"
             alt="Nakshath Logo"
             className="h-16 object-contain sm:h-20 md:h-24"
           />
@@ -313,7 +313,7 @@ const Navigation = () => {
             >
               <Link to="/" onClick={closeMenu}>
                 <img
-                  src="/nakshath logo head.png"
+                  src="/nakshath logo head.webp"
                   alt="Nakshath Logo"
                   className="h-24 object-contain md:h-28"
                 />

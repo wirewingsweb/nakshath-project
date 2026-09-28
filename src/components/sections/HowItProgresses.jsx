@@ -71,7 +71,7 @@ const HowItProgresses = () => {
         animate={mobileInView ? 'visible' : 'hidden'}
       >
         <motion.div className="h-full w-full will-change-transform" variants={imageInnerVariants(prefersReduced)}>
-          <img src="/page 5 gpt.png" alt="Progression" loading="lazy" decoding="async" className="block h-auto w-full" />
+          <img src="/page 5 gpt.webp" alt="Progression" loading="lazy" decoding="async" className="block h-auto w-full" />
         </motion.div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#0C0922]/45 via-transparent to-[#0C0922]/95" />
         <motion.h4 className="type-eyebrow absolute left-4 top-4 text-[#C9A227] [text-shadow:0_1px_8px_rgba(0,0,0,0.55)]" variants={eyebrowVariants(prefersReduced)}>
@@ -110,7 +110,7 @@ const HowItProgresses = () => {
         animate={desktopInView ? 'visible' : 'hidden'}
       >
         <motion.div className="h-full w-full will-change-transform" variants={imageInnerVariants(prefersReduced)}>
-          <img src="/page 5 gpt.png" alt="Progression" loading="lazy" decoding="async" className="block h-auto w-full" />
+          <img src="/page 5 gpt.webp" alt="Progression" loading="lazy" decoding="async" className="block h-auto w-full" />
         </motion.div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#0C0922]/20 via-transparent to-black/10" />
         <motion.h4 className="type-eyebrow absolute left-[4.8%] top-[9.5%] text-[#C9A227]" variants={eyebrowVariants(prefersReduced)}>

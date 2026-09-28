@@ -8,9 +8,9 @@ import { useInViewOnce } from '../../hooks/useInViewOnce';
 import { SplitText, DriftImage } from '../motion';
 
 const coaches = [
-  { name: 'Nakshath Venkatesh', role: 'Founder', image: '/founder.png', offset: '' },
-  { name: 'Bharath Venna', role: 'Coordinator', image: '/page 10 2 gpt.png', offset: 'xl:mt-5' },
-  { name: 'Vani', role: 'Trainer', image: '/trainer.png', offset: 'xl:mt-10' },
+  { name: 'Nakshath Venkatesh', role: 'Founder', image: '/founder.webp', offset: '' },
+  { name: 'Bharath Venna', role: 'Coordinator', image: '/page 10 2 gpt.webp', offset: 'xl:mt-5' },
+  { name: 'Vani', role: 'Trainer', image: '/trainer.webp', offset: 'xl:mt-10' },
 ];
 
 const headerContainerVariants = (prefersReduced) => ({
@@ -44,7 +44,7 @@ const WhoTeaches = () => {
 
       <div className="absolute inset-0">
         <DriftImage
-          src="/blue house.png"
+          src="/blue house.webp"
           alt=""
           targetOpacity={0.75}
           drift="subtle"

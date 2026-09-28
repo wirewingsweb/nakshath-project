@@ -91,7 +91,7 @@ const NakshathDifference = () => {
   ];
 
   // ── BACKGROUND ──
-  const bgOpacity    = useTransform(scrollYProgress, [0, 0.12], [0, 1]);
+  const bgOpacity    = useTransform(scrollYProgress, [0, 1.0], [0, 1]);
   const bgScale      = useTransform(scrollYProgress, [0, 0.72, 1], [1.05, 1, 1.15]);
   const bgBrightness = useTransform(scrollYProgress, [0, 0.72, 1], [1, 0.95, 0.82]);
 
@@ -170,13 +170,13 @@ const NakshathDifference = () => {
           }}
         >
           <img
-            src="/find difference.png"
+            src="/find difference.webp"
             alt="Indoor Arena"
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover object-center brightness-[.55] contrast-[1.08] saturate-[1.1]"
+            className="w-full h-full object-cover object-center brightness-[1.5] contrast-[1.08] saturate-[1.1]"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0C0922]/70 via-[#0C0922]/80 to-[#0C0922]/95" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0C0922]/50 via-[#0C0922]/60 to-[#0C0922]/75" />
         </motion.div>
 
         {/* Content — cinematic exit group */}

@@ -47,12 +47,12 @@ const dividerVariants = (prefersReduced) => ({
 
 const ArenaFeatures = () => {
   const features = [
-    { img: '/arena-indoor.png', title: 'Indoor Arena', desc: 'Training in a safe, controlled, covered environment.' },
-    { img: '/arena-weather.png', title: 'All-Weather Training', desc: 'Sessions run through monsoon and peak summer heat.' },
-    { img: '/arena-footing.png', title: 'International Footing', desc: 'Geotextile surface built for grip, cushioning and safety.' },
-    { img: '/arena-batches.png', title: 'Small Batches', desc: 'Limited riders per session so every rider gets attention.' },
-    { img: '/arena-horses.png', title: 'Schooled Horses', desc: 'Calm, well-trained horses matched to rider level.' },
-    { img: '/arena-progression.png', title: 'Structured Progression', desc: 'Walk, trot, canter, and on to national and international competition.' },
+    { img: '/arena-indoor.webp', title: 'Indoor Arena', desc: 'Training in a safe, controlled, covered environment.' },
+    { img: '/arena-weather.webp', title: 'All-Weather Training', desc: 'Sessions run through monsoon and peak summer heat.' },
+    { img: '/arena-footing.webp', title: 'International Footing', desc: 'Geotextile surface built for grip, cushioning and safety.' },
+    { img: '/arena-batches.webp', title: 'Small Batches', desc: 'Limited riders per session so every rider gets attention.' },
+    { img: '/arena-horses.webp', title: 'Schooled Horses', desc: 'Calm, well-trained horses matched to rider level.' },
+    { img: '/arena-progression.webp', title: 'Structured Progression', desc: 'Walk, trot, canter, and on to national and international competition.' },
   ];
 
   const prefersReduced = usePrefersReducedMotion();

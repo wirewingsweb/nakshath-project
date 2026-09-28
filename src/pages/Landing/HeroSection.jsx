@@ -141,7 +141,7 @@ const HeroSection = () => {
     return (
       <div className="relative w-full min-h-screen bg-[#0C0922] overflow-hidden">
         <img
-          src="/landingHero.png"
+          src="/landingHero.webp"
           alt="Rider training at Nakshath Equestrian Club"
           fetchPriority="high"
           decoding="async"
@@ -153,7 +153,7 @@ const HeroSection = () => {
             <div className="flex-1 text-left lg:text-center flex flex-col items-start lg:items-center [text-shadow:0_2px_16px_rgba(0,0,0,.72)]">
               <div className="mb-7 flex w-full justify-center lg:mb-2">
                 <img
-                  src="/nakshath logo head.png"
+                  src="/nakshath logo head.webp"
                   alt="Nakshath Equestrian Club"
                   decoding="async"
                   className="h-auto w-[min(72vw,290px)] object-contain lg:h-30 lg:w-auto"
@@ -209,7 +209,7 @@ const HeroSection = () => {
           }}
         >
           <img
-            src="/landingHero.png"
+            src="/landingHero.webp"
             alt="Rider training at Nakshath Equestrian Club"
             fetchPriority="high"
             decoding="async"
@@ -261,7 +261,7 @@ const HeroSection = () => {
             <div className="flex-1 text-left lg:text-center flex flex-col items-start lg:items-center [text-shadow:0_2px_16px_rgba(0,0,0,.72)]">
               <div className="mb-7 flex w-full justify-center lg:mb-2">
                 <motion.img
-                  src="/nakshath logo head.png"
+                  src="/nakshath logo head.webp"
                   alt="Nakshath Equestrian Club"
                   decoding="async"
                   className="h-auto w-[min(72vw,290px)] object-contain lg:h-30 lg:w-auto"

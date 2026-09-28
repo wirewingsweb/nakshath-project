@@ -237,7 +237,7 @@ const EnquiryModal = () => {
               <div className="relative flex w-full flex-col items-center justify-center bg-[#0C0922] px-8 py-12 text-center md:w-[45%] md:py-0">
                 {/* Background image — cinematic fade + scale */}
                 <motion.img
-                  src="/enquiry-bg.png"
+                  src="/enquiry-bg.webp"
                   alt=""
                   loading="lazy"
                   decoding="async"
@@ -252,7 +252,7 @@ const EnquiryModal = () => {
                   variants={leftContentVariants}
                 >
                   <motion.img
-                    src="/nakshath logo head.png"
+                    src="/nakshath logo head.webp"
                     alt="Nakshath Logo"
                     loading="lazy"
                     decoding="async"

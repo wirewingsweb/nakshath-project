@@ -7,10 +7,10 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { useInViewOnce } from '../../hooks/useInViewOnce';
 
 const programs = [
-  { title: 'Kids Special', description: 'Pony riding, confidence and coordination for children.', image: '/page 4 3 gpt.png', offset: 'xl:mt-0', imageClass: 'object-contain' },
-  { title: 'Beginner', description: 'First-time riders. Balance, posture, safety and horse handling.', image: '/page 4 gpt.png', offset: 'xl:mt-[5.5vw]', imageClass: 'object-contain' },
-  { title: 'Intermediate', description: 'Riding technique, communication, trotting and cantering.', image: '/page 4 2 gpt.png', offset: 'xl:mt-[0.8vw]', imageClass: 'object-contain' },
-  { title: 'Professional Competition', description: 'Show jumping preparation and performance assessment.', image: '/page 4 4 gpt.png', offset: 'xl:mt-[5vw]', imageClass: 'object-cover object-top' },
+  { title: 'Kids Special', description: 'Pony riding, confidence and coordination for children.', image: '/page 4 3 gpt.webp', offset: 'xl:mt-0', imageClass: 'object-contain' },
+  { title: 'Beginner', description: 'First-time riders. Balance, posture, safety and horse handling.', image: '/page 4 gpt.webp', offset: 'xl:mt-[5.5vw]', imageClass: 'object-contain' },
+  { title: 'Intermediate', description: 'Riding technique, communication, trotting and cantering.', image: '/page 4 2 gpt.webp', offset: 'xl:mt-[0.8vw]', imageClass: 'object-contain' },
+  { title: 'Professional Competition', description: 'Show jumping preparation and performance assessment.', image: '/page 4 4 gpt.webp', offset: 'xl:mt-[5vw]', imageClass: 'object-cover object-top' },
 ];
 
 // ─── Variants ────────────────────────────────────────────────

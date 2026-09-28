@@ -111,10 +111,10 @@ const About = () => {
                           style={{ transform: `translate3d(-${currentSlide * 100}%, 0, 0)` }}
                         >
                           <div className="relative h-full w-full shrink-0">
-                            <img src="/founder 1.png" alt="Nakshath Venkatesh" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                            <img src="/founder 1.webp" alt="Nakshath Venkatesh" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                           </div>
                           <div className="relative h-full w-full shrink-0">
-                            <img src="/page 2 gpt.png" alt="Nakshath with Horse" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                            <img src="/page 2 gpt.webp" alt="Nakshath with Horse" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                           </div>
                         </div>
 
@@ -276,7 +276,7 @@ const About = () => {
                     {/* Map */}
                     <div className="min-h-[24rem] w-full overflow-hidden rounded-2xl bg-[#F5F1E8] md:min-h-[30rem]">
                       <DriftImage
-                        src="/page 3 gpt.png"
+                        src="/page 3 gpt.webp"
                         alt="Campus Map"
                         drift="subtle"
                         duration={40}

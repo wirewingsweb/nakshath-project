@@ -122,7 +122,7 @@ const RisingBeyond = () => {
           }}
         >
           <img
-            src="/rising-beyond-bg.png"
+            src="/rising-beyond-bg.webp"
             alt="Rider on White Horse"
             loading="lazy"
             decoding="async"

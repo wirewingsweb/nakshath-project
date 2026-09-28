@@ -5,9 +5,9 @@ import { useEnquiry } from '../../context/EnquiryContext';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 
 const levels = [
-  { level: 'LEVEL 01', lessons: '10', price: '₹11,999', img: '/level 1.png', tone: 'light' },
-  { level: 'LEVEL 02', lessons: '20', price: '₹29,999', img: '/level 2.png', tone: 'light' },
-  { level: 'LEVEL 03', lessons: '20', price: '₹32,999', img: '/level 3.png', tone: 'dark' },
+  { level: 'LEVEL 01', lessons: '10', price: '₹11,999', img: '/level 1.webp', tone: 'light' },
+  { level: 'LEVEL 02', lessons: '20', price: '₹29,999', img: '/level 2.webp', tone: 'light' },
+  { level: 'LEVEL 03', lessons: '20', price: '₹32,999', img: '/level 3.webp', tone: 'dark' },
 ];
 
 const InvestmentSection = () => {
@@ -126,14 +126,14 @@ const InvestmentSection = () => {
               title="10 Minutes"
               price="Free"
               desc="An introductory riding experience for new registrations."
-              img="/free ride.png"
+              img="/free ride.webp"
             />
             <TrialCard
               eyebrow="Paid Trial Ride"
               title="45 Minutes"
               price="₹1,999"
               desc="An extended trial riding session."
-              img="/paid ride.png"
+              img="/paid ride.webp"
             />
           </div>
           <div className="text-center">
@@ -166,13 +166,13 @@ const InvestmentSection = () => {
             }}
           >
             <img
-              src="/trial-ride.png"
+              src="/trial-ride.webp"
               alt="Rider on Horse"
               loading="lazy"
               decoding="async"
-              className="w-full h-full object-cover object-left brightness-[.55] contrast-[1.05] saturate-[1.1]"
+              className="w-full h-full object-cover object-left brightness-[1.5] contrast-[1.05] saturate-[1.1]"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0C0922]/75 via-[#0C0922]/85 to-[#0C0922]/95" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0C0922]/85 via-[#0C0922]/85 to-[#0C0922]/95" />
           </motion.div>
 
           {/* Content — cinematic exit group */}
@@ -250,7 +250,7 @@ const InvestmentSection = () => {
                   title="10 Minutes"
                   price="Free"
                   desc="An introductory riding experience for new registrations."
-                  img="/free ride.png"
+                  img="/free ride.webp"
                 />
               </motion.div>
               <motion.div style={{ opacity: trial2Opacity, scale: trial2Scale, y: trial2Y }}>
@@ -259,7 +259,7 @@ const InvestmentSection = () => {
                   title="45 Minutes"
                   price="₹1,999"
                   desc="An extended trial riding session."
-                  img="/paid ride.png"
+                  img="/paid ride.webp"
                 />
               </motion.div>
             </div>

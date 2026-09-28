@@ -61,7 +61,7 @@ const WhoWeAre = () => {
           >
             <div className="aspect-[4/5] w-full overflow-hidden">
               <DriftImage
-                src="/page 3 gpt.png"
+                src="/page 3 gpt.webp"
                 alt="Campus Map"
                 drift="subtle"
                 duration={40}
