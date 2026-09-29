@@ -201,7 +201,7 @@ const Courses = () => {
       num: '01',
       eyebrow: 'From Five Years Old',
       title: 'Kids Special Riding Program',
-      img: '/kids special.png',
+      img: '/kids-special.webp',
       paragraphs: [
         'Children start on ponies, on the ground, learning to approach, handle, and tack up before they learn to sit on one.',
         'Pony riding, confidence building, physical coordination, and horsemanship.',
@@ -211,7 +211,7 @@ const Courses = () => {
       num: '02',
       eyebrow: 'No Experience Needed',
       title: 'Beginner Program',
-      img: '/beginner program.png',
+      img: '/beginner-program.webp',
       paragraphs: [
         'For first-time riders of any age. You will learn how a horse thinks and moves before you learn to sit on one.',
         'The skills you build here apply at every level.',
@@ -221,7 +221,7 @@ const Courses = () => {
       num: '03',
       eyebrow: 'For Riders Building Independence',
       title: 'Intermediate Training',
-      img: '/intermediate program.png',
+      img: '/intermediate-program.webp',
       paragraphs: [
         'Once you are steady on a flat, the work becomes about communication — asking nicely and getting a considered answer.',
         'The pace slows, the detail gets finer, and the riding changes.',
@@ -236,17 +236,17 @@ const Courses = () => {
   ];
 
   const disciplines = [
-    { title: 'Show Jumping', status: 'Taught Here', desc: 'Riders guide horses over obstacle courses with speed and accuracy.', img: '/show jumping.png' },
-    { title: 'Dressage', status: 'Taught Here', desc: 'Harmony, control, and precise movements ridden to a set pattern.', img: '/dressage.png' },
-    { title: 'Eventing', status: 'Coming Soon', desc: 'Combines dressage, cross-country and show jumping.', img: '/eventing.png' },
+    { title: 'Show Jumping', status: 'Taught Here', desc: 'Riders guide horses over obstacle courses with speed and accuracy.', img: '/show-jumping.webp' },
+    { title: 'Dressage', status: 'Taught Here', desc: 'Harmony, control, and precise movements ridden to a set pattern.', img: '/dressage.webp' },
+    { title: 'Eventing', status: 'Coming Soon', desc: 'Combines dressage, cross-country and show jumping.', img: '/eventing.webp' },
   ];
 
   const groupServices = [
-    { title: 'Guest Rides', desc: 'A one-off horse experience, no enrolment.', img: '/beyond ride 1.png' },
-    { title: 'Summer Camps', desc: 'Holiday programmes for children.', img: '/beyond ride 2.png' },
-    { title: 'School Visits', desc: 'Group sessions for schools.', img: '/beyond ride 3.png' },
-    { title: 'Corporate Days', desc: 'Team days on the property.', img: '/beyond ride 4.png' },
-    { title: 'Photoshoots', desc: 'The arenas and grounds, by arrangement.', img: '/beyond ride 5.png' },
+    { title: 'Guest Rides', desc: 'A one-off horse experience, no enrolment.', img: '/beyond-ride-1.webp' },
+    { title: 'Summer Camps', desc: 'Holiday programmes for children.', img: '/beyond-ride-2.webp' },
+    { title: 'School Visits', desc: 'Group sessions for schools.', img: '/beyond-ride-3.webp' },
+    { title: 'Corporate Days', desc: 'Team days on the property.', img: '/beyond-ride-4.webp' },
+    { title: 'Photoshoots', desc: 'The arenas and grounds, by arrangement.', img: '/beyond-ride-5.webp' },
   ];
 
   return (
@@ -388,7 +388,7 @@ const Courses = () => {
                   whileHover={{ scale: 1.03 }}
                 >
                   <motion.img
-                    src="/pro training.png"
+                    src="/pro-training.webp"
                     alt="Professional Competition Training"
                     loading="lazy"
                     decoding="async"
@@ -484,7 +484,7 @@ const Courses = () => {
       {/* ============================================================ */}
       <div className="relative w-full overflow-hidden bg-[#0C0922] py-32">
         <motion.img
-          src="/start 10 min.png"
+          src="/start-10-min.webp"
           alt="Horse Face"
           loading="lazy"
           decoding="async"

@@ -270,7 +270,7 @@ const Trainers = () => {
       name: 'Nakshath Venkatesh',
       eyebrow: 'Meet Our Founder',
       role: 'Founder - Competition Coaching',
-      img: '/founder.png',
+      img: '/founder.webp',
       reversed: false,
       paragraphs: [
         'Nakshath competes internationally in show jumping under Federation Equestre Internationale rules, and is long-listed for Team India for the 2026 Asian Games.',
@@ -283,7 +283,7 @@ const Trainers = () => {
       name: 'Bharath Venna',
       eyebrow: 'Meet Our Coordinator',
       role: 'Coordinator',
-      img: '/coordinator.png',
+      img: '/coordinator.webp',
       reversed: true,
       paragraphs: [
         'Bharath runs the day to day of the academy: who rides which horse, how a rider\'s programme is paced, and when someone is ready to move up a level.',
@@ -295,7 +295,7 @@ const Trainers = () => {
       name: 'Vani',
       eyebrow: 'Meet Our Trainer',
       role: 'Trainer',
-      img: '/trainer.png',
+      img: '/trainer.webp',
       reversed: false,
       paragraphs: [
         'Vani teaches riders from their first session on a lead rein through to independent work at canter, across general riding and horsemanship.',

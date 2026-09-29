@@ -67,7 +67,7 @@ const TheDifference = () => {
         variants={fadeRight}
       >
         <motion.img
-          src="/page 2 gpt.png"
+          src="/page-2-gpt.webp"
           alt="Indoor Arena at Nakshath Equestrian Club"
           loading="lazy"
           decoding="async"

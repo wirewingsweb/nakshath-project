@@ -17,7 +17,7 @@ const coaches = [
     name: 'Nakshath Venkatesh',
     role: 'Founder',
     specialization: 'Competition Coaching',
-    image: '/founder.png',
+    image: '/founder.webp',
     bio: 'International show jumper. Long-listed for Team India, 2026 Asian Games.',
   },
   {
@@ -25,7 +25,7 @@ const coaches = [
     name: 'Bharath Venna',
     role: 'Coordinator',
     specialization: 'Program Direction',
-    image: '/page 10 2 gpt.png',
+    image: '/page-10-2-gpt.webp',
     bio: "Runs the day-to-day of the academy. Paces every rider's programme.",
   },
   {
@@ -33,7 +33,7 @@ const coaches = [
     name: 'Vani',
     role: 'Trainer',
     specialization: 'Groundwork & Basics',
-    image: '/trainer.png',
+    image: '/trainer.webp',
     bio: 'Teaches from first session on a lead rein through to independent canter work.',
   },
 ];

@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "optimize-images": "node scripts/optimize-images.js",
+    "update-paths": "node scripts/update-image-paths.js",
+    "fix-paths": "node scripts/fix-paths.js",
+    "fix-spaces": "node scripts/fix-spaces.js"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
@@ -29,6 +33,7 @@
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
     "postcss": "^8.5.26",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3",
     "vite": "^8.2.0"
   }

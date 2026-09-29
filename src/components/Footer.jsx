@@ -65,7 +65,7 @@ const Footer = () => {
         transition={{ duration: 1 }}
       >
         <motion.img
-          src="/come and ride.png"
+          src="/come-and-ride.webp"
           alt="A rider beginning a trial lesson"
           loading="lazy"
           decoding="async"
@@ -164,7 +164,7 @@ const Footer = () => {
           <motion.div variants={item}>
             <Link to="/" className="inline-block">
               <motion.img
-                src="/footer-logo-matched.png"
+                src="/footer-logo-matched.webp"
                 alt="Nakshath Global Sports"
                 loading="lazy"
                 decoding="async"

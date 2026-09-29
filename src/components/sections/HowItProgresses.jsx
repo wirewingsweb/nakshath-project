@@ -28,7 +28,7 @@ const HowItProgresses = () => {
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       >
         <img
-          src="/page 5 gpt.png"
+          src="/page-5-gpt.webp"
           alt="Four riders demonstrating the progression from walk through competition"
           loading="lazy"
           decoding="async"
@@ -100,7 +100,7 @@ const HowItProgresses = () => {
         transition={{ duration: 0.8 }}
       >
         <img
-          src="/page 5 gpt.png"
+          src="/page-5-gpt.webp"
           alt="Four riders demonstrating the progression from walk through competition"
           loading="lazy"
           decoding="async"

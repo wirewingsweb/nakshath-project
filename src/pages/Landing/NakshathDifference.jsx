@@ -71,7 +71,7 @@ const NakshathDifference = () => {
       {/* ============================================================ */}
       <div className="absolute inset-x-0 top-0 h-[720px] sm:inset-0 sm:h-auto overflow-hidden">
         <motion.img
-          src="/find difference.png"
+          src="/find-difference.webp"
           alt="Indoor Arena Background"
           loading="lazy"
           decoding="async"

@@ -111,7 +111,7 @@ const HeroSection = () => {
       {/* ============================================================ */}
       <div className="absolute inset-x-0 top-0 h-[100svh] min-h-[680px] lg:inset-0 lg:h-auto lg:min-h-0">
         <motion.img
-          src="/landingHero.png"
+          src="/landingHero.webp"
           alt="Rider training at Nakshath Equestrian Club"
           fetchPriority="high"
           decoding="async"
@@ -251,7 +251,7 @@ const HeroSection = () => {
               variants={fadeScale}
             >
               <motion.img
-                src="/nakshath logo head.png"
+                src="/nakshath-logo-head.webp"
                 alt="Nakshath Equestrian Club"
                 decoding="async"
                 className="h-auto w-[min(72vw,290px)] object-contain lg:h-30 lg:w-auto"

@@ -26,3 +26,9 @@ src.zip
 *.njsproj
 *.sln
 *.sw?
+
+# Image backups (local only)
+_original_images_backup/
+_original_code_backup/
+_backup_before_fix/
+_backup_before_space_fix/

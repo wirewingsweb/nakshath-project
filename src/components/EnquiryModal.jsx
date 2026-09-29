@@ -111,14 +111,14 @@ const EnquiryModal = () => {
           <div className="w-full md:w-[45%] relative flex flex-col items-center justify-center text-center px-8 py-12 md:py-0 bg-[#0C0922]">
           {/* REPLACE THIS IMAGE SOURCE WITH YOUR OWN BACKGROUND IMAGE */}
           <img 
-            src="/enquiry-bg.png" 
+            src="/enquiry-bg.webp" 
             alt="Trial Ride Background" 
             loading="lazy"
             decoding="async"
             className="absolute inset-0 w-full h-full object-cover opacity-50 z-0" 
           />
           <div className="relative z-10">
-            <img src="/nakshath logo head.png" alt="Nakshath Logo" loading="lazy" decoding="async" className="h-24 md:h-32 mx-auto mb-6 object-contain" />
+            <img src="/nakshath-logo-head.webp" alt="Nakshath Logo" loading="lazy" decoding="async" className="h-24 md:h-32 mx-auto mb-6 object-contain" />
             <h2 className="text-[1.75rem] md:text-[2.25rem] font-serif text-white mb-4">Book a<br/>Trial Ride</h2>
             <div className="w-16 h-1 bg-[#C9A227] mx-auto mb-6"></div>
             <p className="text-white/80 text-lg">Experience Nakshath Equestrian Club.<br/>One ride can change everything.</p>

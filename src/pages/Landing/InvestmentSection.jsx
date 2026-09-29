@@ -6,9 +6,9 @@ const InvestmentSection = () => {
   const { openEnquiry } = useEnquiry();
 
   const levels = [
-    { level: 'LEVEL 01', lessons: '10', price: '₹11,999', img: '/level 1.png', tone: 'light' },
-    { level: 'LEVEL 02', lessons: '20', price: '₹29,999', img: '/level 2.png', tone: 'light' },
-    { level: 'LEVEL 03', lessons: '20', price: '₹32,999', img: '/level 3.png', tone: 'dark' }
+    { level: 'LEVEL 01', lessons: '10', price: '₹11,999', img: '/level-1.webp', tone: 'light' },
+    { level: 'LEVEL 02', lessons: '20', price: '₹29,999', img: '/level-2.webp', tone: 'light' },
+    { level: 'LEVEL 03', lessons: '20', price: '₹32,999', img: '/level-3.webp', tone: 'dark' }
   ];
 
   return (
@@ -17,7 +17,7 @@ const InvestmentSection = () => {
       {/* Main Background Image — with Ken Burns */}
       <div className="absolute inset-x-0 top-0 h-[640px] sm:inset-0 sm:h-auto overflow-hidden">
         <motion.img
-          src="/trial-ride.png"
+          src="/trial-ride.webp"
           alt="Rider on Horse"
           loading="lazy"
           decoding="async"
@@ -205,7 +205,7 @@ const InvestmentSection = () => {
                 {/* Left: Image */}
                 <div className="w-[35%] min-h-[180px] overflow-hidden">
                   <motion.img
-                    src="/free ride.png"
+                    src="/free-ride.webp"
                     alt="Free Trial Ride"
                     loading="lazy"
                     decoding="async"
@@ -235,7 +235,7 @@ const InvestmentSection = () => {
                 {/* Left: Image */}
                 <div className="w-[35%] min-h-[180px] overflow-hidden">
                   <motion.img
-                    src="/paid ride.png"
+                    src="/paid-ride.webp"
                     alt="Paid Trial Ride"
                     loading="lazy"
                     decoding="async"

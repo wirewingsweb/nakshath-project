@@ -14,7 +14,7 @@ const RisingBeyond = () => {
       {/* ============================================================ */}
       <div className="absolute inset-x-0 top-0 h-[640px] sm:inset-0 sm:h-auto overflow-hidden">
         <motion.img
-          src="/rising-beyond-bg.png"
+          src="/rising-beyond-bg.webp"
           alt="Rider on White Horse"
           loading="lazy"
           decoding="async"

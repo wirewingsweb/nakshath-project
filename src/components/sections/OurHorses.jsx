@@ -17,7 +17,7 @@ const OurHorses = () => {
       >
         {/* Image with subtle zoom */}
         <motion.img
-          src="/page 8 gpt.png"
+          src="/page-8-gpt.webp"
           alt="Horse at sunset at Nakshath Equestrian Club"
           loading="lazy"
           decoding="async"

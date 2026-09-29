@@ -8,31 +8,31 @@ import { viewportOnce } from '../../utils/animations';
 const offers = [
   {
     num: '01',
-    img: '/page 11 2 gpt.png',
+    img: '/page-11-2-gpt.webp',
     title: 'Free Trial Ride',
     desc: 'Ten minutes on a schooled horse.',
   },
   {
     num: '02',
-    img: '/page 11 3 gpt.png',
+    img: '/page-11-3-gpt.webp',
     title: '10% Off First Month',
     desc: 'Applied at enrolment.',
   },
   {
     num: '03',
-    img: '/page 11 4 gpt.png',
+    img: '/page-11-4-gpt.webp',
     title: 'Weekend Batches',
     desc: 'Saturday & Sunday sessions.',
   },
   {
     num: '04',
-    img: '/page 11 5 gpt.png',
+    img: '/page-11-5-gpt.webp',
     title: 'Kids Summer Camp',
     desc: 'Structured holiday programme.',
   },
   {
     num: '05',
-    img: '/page 11 6 gpt.png',
+    img: '/page-11-6-gpt.webp',
     title: 'Early Registration',
     desc: 'Priority slots before opening.',
   },

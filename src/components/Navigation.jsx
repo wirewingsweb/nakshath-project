@@ -113,7 +113,7 @@ const Navigation = () => {
 
         {/* Navbar Logo */}
         <Link to="/" className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-          <img src="/nakshath logo head.png" alt="Nakshath Logo" className="h-16 object-contain sm:h-20 md:h-24" />
+          <img src="/nakshath-logo-head.webp" alt="Nakshath Logo" className="h-16 object-contain sm:h-20 md:h-24" />
         </Link>
 
         {/* Simple Button */}
@@ -155,7 +155,7 @@ const Navigation = () => {
         {/* LOGO HEADER */}
         <div className="relative z-10 flex w-full shrink-0 flex-col items-center justify-center pb-2 pt-14 md:pb-5 md:pt-7">
           <Link to="/" onClick={() => setIsMenuOpen(false)}>
-            <img src="/nakshath logo head.png" alt="Nakshath Logo" className="h-24 object-contain md:h-28" />
+            <img src="/nakshath-logo-head.webp" alt="Nakshath Logo" className="h-24 object-contain md:h-28" />
           </Link>
         </div>
 

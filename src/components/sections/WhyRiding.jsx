@@ -6,17 +6,17 @@ import { viewportOnce } from '../../utils/animations';
 // ============================================================
 const benefits = [
   {
-    image: '/page 9 physical.png',
+    image: '/page-9-physical.webp',
     title: 'Physical',
     items: ['Balance and coordination', 'Flexibility and posture', 'Core strength'],
   },
   {
-    image: '/page 9 mentals.png',
+    image: '/page-9-mentals.webp',
     title: 'Mental',
     items: ['Confidence', 'Focus and discipline', 'Calm under pressure'],
   },
   {
-    image: '/page 9 lifestyle.png',
+    image: '/page-9-lifestyle.webp',
     title: 'Lifestyle',
     items: ['Responsibility', 'Leadership', 'Sportsmanship'],
   },
@@ -160,7 +160,7 @@ const WhyRiding = () => {
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
         >
           <img
-            src="/page 9 gpt.png"
+            src="/page-9-gpt.webp"
             alt="A child riding a white horse at sunset"
             loading="lazy"
             decoding="async"
@@ -283,7 +283,7 @@ const WhyRiding = () => {
           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
         >
           <img
-            src="/page 9 gpt.png"
+            src="/page-9-gpt.webp"
             alt="A child riding a white horse at sunset"
             loading="lazy"
             decoding="async"

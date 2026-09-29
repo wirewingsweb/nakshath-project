@@ -115,7 +115,7 @@ const About = () => {
           style={{ opacity: heroOpacity, scale: heroScale }}
         >
           <img
-            src="/page 2 gpt.png"
+            src="/page-2-gpt.webp"
             alt="Rider with horse"
             className="h-full w-full object-cover object-center opacity-50"
           />
@@ -210,8 +210,8 @@ const About = () => {
                 className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
                 style={{ transform: `translate3d(-${currentSlide * 100}%, 0, 0)` }}
               >
-                <img src="/founder 1.png" alt="Nakshath Venkatesh" className="h-full w-full shrink-0 object-cover" />
-                <img src="/page 2 gpt.png" alt="Nakshath with Horse" className="h-full w-full shrink-0 object-cover" />
+                <img src="/founder-1.webp" alt="Nakshath Venkatesh" className="h-full w-full shrink-0 object-cover" />
+                <img src="/page-2-gpt.webp" alt="Nakshath with Horse" className="h-full w-full shrink-0 object-cover" />
               </div>
               <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
                 {[0, 1].map((idx) => (
@@ -368,7 +368,7 @@ const About = () => {
               >
                 <div className="mb-4 overflow-hidden rounded-xl bg-[#F5F1E8]">
                   <img
-                    src="/page 3 gpt.png"
+                    src="/page-3-gpt.webp"
                     alt="Campus Map"
                     className="h-auto w-full object-contain"
                   />

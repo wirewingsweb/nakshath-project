@@ -124,7 +124,7 @@ const WhoWeAre = () => {
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             >
               <motion.img
-                src="/page 3 gpt.png"
+                src="/page-3-gpt.webp"
                 alt="Campus Map of Nakshath Equestrian Club"
                 loading="lazy"
                 decoding="async"

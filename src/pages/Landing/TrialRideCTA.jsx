@@ -12,7 +12,7 @@ const TrialRideCTA = () => {
       {/* Background Image — Ken Burns + Parallax */}
       {/* ============================================================ */}
       <motion.img
-        src="/come and ride.png"
+        src="/come-and-ride.webp"
         alt="Trial Background"
         loading="lazy"
         decoding="async"

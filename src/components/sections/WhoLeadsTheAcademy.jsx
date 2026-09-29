@@ -142,8 +142,8 @@ const AchievementCard = ({ rank, title, index, className = '' }) => {
 // ============================================================
 const WhoLeadsTheAcademy = () => {
   const slides = [
-    '/founder-nakshath-rounded.png',
-    '/founder-nakshath-rounded.png',
+    '/founder-nakshath-rounded.webp',
+    '/founder-nakshath-rounded.webp',
   ];
   const [activeSlide, setActiveSlide] = useState(0);
   const [isImageHovered, setIsImageHovered] = useState(false);

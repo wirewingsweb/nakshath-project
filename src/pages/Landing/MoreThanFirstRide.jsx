@@ -22,7 +22,7 @@ const MoreThanFirstRide = () => {
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
           >
             <motion.img
-              src="/page 2 gpt.png"
+              src="/page-2-gpt.webp"
               alt="Rider with horse"
               loading="lazy"
               decoding="async"

@@ -245,10 +245,10 @@ const Facilities = () => {
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 100]);
 
   const arenas = [
-    { title: 'Indoor Arena', label: 'All-Weather', num: '01', desc: 'A covered arena built so training does not stop for monsoon or for summer heat. International-standard geotextile footing, consistent underfoot, and lower injury risk for horse and rider.', img: '/indoor arena.png' },
-    { title: 'Outdoor Arena', label: 'Sand Surface', num: '02', desc: 'An open sand arena for jumping and flatwork in good weather, with the space to ride a full course and the light to shoot in early morning or late evening.', img: '/outdoor arena.png' },
-    { title: 'Dressage Arena', label: 'Standard Dimensions', num: '03', desc: 'Built to competition dimensions, so riders practice on the same geometry they will be marked on. The riding area is larger than most people expect.', img: '/dressage arena.png' },
-    { title: 'Lunging Pen', label: 'Groundwork', num: '04', desc: "A circular pen for working horses on the lunge — warming up, schooling young horses, and teaching riders to read a horse's movement from the ground.", img: '/lunging pen.png' },
+    { title: 'Indoor Arena', label: 'All-Weather', num: '01', desc: 'A covered arena built so training does not stop for monsoon or for summer heat. International-standard geotextile footing, consistent underfoot, and lower injury risk for horse and rider.', img: '/indoor-arena.webp' },
+    { title: 'Outdoor Arena', label: 'Sand Surface', num: '02', desc: 'An open sand arena for jumping and flatwork in good weather, with the space to ride a full course and the light to shoot in early morning or late evening.', img: '/outdoor-arena.webp' },
+    { title: 'Dressage Arena', label: 'Standard Dimensions', num: '03', desc: 'Built to competition dimensions, so riders practice on the same geometry they will be marked on. The riding area is larger than most people expect.', img: '/dressage-arena.webp' },
+    { title: 'Lunging Pen', label: 'Groundwork', num: '04', desc: "A circular pen for working horses on the lunge — warming up, schooling young horses, and teaching riders to read a horse's movement from the ground.", img: '/lunging-pen.webp' },
   ];
 
   const stables = [
@@ -259,10 +259,10 @@ const Facilities = () => {
   ];
 
   const beyond = [
-    { title: 'Café', desc: 'Warm stone, arches, open through the day.', img: '/cafe.png', num: '01' },
-    { title: 'Common Pavilion', desc: 'Shade and seating for spectators and families.', img: '/common pavillion.png', num: '02' },
-    { title: 'Lounge Space', desc: 'Open landscaped areas across the campus.', img: '/lounge.png', num: '03' },
-    { title: 'Cottages', desc: 'For visiting riders, trainers and guests.', img: '/cottages.png', num: '04' },
+    { title: 'Café', desc: 'Warm stone, arches, open through the day.', img: '/cafe.webp', num: '01' },
+    { title: 'Common Pavilion', desc: 'Shade and seating for spectators and families.', img: '/common-pavillion.webp', num: '02' },
+    { title: 'Lounge Space', desc: 'Open landscaped areas across the campus.', img: '/lounge.webp', num: '03' },
+    { title: 'Cottages', desc: 'For visiting riders, trainers and guests.', img: '/cottages.webp', num: '04' },
   ];
 
   return (
@@ -414,7 +414,7 @@ const Facilities = () => {
           >
             <div className="pb-8 pr-4 lg:py-12">
               <motion.img
-                src="/horse live.png"
+                src="/horse-live.webp"
                 alt="Stables interior"
                 loading="lazy"
                 decoding="async"

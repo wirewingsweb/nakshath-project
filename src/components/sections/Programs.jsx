@@ -9,22 +9,22 @@ const programs = [
   {
     num: '01',
     title: 'Kids Special',
-    image: '/page 4 3 gpt.png',
+    image: '/page-4-3-gpt.webp',
   },
   {
     num: '02',
     title: 'Beginner',
-    image: '/page 4 gpt.png',
+    image: '/page-4-gpt.webp',
   },
   {
     num: '03',
     title: 'Intermediate',
-    image: '/page 4 2 gpt.png',
+    image: '/page-4-2-gpt.webp',
   },
   {
     num: '04',
     title: 'Professional Competition',
-    image: '/page 4 4 gpt.png',
+    image: '/page-4-4-gpt.webp',
   },
 ];
 

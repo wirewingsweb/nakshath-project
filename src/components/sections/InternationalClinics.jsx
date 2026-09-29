@@ -94,7 +94,7 @@ const InternationalClinics = () => {
             }}
           >
             <motion.img
-              src="/international map.png"
+              src="/international-map.webp"
               alt="World Map"
               loading="lazy"
               decoding="async"
