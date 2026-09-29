@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ReactLenis } from 'lenis/react';
 import ScrollToTop from './components/ScrollToTop';
 import SEO from './components/SEO';
 import ScrollProgress from './components/ScrollProgress';
@@ -28,42 +29,53 @@ const PageFallback = () => (
 
 const App = () => {
   return (
-    <Router>
-      <ScrollProgress />
-      <CustomCursor />
-      <ScrollToTop />
-      <SEO />
+    <ReactLenis
+      root
+      options={{
+        lerp: 0.1,
+        duration: 1.2,
+        smoothWheel: true,
+        wheelMultiplier: 1,
+        touchMultiplier: 2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      }}
+    >
+      <Router>
+        <ScrollProgress />
+        <CustomCursor />
+        <ScrollToTop />
+        <SEO />
 
-      <Suspense fallback={<PageFallback />}>
-        {/* ✅ PageTransition Routes ke BAHAR */}
-        <PageTransition>
-          <Routes>
-            {/* Trial-ride campaign page */}
-            <Route path="/book-your-trial-ride" element={<LandingPage />} />
-            <Route path="/landing" element={<Navigate to="/book-your-trial-ride" replace />} />
+        <Suspense fallback={<PageFallback />}>
+          <PageTransition>
+            <Routes>
+              {/* Trial-ride campaign page */}
+              <Route path="/book-your-trial-ride" element={<LandingPage />} />
+              <Route path="/landing" element={<Navigate to="/book-your-trial-ride" replace />} />
 
-            {/* All other pages — with Layout */}
-            <Route element={<Layout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/facilities" element={<Facilities />} />
-              <Route path="/horses" element={<Horses />} />
-              <Route path="/courses" element={<Courses />} />
-              <Route path="/trainers" element={<Trainers />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-              <Route path="/refund-and-cancellation" element={<RefundAndCancellation />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              {/* All other pages — with Layout */}
+              <Route element={<Layout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/facilities" element={<Facilities />} />
+                <Route path="/horses" element={<Horses />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/trainers" element={<Trainers />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                <Route path="/refund-and-cancellation" element={<RefundAndCancellation />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
-              {/* Redirects */}
-              <Route path="/terms" element={<Navigate to="/terms-and-conditions" replace />} />
-              <Route path="/refund" element={<Navigate to="/refund-and-cancellation" replace />} />
-              <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
-            </Route>
-          </Routes>
-        </PageTransition>
-      </Suspense>
-    </Router>
+                {/* Redirects */}
+                <Route path="/terms" element={<Navigate to="/terms-and-conditions" replace />} />
+                <Route path="/refund" element={<Navigate to="/refund-and-cancellation" replace />} />
+                <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
+              </Route>
+            </Routes>
+          </PageTransition>
+        </Suspense>
+      </Router>
+    </ReactLenis>
   );
 };
 

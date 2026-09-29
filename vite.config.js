@@ -8,4 +8,6 @@ export default defineConfig({
     react(),
     tailwindcss(), // Enables Tailwind v4
   ],
+  preview: { host: true, port: 4173, allowedHosts: true },
 });
+
