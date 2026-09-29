@@ -20,17 +20,12 @@ const ALL_DESTINATIONS = [...TOP_ROW, ...BOTTOM_ROW];
 const TOP_HUB = { x: 50, y: 28 };
 const BOTTOM_HUB = { x: 50, y: 72 };
 
-// ─────────────────────────────────────────────────────────────
-// Curvier bezier: we bow the control point further out, and
-// alternate the bow direction per-row so the graph reads more
-// like real road networks than straight spokes.
-// ─────────────────────────────────────────────────────────────
+// Curved bezier between two points
 const curve = (from, to, bend = 0.38) => {
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const mx = (from.x + to.x) / 2;
   const my = (from.y + to.y) / 2;
-  // Perpendicular offset, scaled by bend and the segment length
   const len = Math.hypot(dx, dy) || 1;
   const nx = -dy / len;
   const ny = dx / len;
@@ -40,17 +35,16 @@ const curve = (from, to, bend = 0.38) => {
   return `M ${from.x} ${from.y} Q ${cx} ${cy} ${to.x} ${to.y}`;
 };
 
+// Straight line as a path string
+const line = (from, to) => `M ${from.x} ${from.y} L ${to.x} ${to.y}`;
+
 const pillWidthFor = (label, isPrimary = false) => {
   const charWidth = isPrimary ? 1.35 : 1.15;
   const padding = isPrimary ? 6 : 5;
   return Math.max(label.length * charWidth + padding, isPrimary ? 26 : 18);
 };
 
-// ─────────────────────────────────────────────────────────────
-// Timing constants — one full cycle per pulse.
-// A cycle = stage1 (center→hub) + stage2 (hub→node) + hold.
-// The NAKSHATH pulse fires at the moment each stage2 completes.
-// ─────────────────────────────────────────────────────────────
+// Pulse timing
 const STAGE_DURATION = 1.2;
 const HOLD_AFTER = 1.0;
 const CYCLE = STAGE_DURATION * 2 + HOLD_AFTER;
@@ -71,7 +65,7 @@ const AnimatedLocationMap = () => {
         }}
       />
 
-      {/* Fine dotted texture, very subtle */}
+      {/* Fine dotted texture */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.045]"
@@ -112,13 +106,22 @@ const AnimatedLocationMap = () => {
           </linearGradient>
         </defs>
 
-        {/* ═══ Connector lines — now more curved ═══ */}
+        <motion.circle
+  cx="50"
+  cy="50"
+  r="3"
+  fill="red"
+  animate={{ r: [3, 8, 3] }}
+  transition={{ duration: 2, repeat: Infinity }}
+/>
+
+        {/* ═══ Static connector lines ═══ */}
         <path
-          d={`M ${CENTER.x} ${CENTER.y} L ${TOP_HUB.x} ${TOP_HUB.y}`}
+          d={line(CENTER, TOP_HUB)}
           stroke="#9CA3AF" strokeOpacity="0.25" strokeWidth="0.18" fill="none"
         />
         <path
-          d={`M ${CENTER.x} ${CENTER.y} L ${BOTTOM_HUB.x} ${BOTTOM_HUB.y}`}
+          d={line(CENTER, BOTTOM_HUB)}
           stroke="#9CA3AF" strokeOpacity="0.25" strokeWidth="0.18" fill="none"
         />
         {TOP_ROW.map((node) => (
@@ -136,23 +139,30 @@ const AnimatedLocationMap = () => {
           />
         ))}
 
-        {/* ═══ Flowing pulses — the pulse travels center → hub → node ═══ */}
+        {/* ═══ Flowing pulses — REVERSED: satellite → hub → center ═══ */}
         {!prefersReduced &&
           ALL_DESTINATIONS.map((node, i) => {
             const isTop = TOP_ROW.some((n) => n.id === node.id);
             const hub = isTop ? TOP_HUB : BOTTOM_HUB;
-            const d1 = `M ${CENTER.x} ${CENTER.y} L ${hub.x} ${hub.y}`;
-            const d2 = curve(hub, node, 0.38);
 
-            // Each segment is long enough for a pulse to travel across.
-            // Using a gap of 100 ensures the pulse fully exits before looping.
+            // REVERSED PATH DIRECTION: draw from satellite inward
+            // Stage 1: satellite → hub (curved)
+            // Stage 2: hub → center (straight)
+            const d1Reversed = curve(node, hub, 0.38);
+            const d2Reversed = line(hub, CENTER);
+
             const pulseLen = 6;
             const gap = 100;
 
             return (
               <g key={`flow-${node.id}`}>
+                {/* Stage 1: satellite → hub */}
                 <motion.path
-                  d={d1} fill="none" stroke="url(#alm-flow)" strokeWidth="0.42" strokeLinecap="round"
+                  d={d1Reversed}
+                  fill="none"
+                  stroke="url(#alm-flow)"
+                  strokeWidth="0.42"
+                  strokeLinecap="round"
                   style={{ strokeDasharray: `${pulseLen} ${gap}` }}
                   initial={{ strokeDashoffset: pulseLen }}
                   animate={{ strokeDashoffset: -gap }}
@@ -164,8 +174,13 @@ const AnimatedLocationMap = () => {
                     ease: 'easeInOut',
                   }}
                 />
+                {/* Stage 2: hub → center */}
                 <motion.path
-                  d={d2} fill="none" stroke="url(#alm-flow)" strokeWidth="0.42" strokeLinecap="round"
+                  d={d2Reversed}
+                  fill="none"
+                  stroke="url(#alm-flow)"
+                  strokeWidth="0.42"
+                  strokeLinecap="round"
                   style={{ strokeDasharray: `${pulseLen} ${gap}` }}
                   initial={{ strokeDashoffset: pulseLen }}
                   animate={{ strokeDashoffset: -gap }}
@@ -185,14 +200,13 @@ const AnimatedLocationMap = () => {
         <circle cx={TOP_HUB.x} cy={TOP_HUB.y} r="0.45" fill="#D1D5DB" />
         <circle cx={BOTTOM_HUB.x} cy={BOTTOM_HUB.y} r="0.45" fill="#D1D5DB" />
 
-        {/* ═══ NAKSHATH arrival pulse — fires each time a pulse reaches its destination ═══ */}
+        {/* ═══ NAKSHATH pulse — fires when a pulse arrives at center ═══ */}
         {!prefersReduced && (
           <>
-            {/* Concentric rings that expand outward from the center */}
             {ALL_DESTINATIONS.map((node, i) => {
-              // The arrival moment is when stage2 completes.
-              // Stage2 starts at (i * STAGGER + STAGE_DURATION) and lasts STAGE_DURATION,
-              // so arrival happens at (i * STAGGER + STAGE_DURATION * 2).
+              // Arrival at center happens after stage1 + stage2 complete.
+              // Stage2 starts at (i * STAGGER + STAGE_DURATION) and lasts STAGE_DURATION.
+              // So arrival is at (i * STAGGER + STAGE_DURATION * 2).
               const arrivalDelay = i * STAGGER + STAGE_DURATION * 2;
               return (
                 <motion.circle
@@ -216,7 +230,6 @@ const AnimatedLocationMap = () => {
               );
             })}
 
-            {/* A gold flash that briefly brightens the center dot on each arrival */}
             {ALL_DESTINATIONS.map((node, i) => {
               const arrivalDelay = i * STAGGER + STAGE_DURATION * 2;
               return (
@@ -252,7 +265,7 @@ const AnimatedLocationMap = () => {
         <NodePill node={CENTER} variant="primary" sub={CENTER.sub} />
       </svg>
 
-      {/* ═══ Reference map — bottom-right, small ═══ */}
+      {/* ═══ Reference map ═══ */}
       <div className="absolute bottom-2.5 right-2.5 z-10 flex w-[24%] max-w-[90px] flex-col gap-1">
         <div className="overflow-hidden rounded-md border border-white/15 bg-black/30 shadow-lg">
           <iframe
@@ -338,26 +351,18 @@ const NodePill = ({ node, variant = 'default', sub }) => {
       {isPrimary ? (
         <>
           <text
-            x={node.x + 1.2}
-            y={node.y - 0.4}
-            textAnchor="middle"
-            fill="#F5E6A8"
-            fontSize="2.4"
-            fontWeight="700"
-            letterSpacing="0.18em"
+            x={node.x + 1.2} y={node.y - 0.4}
+            textAnchor="middle" fill="#F5E6A8"
+            fontSize="2.4" fontWeight="700" letterSpacing="0.18em"
             fontFamily="system-ui, -apple-system, sans-serif"
           >
             {label}
           </text>
           {sub && (
             <text
-              x={node.x + 1.2}
-              y={node.y + 2}
-              textAnchor="middle"
-              fill="#B8B0A0"
-              fontSize="1.3"
-              fontWeight="400"
-              letterSpacing="0.06em"
+              x={node.x + 1.2} y={node.y + 2}
+              textAnchor="middle" fill="#B8B0A0"
+              fontSize="1.3" fontWeight="400" letterSpacing="0.06em"
               fontFamily="system-ui, -apple-system, sans-serif"
             >
               {sub}
@@ -367,26 +372,18 @@ const NodePill = ({ node, variant = 'default', sub }) => {
       ) : (
         <>
           <text
-            x={node.x + 0.7}
-            y={node.y - 0.3}
-            textAnchor="middle"
-            fill="#E5E7EB"
-            fontSize="1.85"
-            fontWeight="700"
-            letterSpacing="0.14em"
+            x={node.x + 0.7} y={node.y - 0.3}
+            textAnchor="middle" fill="#E5E7EB"
+            fontSize="1.85" fontWeight="700" letterSpacing="0.14em"
             fontFamily="system-ui, -apple-system, sans-serif"
           >
             {label}
           </text>
           {node.minutes && (
             <text
-              x={node.x + 0.7}
-              y={node.y + 1.9}
-              textAnchor="middle"
-              fill="#C9A227"
-              fontSize="1.15"
-              fontWeight="600"
-              letterSpacing="0.16em"
+              x={node.x + 0.7} y={node.y + 1.9}
+              textAnchor="middle" fill="#C9A227"
+              fontSize="1.15" fontWeight="600" letterSpacing="0.16em"
               fontFamily="system-ui, -apple-system, sans-serif"
             >
               {node.minutes} MIN
