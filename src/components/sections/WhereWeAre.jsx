@@ -7,6 +7,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { useInViewOnce } from '../../hooks/useInViewOnce';
 import { SplitText, DriftImage } from '../motion';
 
+
 const leftColumnVariants = (prefersReduced) => ({
   hidden: {},
   visible: { transition: { staggerChildren: prefersReduced ? 0 : 0.08 } },
