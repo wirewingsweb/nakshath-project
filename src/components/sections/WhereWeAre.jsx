@@ -1,12 +1,12 @@
 // src/components/sections/WhereWeAre.jsx
 import { motion } from 'framer-motion';
-import { BUSINESS_MAP_EMBED_URL, BUSINESS_MAP_URL } from '../../constants/location';
+import { BUSINESS_MAP_URL } from '../../constants/location';
 import { EASE_PRIMARY, DURATION } from '../../utils/motion';
 import { usePrefersReducedMotion } from '../../hooks/usePrefersReducedMotion';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { useInViewOnce } from '../../hooks/useInViewOnce';
 import { SplitText, DriftImage } from '../motion';
-
+import AnimatedLocationMap from '../AnimatedLocationMap';
 
 const leftColumnVariants = (prefersReduced) => ({
   hidden: {},
@@ -152,24 +152,19 @@ const WhereWeAre = () => {
           </div>
         </motion.div>
 
-        {/* RIGHT COLUMN — Map iframe */}
+        {/* RIGHT COLUMN — Animated node graph with reference map */}
         <motion.div
           ref={mapRef}
-          className="h-[500px] w-full overflow-hidden rounded-2xl border border-[#5A5A66]/20 bg-[#FDFCFA] shadow-lg md:h-[600px] lg:h-auto lg:w-[60%]"
+          className="flex w-full items-center justify-center lg:w-[60%]"
           initial={prefersReduced ? { opacity: 1 } : { opacity: 0 }}
           animate={mapInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: prefersReduced ? 0 : 0.8, delay: prefersReduced ? 0 : 0.1, ease: EASE_PRIMARY }}
+          transition={{
+            duration: prefersReduced ? 0 : 0.8,
+            delay: prefersReduced ? 0 : 0.1,
+            ease: EASE_PRIMARY,
+          }}
         >
-          <iframe
-            src={BUSINESS_MAP_EMBED_URL}
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen=""
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="Nakshath Equestrian Club Location Map"
-          ></iframe>
+          <AnimatedLocationMap />
         </motion.div>
       </div>
     </section>
