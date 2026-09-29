@@ -1,9 +1,10 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ScrollToTop from './components/ScrollToTop';
 import SEO from './components/SEO';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
+import { initSmoothScroll, destroySmoothScroll } from './lib/smoothScroll';
 
 const Layout = lazy(() => import('./components/Layout'));
 const Home = lazy(() => import('./pages/Home'));
@@ -26,6 +27,12 @@ const PageFallback = () => (
 );
 
 const App = () => {
+  // Initialize Lenis smooth scroll for the entire site
+  useEffect(() => {
+    initSmoothScroll();
+    return () => destroySmoothScroll();
+  }, []);
+
   return (
     <TooltipProvider delayDuration={200} skipDelayDuration={300}>
       <Router>

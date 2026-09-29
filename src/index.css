@@ -27,8 +27,6 @@
 
 /* ============================================================
    shadcn/ui — Tailwind v4 theme bindings
-   Maps shadcn utility classes (bg-primary, text-foreground, etc.)
-   to CSS variables defined in :root below.
    ============================================================ */
 @theme inline {
   --color-background: var(--background);
@@ -384,47 +382,37 @@ textarea {
 
 /* ============================================================
    shadcn/ui tokens — mapped to the Nakshath brand palette
-   Gold = primary, Navy = foreground-on-gold, Off-white = page bg.
    ============================================================ */
 :root {
   --radius: 0.5rem;
 
-  /* Page & text */
-  --background: #FDFCFA;              /* brand off-white */
-  --foreground: #1A1A1A;              /* brand ink */
+  --background: #FDFCFA;
+  --foreground: #1A1A1A;
 
-  /* Surfaces */
   --card: #FFFFFF;
   --card-foreground: #1A1A1A;
   --popover: #FFFFFF;
   --popover-foreground: #1A1A1A;
 
-  /* Primary — brand gold */
   --primary: #C9A227;
-  --primary-foreground: #0C0922;      /* navy text on gold */
+  --primary-foreground: #0C0922;
 
-  /* Secondary — stone */
   --secondary: #F2F0EB;
   --secondary-foreground: #1A1A1A;
 
-  /* Muted */
-  --muted: #F5F1E8;                   /* brand cream */
-  --muted-foreground: #5A5A66;        /* brand secondary */
+  --muted: #F5F1E8;
+  --muted-foreground: #5A5A66;
 
-  /* Accent — muted gold */
   --accent: #876B18;
   --accent-foreground: #FDFCFA;
 
-  /* Destructive */
   --destructive: #B91C1C;
   --destructive-foreground: #FDFCFA;
 
-  /* Lines & focus */
   --border: rgba(12, 9, 34, 0.10);
   --input: rgba(12, 9, 34, 0.12);
   --ring: #C9A227;
 
-  /* Chart colors (unused but required by some shadcn components) */
   --chart-1: #C9A227;
   --chart-2: #876B18;
   --chart-3: #141034;
@@ -454,7 +442,6 @@ textarea {
   --ring: #C9A227;
 }
 
-/* Base layer — applies shadcn defaults without overriding your brand styles */
 @layer base {
   * {
     border-color: var(--border);
@@ -463,13 +450,66 @@ textarea {
 
 /* ============================================================
    ENQUIRY MODAL — blurred navy backdrop only
-   (The 3D pop animation is handled by Framer Motion inside
-   EnquiryModal.jsx to avoid compositing text into a lower-
-   resolution layer, which caused the fuzzy text.)
    ============================================================ */
 [data-slot="dialog-overlay"],
 [data-radix-dialog-overlay] {
   background-color: rgba(12, 9, 34, 0.72) !important;
   backdrop-filter: blur(16px) saturate(150%);
   -webkit-backdrop-filter: blur(16px) saturate(150%);
+}
+
+/* ============================================================
+   LENIS SMOOTH SCROLL — global setup
+   Applied to <html> and <body> when Lenis is active.
+   ============================================================ */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* ============================================================
+   SCROLL-DRIVEN 3D — perspective utilities
+   Used by ParallaxLayer, CameraScene, DepthStack components.
+   ============================================================ */
+.scene-3d {
+  perspective: 1400px;
+  perspective-origin: center center;
+  transform-style: preserve-3d;
+}
+
+.scene-3d-near {
+  perspective: 1000px;
+}
+
+.scene-3d-far {
+  perspective: 2200px;
+}
+
+.layer-3d {
+  transform-style: preserve-3d;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .layer-3d {
+    will-change: auto;
+  }
 }
