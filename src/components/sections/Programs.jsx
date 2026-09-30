@@ -1,5 +1,12 @@
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useReducedMotion,
+} from 'framer-motion';
 import { EASE } from '../../utils/landing-motion';
 
 const programs = [
@@ -38,7 +45,7 @@ const programs = [
 ];
 
 /* ============================================================
-   LETTER CASCADE — per-character X-axis rotation
+   LETTER CASCADE
    ============================================================ */
 const CascadeText = ({ text, delay = 0 }) => {
   const chars = text.split('');
@@ -61,28 +68,65 @@ const CascadeText = ({ text, delay = 0 }) => {
 };
 
 /* ============================================================
-   PROGRAM CARD — deals in from below, gold trim traces the top
+   PROGRAM CARD
+   Scroll-driven horizontal drift — each card moves at
+   a rate based on its index, so the row gathers/spreads
    ============================================================ */
-const ProgramCard = ({ program, index, total }) => {
+const ProgramCard = ({ program, index, total, sectionProgress }) => {
+  const [hovered, setHovered] = useState(false);
+  const shouldReduce = useReducedMotion();
+
+  // Each card drifts horizontally at a different rate
+  // Alternating direction creates a "gather then spread" effect
+  const direction = index % 2 === 0 ? -1 : 1;
+  const driftRange = 3 + (index % 3) * 1.5; // 3, 4.5, 6 %
+  const xDrift = useTransform(
+    sectionProgress,
+    [0, 0.5, 1],
+    [`${direction * driftRange}%`, '0%', `${-direction * driftRange}%`]
+  );
+
+  // Vertical drift too — subtle float
+  const yDrift = useTransform(
+    sectionProgress,
+    [0, 0.5, 1],
+    ['4%', '0%', '-4%']
+  );
+
+  // Scale settles in the middle of the scroll
+  const scaleDrift = useTransform(
+    sectionProgress,
+    [0, 0.5, 1],
+    [0.98, 1, 0.98]
+  );
+
+  const x_s = useSpring(xDrift, { stiffness: 90, damping: 26, mass: 0.6 });
+  const y_s = useSpring(yDrift, { stiffness: 90, damping: 26, mass: 0.6 });
+  const scale_s = useSpring(scaleDrift, {
+    stiffness: 90,
+    damping: 26,
+    mass: 0.6,
+  });
+
   const num = String(index + 1).padStart(2, '0');
   const totalStr = String(total).padStart(2, '0');
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 100, rotate: -3 }}
-      whileInView={{ opacity: 1, y: 0, rotate: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{
-        duration: 1.1,
-        delay: 0.2 + index * 0.15,
-        ease: EASE,
+      style={{
+        x: shouldReduce ? 0 : x_s,
+        y: shouldReduce ? 0 : y_s,
+        scale: shouldReduce ? 1 : scale_s,
+        willChange: 'transform',
       }}
-      className={`${program.offset} group/card shrink-0 snap-start snap-always`}
+      className={`${program.offset} shrink-0 snap-start snap-always`}
     >
       <Link
         to={program.link}
         aria-label={`Explore ${program.title}`}
-        className="relative flex w-[84vw] max-w-[21rem] cursor-pointer flex-col overflow-hidden rounded-2xl bg-[#0C0922] shadow-[0_15px_40px_-20px_rgba(12,9,34,0.4)] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[0_40px_80px_-30px_rgba(12,9,34,0.6)] sm:w-[42vw] sm:max-w-none lg:w-[30vw] xl:w-[20vw]"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        className="group/card relative flex w-[84vw] max-w-[21rem] cursor-pointer flex-col overflow-hidden rounded-2xl bg-[#0C0922] shadow-[0_15px_40px_-20px_rgba(12,9,34,0.4)] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:shadow-[0_40px_80px_-30px_rgba(12,9,34,0.6)] sm:w-[42vw] sm:max-w-none lg:w-[30vw] xl:w-[20vw]"
       >
         {/* ==================================================
             GOLD TRIM LINE — draws across the top as card lands
@@ -102,7 +146,11 @@ const ProgramCard = ({ program, index, total }) => {
         {/* ==================================================
             LEFT VERTICAL GOLD RULE — grows up on hover
             ================================================== */}
-        <span className="pointer-events-none absolute left-0 top-0 z-30 h-0 w-[2px] bg-gradient-to-b from-[#C9A227] to-[#C9A227]/40 transition-[height] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/card:h-full" />
+        <span
+          className={`pointer-events-none absolute left-0 top-0 z-30 w-[2px] bg-gradient-to-b from-[#C9A227] to-[#C9A227]/40 transition-[height] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            hovered ? 'h-full' : 'h-0'
+          }`}
+        />
 
         {/* ==================================================
             IMAGE FRAME
@@ -113,7 +161,15 @@ const ProgramCard = ({ program, index, total }) => {
             alt={program.title}
             loading="lazy"
             decoding="async"
-            className={`absolute inset-0 block h-full w-full object-cover scale-[1.12] transition-transform duration-[1600ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/card:scale-100 ${program.imageClass}`}
+            initial={{ opacity: 0, scale: 1.15, filter: 'blur(10px)' }}
+            whileInView={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{
+              duration: 1.6,
+              delay: 0.3 + index * 0.15,
+              ease: EASE,
+            }}
+            className={`absolute inset-0 block h-full w-full object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/card:scale-100 ${program.imageClass}`}
           />
 
           {/* Gradient for text legibility */}
@@ -136,7 +192,7 @@ const ProgramCard = ({ program, index, total }) => {
               delay: 1.3 + index * 0.15,
               ease: [0.34, 1.56, 0.64, 1],
             }}
-            className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-[#C9A227]/60 bg-[#0C0922]/75 font-serif text-sm italic text-[#C9A227] backdrop-blur-md transition-all duration-500 group-hover/card:bg-[#C9A227] group-hover/card:text-[#0C0922] group-hover/card:scale-110"
+            className="absolute left-5 top-5 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-[#C9A227]/60 bg-[#0C0922]/75 font-serif text-sm italic text-[#C9A227] backdrop-blur-md transition-all duration-500 group-hover/card:scale-110 group-hover/card:bg-[#C9A227] group-hover/card:text-[#0C0922]"
           >
             {num}
           </motion.span>
@@ -204,6 +260,22 @@ const ProgramCard = ({ program, index, total }) => {
    PROGRAMS
    ============================================================ */
 const Programs = () => {
+  const sectionRef = useRef(null);
+  const shouldReduce = useReducedMotion();
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // Whole section tilt — subtle
+  const sectionRotateX = useTransform(scrollYProgress, [0, 0.5, 1], [1.5, 0, -1.5]);
+  const sectionRotateX_s = useSpring(sectionRotateX, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.6,
+  });
+
   const renderProgramGroup = () => (
     <div className="mx-auto flex w-max items-start gap-6 px-6 md:gap-[1.5vw] md:px-[5.9vw]">
       {programs.map((program, index) => (
@@ -212,14 +284,18 @@ const Programs = () => {
           program={program}
           index={index}
           total={programs.length}
+          sectionProgress={scrollYProgress}
         />
       ))}
     </div>
   );
 
   return (
-    <section className="mobile-cta-exclusion floating-action-exclusion relative w-full overflow-hidden border-t-[0.45rem] border-[#0C0922] bg-[#FDFCFA] py-16 md:py-24">
-
+    <section
+      ref={sectionRef}
+      className="mobile-cta-exclusion floating-action-exclusion relative w-full overflow-hidden border-t-[0.45rem] border-[#0C0922] bg-[#FDFCFA] py-16 md:py-24"
+      style={{ perspective: '1600px' }}
+    >
       {/* Ambient gold glow — subtle, top right */}
       <motion.div
         initial={{ opacity: 0, scale: 0.7 }}
@@ -230,68 +306,76 @@ const Programs = () => {
       />
 
       {/* ==================================================
-          HEADER — letter cascade
-          ================================================== */}
-      <div className="relative pl-6 pr-6 sm:pl-10 md:pl-[6.4vw]">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
-          className="mb-4 flex items-center gap-3"
-        >
-          <motion.span
-            animate={{ opacity: [1, 0.35, 1], scale: [1, 1.3, 1] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-            className="inline-block h-1.5 w-1.5 rounded-full bg-[#876B18]"
-          />
-          <span className="text-[#876B18] type-eyebrow">Programs</span>
-        </motion.div>
-
-        <h2 className="type-page-title text-[#1A1A1A]">
-          <CascadeText text="Four ways in," delay={0.35} />
-          <br />
-          <CascadeText text="one path forward." delay={0.9} />
-        </h2>
-      </div>
-
-      {/* ==================================================
-          CAROUSEL — cards deal in sequentially
-          ================================================== */}
-      <div
-        className="programs-carousel mt-8 snap-x snap-mandatory overflow-x-auto overscroll-x-contain md:mt-14"
-        aria-label="Programs carousel"
-        tabIndex="0"
-      >
-        {renderProgramGroup()}
-      </div>
-
-      {/* ==================================================
-          CTA — See all programs
+          Content wrapper — subtle scroll tilt
           ================================================== */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.8, delay: 1.4, ease: EASE }}
-        className="relative mt-12 pl-6 pr-6 sm:pl-10 md:mt-[3vw] md:pl-[5.9vw]"
+        style={{
+          rotateX: shouldReduce ? 0 : sectionRotateX_s,
+          transformStyle: 'preserve-3d',
+          willChange: 'transform',
+        }}
+        className="relative"
       >
-        <motion.div whileHover={{ x: 5 }} transition={{ duration: 0.3 }}>
-          <Link
-            to="/courses"
-            className="group/all relative inline-flex items-center gap-2 pb-1 text-xs font-semibold text-[#1A1A1A] transition-colors hover:text-[#876B18]"
+        {/* HEADER */}
+        <div className="relative pl-6 pr-6 sm:pl-10 md:pl-[6.4vw]">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
+            className="mb-4 flex items-center gap-3"
           >
-            <span className="relative">
-              See all programs
-              {/* Base underline */}
-              <span className="absolute bottom-0 left-0 h-px w-full bg-[#876B18]/40" />
-              {/* Gold underline that draws on hover */}
-              <span className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 bg-[#C9A227] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/all:scale-x-100" />
-            </span>
-            <span className="inline-block transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/all:translate-x-1">
-              →
-            </span>
-          </Link>
+            <motion.span
+              animate={{ opacity: [1, 0.35, 1], scale: [1, 1.3, 1] }}
+              transition={{
+                duration: 2.4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+              className="inline-block h-1.5 w-1.5 rounded-full bg-[#876B18]"
+            />
+            <span className="text-[#876B18] type-eyebrow">Programs</span>
+          </motion.div>
+
+          <h2 className="type-page-title text-[#1A1A1A]">
+            <CascadeText text="Four ways in," delay={0.35} />
+            <br />
+            <CascadeText text="one path forward." delay={0.9} />
+          </h2>
+        </div>
+
+        {/* CAROUSEL */}
+        <div
+          className="programs-carousel mt-8 snap-x snap-mandatory overflow-x-auto overscroll-x-contain md:mt-14"
+          aria-label="Programs carousel"
+          tabIndex="0"
+        >
+          {renderProgramGroup()}
+        </div>
+
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.8, delay: 1.4, ease: EASE }}
+          className="relative mt-12 pl-6 pr-6 sm:pl-10 md:mt-[3vw] md:pl-[5.9vw]"
+        >
+          <motion.div whileHover={{ x: 5 }} transition={{ duration: 0.3 }}>
+            <Link
+              to="/courses"
+              className="group/all relative inline-flex items-center gap-2 pb-1 text-xs font-semibold text-[#1A1A1A] transition-colors hover:text-[#876B18]"
+            >
+              <span className="relative">
+                See all programs
+                <span className="absolute bottom-0 left-0 h-px w-full bg-[#876B18]/40" />
+                <span className="absolute -bottom-0.5 left-0 h-[2px] w-full origin-left scale-x-0 bg-[#C9A227] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/all:scale-x-100" />
+              </span>
+              <span className="inline-block transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/all:translate-x-1">
+                →
+              </span>
+            </Link>
+          </motion.div>
         </motion.div>
       </motion.div>
     </section>

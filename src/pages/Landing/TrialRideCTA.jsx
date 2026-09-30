@@ -1,4 +1,11 @@
-import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useReducedMotion,
+} from 'framer-motion';
 import { useEnquiry } from '../../context/EnquiryContext';
 import { EASE, EASE_SNAP } from '../../utils/landing-motion';
 
@@ -39,15 +46,42 @@ const WordMask = ({ text, delay = 0, className = '' }) => {
    ============================================================ */
 const TrialRideCTA = () => {
   const { openEnquiry } = useEnquiry();
+  const sectionRef = useRef(null);
+  const shouldReduce = useReducedMotion();
+
+  /* ============================================================
+     Scroll cameras — background drift + content counter-drift
+     ============================================================ */
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // Background drifts up — combined with the Ken Burns zoom already animating
+  const bgY = useTransform(scrollYProgress, [0, 0.5, 1], ['-4%', '0%', '4%']);
+  const bgY_s = useSpring(bgY, { stiffness: 85, damping: 28, mass: 0.65 });
+
+  // Content column counter-drifts the other way — the peel
+  const contentY = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    ['3%', '0%', '-3%']
+  );
+  const contentY_s = useSpring(contentY, {
+    stiffness: 90,
+    damping: 28,
+    mass: 0.6,
+  });
 
   return (
-    <section className="relative w-full overflow-hidden bg-[#0C0922]">
-
+    <section
+      ref={sectionRef}
+      className="relative w-full overflow-hidden bg-[#0C0922]"
+    >
       {/* ==================================================
-          FULL BACKGROUND IMAGE — completely visible
+          FULL BACKGROUND IMAGE — Ken Burns + scroll drift
           ================================================== */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        {/* Iris reveal + Ken Burns zoom */}
         <motion.div
           initial={{ clipPath: 'circle(0% at 50% 55%)' }}
           whileInView={{ clipPath: 'circle(130% at 50% 55%)' }}
@@ -55,33 +89,44 @@ const TrialRideCTA = () => {
           transition={{ duration: 1.8, ease: EASE_SNAP }}
           className="absolute inset-0"
         >
-          <motion.img
-            animate={{ scale: [1, 1.06, 1] }}
-            transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
-            src="/come and ride.webp"
-            alt="Rider at Nakshath Equestrian Club"
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover object-center"
-          />
+          {/* Scroll drift wrapper — the image itself keeps its Ken Burns loop */}
+          <motion.div
+            style={{
+              y: shouldReduce ? 0 : bgY_s,
+              willChange: 'transform',
+            }}
+            className="absolute inset-0"
+          >
+            <motion.img
+              animate={{ scale: [1, 1.06, 1] }}
+              transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
+              src="/come and ride.webp"
+              alt="Rider at Nakshath Equestrian Club"
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover object-center"
+            />
+          </motion.div>
         </motion.div>
 
-        {/* Barely-there wash — keeps photo bright */}
         <div className="absolute inset-0 bg-[#0C0922]/[0.18]" />
 
-        {/* Bottom gradient ONLY where the text sits — helps readability without dimming the whole photo */}
         <div className="absolute inset-x-0 bottom-0 h-[75%] bg-gradient-to-t from-[#0C0922]/80 via-[#0C0922]/40 to-transparent" />
 
-        {/* Top + bottom blend bands — smooth into neighbouring sections */}
         <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#0C0922]/70 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0C0922]/70 to-transparent" />
       </div>
 
       {/* ==================================================
-          CONTENT — anchored to the bottom of the photo
+          CONTENT — counter-drift wrapper
           ================================================== */}
-      <div className="relative z-10 mx-auto flex min-h-[640px] max-w-7xl flex-col justify-end px-5 pb-16 pt-32 sm:px-6 sm:pb-20 sm:pt-40 md:min-h-[720px] md:pb-24 md:pt-48">
-
+      <motion.div
+        style={{
+          y: shouldReduce ? 0 : contentY_s,
+          willChange: 'transform',
+        }}
+        className="relative z-10 mx-auto flex min-h-[640px] max-w-7xl flex-col justify-end px-5 pb-16 pt-32 sm:px-6 sm:pb-20 sm:pt-40 md:min-h-[720px] md:pb-24 md:pt-48"
+      >
         {/* Eyebrow */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -102,7 +147,7 @@ const TrialRideCTA = () => {
           </span>
         </motion.div>
 
-        {/* Title with word mask + strong text-shadow for readability over the photo */}
+        {/* Title */}
         <h2 className="type-page-title mb-6 max-w-4xl leading-[1.02] text-white [text-shadow:0_4px_24px_rgba(0,0,0,0.85),0_2px_8px_rgba(0,0,0,0.6)]">
           <span className="block">
             <WordMask text="Come and sit" delay={0.4} />
@@ -211,7 +256,7 @@ const TrialRideCTA = () => {
           <span className="hidden h-3 w-px bg-white/30 sm:block" />
           <span>enquiry@ngses.in</span>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 };

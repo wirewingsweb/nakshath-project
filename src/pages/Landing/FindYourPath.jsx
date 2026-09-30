@@ -1,5 +1,11 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useRef, useState } from 'react';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useReducedMotion,
+} from 'framer-motion';
 import { useEnquiry } from '../../context/EnquiryContext';
 import ShinyText from '../../components/ShinyText';
 import { EASE, EASE_SNAP } from '../../utils/landing-motion';
@@ -32,7 +38,7 @@ const CascadeText = ({ text, delay = 0, className = '' }) => {
 };
 
 /* ============================================================
-   EXPANDING CARD — desktop expands on hover, mobile stacks
+   EXPANDING CARD — desktop expands on hover
    ============================================================ */
 const ProgramCard = ({ program, idx, expandedIdx, setExpandedIdx }) => {
   const isExpanded = expandedIdx === idx;
@@ -58,7 +64,6 @@ const ProgramCard = ({ program, idx, expandedIdx, setExpandedIdx }) => {
       }}
       className="group relative hidden overflow-hidden rounded-2xl border border-[#C9A227]/20 bg-[#0C0922] shadow-[0_20px_60px_-30px_rgba(12,9,34,0.5)] transition-[flex-grow] duration-700 lg:flex lg:flex-col lg:min-h-[540px]"
     >
-      {/* Background image — full bleed */}
       <motion.img
         src={program.img}
         alt={program.title}
@@ -77,7 +82,6 @@ const ProgramCard = ({ program, idx, expandedIdx, setExpandedIdx }) => {
         }`}
       />
 
-      {/* Dark gradient overlay — deeper when collapsed */}
       <div
         className={`pointer-events-none absolute inset-0 transition-opacity duration-700 ${
           isExpanded
@@ -86,7 +90,6 @@ const ProgramCard = ({ program, idx, expandedIdx, setExpandedIdx }) => {
         }`}
       />
 
-      {/* Gold vertical rule on the top-right corner */}
       <motion.span
         initial={{ scaleY: 0 }}
         whileInView={{ scaleY: isExpanded ? 1 : 0 }}
@@ -95,10 +98,8 @@ const ProgramCard = ({ program, idx, expandedIdx, setExpandedIdx }) => {
         className="pointer-events-none absolute right-4 top-4 h-12 w-[2px] origin-top bg-[#C9A227]"
       />
 
-      {/* Content — top block (number + title) always visible */}
       <div className="relative z-10 flex flex-1 flex-col justify-between p-6 lg:p-7">
         <div>
-          {/* Number — big italic serif, rotates on hover */}
           <motion.span
             animate={{
               rotate: isExpanded ? -6 : 0,
@@ -114,23 +115,18 @@ const ProgramCard = ({ program, idx, expandedIdx, setExpandedIdx }) => {
         </div>
 
         <div>
-          {/* Title */}
           <motion.h3
             className="mb-3 text-base font-bold uppercase tracking-wider text-white lg:text-lg"
-            animate={{
-              letterSpacing: isExpanded ? '0.08em' : '0.04em',
-            }}
+            animate={{ letterSpacing: isExpanded ? '0.08em' : '0.04em' }}
             transition={{ duration: 0.4, ease: EASE }}
           >
             {program.title}
           </motion.h3>
 
-          {/* Subtitle — smaller gold line */}
           <p className="mb-4 max-w-xs text-xs leading-relaxed text-white/70 lg:text-sm">
             {program.subtitle}
           </p>
 
-          {/* Expand: features list */}
           <motion.div
             initial={false}
             animate={{
@@ -163,7 +159,6 @@ const ProgramCard = ({ program, idx, expandedIdx, setExpandedIdx }) => {
             </ul>
           </motion.div>
 
-          {/* Expand indicator */}
           <motion.div
             animate={{
               opacity: isExpanded ? 0 : 1,
@@ -178,14 +173,13 @@ const ProgramCard = ({ program, idx, expandedIdx, setExpandedIdx }) => {
         </div>
       </div>
 
-      {/* Gold rim on hover */}
       <div className="pointer-events-none absolute inset-0 rounded-2xl border border-transparent transition-colors duration-700 group-hover:border-[#C9A227]/50" />
     </motion.div>
   );
 };
 
 /* ============================================================
-   MOBILE CARD — always fully expanded, stacked vertically
+   MOBILE CARD — always fully expanded
    ============================================================ */
 const ProgramCardMobile = ({ program, idx }) => (
   <motion.div
@@ -195,7 +189,6 @@ const ProgramCardMobile = ({ program, idx }) => (
     transition={{ duration: 0.8, delay: 0.15 + idx * 0.12, ease: EASE }}
     className="flex flex-col overflow-hidden rounded-2xl border border-[#C9A227]/15 bg-white/55 shadow-[0_14px_40px_rgba(12,9,34,0.06)] lg:hidden"
   >
-    {/* Image */}
     <div className="relative aspect-[4/3] overflow-hidden">
       <motion.img
         initial={{ scale: 1.1 }}
@@ -208,7 +201,6 @@ const ProgramCardMobile = ({ program, idx }) => (
         decoding="async"
         className="h-full w-full object-cover"
       />
-      {/* Number badge over image */}
       <motion.span
         initial={{ opacity: 0, x: -20 }}
         whileInView={{ opacity: 1, x: 0 }}
@@ -220,7 +212,6 @@ const ProgramCardMobile = ({ program, idx }) => (
       </motion.span>
     </div>
 
-    {/* Content */}
     <div className="p-5">
       <h3 className="mb-2 text-base font-bold uppercase tracking-wider text-[#1A1A1A]">
         {program.title}
@@ -247,6 +238,21 @@ const ProgramCardMobile = ({ program, idx }) => (
 const FindYourPath = () => {
   const { openEnquiry } = useEnquiry();
   const [expandedIdx, setExpandedIdx] = useState(null);
+  const shouldReduce = useReducedMotion();
+
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // Header orb drift — as you scroll past, the gold glow drifts down
+  const orbY = useTransform(scrollYProgress, [0, 0.5, 1], ['3%', '0%', '-3%']);
+  const orbY_s = useSpring(orbY, { stiffness: 80, damping: 28, mass: 0.7 });
+
+  // Whole desktop deck lifts gently
+  const deckY = useTransform(scrollYProgress, [0, 0.5, 1], ['2%', '0%', '-2%']);
+  const deckY_s = useSpring(deckY, { stiffness: 90, damping: 28, mass: 0.6 });
 
   const programs = [
     {
@@ -280,8 +286,22 @@ const FindYourPath = () => {
   ];
 
   return (
-    <div className="relative w-full overflow-hidden bg-[#F2F0EB] py-14 sm:py-20 lg:py-24">
-      <div className="mx-auto max-w-7xl px-5 sm:px-6">
+    <div
+      ref={sectionRef}
+      className="relative w-full overflow-hidden bg-[#F2F0EB] py-14 sm:py-20 lg:py-24"
+    >
+      {/* Ambient gold glow — drifts with scroll */}
+      <motion.div
+        style={{
+          y: shouldReduce ? 0 : orbY_s,
+          willChange: 'transform',
+        }}
+        className="pointer-events-none absolute inset-0"
+      >
+        <div className="absolute -right-40 top-20 h-[420px] w-[420px] rounded-full bg-[#C9A227]/[0.06] blur-[140px]" />
+      </motion.div>
+
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6">
         {/* ==================================================
             Header — cascade + shimmer
             ================================================== */}
@@ -326,9 +346,15 @@ const FindYourPath = () => {
         </div>
 
         {/* ==================================================
-            DESKTOP — Expanding horizontal deck
+            DESKTOP — Expanding deck + scroll float
             ================================================== */}
-        <div className="hidden items-stretch gap-4 lg:flex">
+        <motion.div
+          style={{
+            y: shouldReduce ? 0 : deckY_s,
+            willChange: 'transform',
+          }}
+          className="hidden items-stretch gap-4 lg:flex"
+        >
           {programs.map((program, idx) => (
             <ProgramCard
               key={idx}
@@ -338,7 +364,7 @@ const FindYourPath = () => {
               setExpandedIdx={setExpandedIdx}
             />
           ))}
-        </div>
+        </motion.div>
 
         {/* ==================================================
             MOBILE — Stacked cards
@@ -350,7 +376,7 @@ const FindYourPath = () => {
         </div>
 
         {/* ==================================================
-            CTA — magnetic gold button
+            CTA
             ================================================== */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

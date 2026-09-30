@@ -2,13 +2,39 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Navigation from './Navigation';
 import Footer from './Footer';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import { EnquiryProvider } from '../context/EnquiryContext';
 import EnquiryModal from './EnquiryModal';
 
-// Sticky Button Component - WhatsApp only
+/* ============================================================
+   SCROLL PROGRESS BAR
+   Thin gold line at the very top of the viewport — fixed above
+   the nav (z-200). Tracks page scroll progress. Communicates
+   "scroll is a narrative" without any weight.
+   ============================================================ */
+const ScrollProgressBar = () => {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 30,
+    mass: 0.4,
+  });
+
+  return (
+    <motion.div
+      aria-hidden="true"
+      style={{ scaleX, transformOrigin: '0% 50%', willChange: 'transform' }}
+      className="fixed left-0 top-0 z-[200] h-[2px] w-full bg-gradient-to-r from-[#C9A227] via-[#C9A227] to-[#C9A227]/30"
+    />
+  );
+};
+
+/* ============================================================
+   STICKY WHATSAPP BUTTON
+   ============================================================ */
 const StickyButtons = () => {
-  const waLink = "https://wa.me/918460846946?text=Hi%20Nakshath%20Equestrian%20Club!%20I'd%20like%20to%20book%20a%20test%20ride.";
+  const waLink =
+    "https://wa.me/918460846946?text=Hi%20Nakshath%20Equestrian%20Club!%20I'd%20like%20to%20book%20a%20test%20ride.";
 
   return (
     <motion.a
@@ -23,7 +49,11 @@ const StickyButtons = () => {
       className="group fixed bottom-5 right-5 z-50 flex items-center justify-center transition-transform drop-shadow-[0_2px_8px_rgba(0,0,0,0.22)]"
       aria-label="Chat with us on WhatsApp"
     >
-      <svg viewBox="-2.5 -2.5 29 29" className="w-9 h-9 md:w-10 md:h-10" aria-hidden="true">
+      <svg
+        viewBox="-2.5 -2.5 29 29"
+        className="w-9 h-9 md:w-10 md:h-10"
+        aria-hidden="true"
+      >
         {/* Green circle with white stroke outline */}
         <path
           fill="#25D366"
@@ -42,10 +72,21 @@ const StickyButtons = () => {
   );
 };
 
+/* ============================================================
+   LAYOUT
+   Wraps every page. Contains:
+   - Scroll progress bar (fixed top, above nav)
+   - Navigation (fixed top)
+   - Page content (Outlet)
+   - Footer
+   - Enquiry modal
+   - Sticky WhatsApp button
+   ============================================================ */
 const Layout = () => {
   return (
     <EnquiryProvider>
       <div className="min-h-screen bg-[#FDFCFA] overflow-x-hidden font-sans">
+        <ScrollProgressBar />
         <Navigation />
         <Outlet />
         <Footer />

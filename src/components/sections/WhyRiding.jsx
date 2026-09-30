@@ -1,5 +1,12 @@
 import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useInView,
+  useReducedMotion,
+} from 'framer-motion';
 import { EASE } from '../../utils/landing-motion';
 
 const benefits = [
@@ -21,7 +28,28 @@ const benefits = [
 ];
 
 /* ============================================================
-   WORD MASK — reliable reveal via useInView on the outer span
+   LINE MASK — reliable via useInView
+   ============================================================ */
+const LineMask = ({ children, delay = 0 }) => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, amount: 0.1 });
+
+  return (
+    <span ref={ref} className="block overflow-hidden">
+      <motion.span
+        initial={{ y: '110%' }}
+        animate={inView ? { y: '0%' } : { y: '110%' }}
+        transition={{ duration: 1.1, delay, ease: EASE }}
+        className="block"
+      >
+        {children}
+      </motion.span>
+    </span>
+  );
+};
+
+/* ============================================================
+   WORD MASK — reliable word reveal
    ============================================================ */
 const WordMask = ({ text, delay = 0, stagger = 0.09 }) => {
   const ref = useRef(null);
@@ -34,7 +62,11 @@ const WordMask = ({ text, delay = 0, stagger = 0.09 }) => {
         <span
           key={`${w}-${i}`}
           className="inline-block overflow-hidden align-bottom"
-          style={{ marginRight: '0.28em' }}
+          style={{
+            marginRight: '0.28em',
+            paddingBottom: '0.15em',
+            marginBottom: '-0.15em',
+          }}
         >
           <motion.span
             initial={{ y: '115%' }}
@@ -55,6 +87,29 @@ const WordMask = ({ text, delay = 0, stagger = 0.09 }) => {
 };
 
 /* ============================================================
+   GOLD BLOOM
+   ============================================================ */
+const GoldBloom = ({ children, delay = 0 }) => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, amount: 0.1 });
+
+  return (
+    <motion.span
+      ref={ref}
+      animate={
+        inView
+          ? { opacity: 1, textShadow: '0 0 22px rgba(201,162,39,0.65)' }
+          : { opacity: 0.85, textShadow: '0 0 0px rgba(201,162,39,0)' }
+      }
+      transition={{ duration: 1.2, delay, ease: EASE }}
+      className="text-[#876B18]"
+    >
+      {children}
+    </motion.span>
+  );
+};
+
+/* ============================================================
    SKETCH-IN ILLUSTRATION
    ============================================================ */
 const SketchInIllustration = ({ src, alt, delay = 0, size = 'lg' }) => {
@@ -64,9 +119,12 @@ const SketchInIllustration = ({ src, alt, delay = 0, size = 'lg' }) => {
 
   return (
     <div ref={ref} className={`relative ${isCompact ? 'shrink-0' : ''}`}>
+      {/* Soft gold halo behind the illustration */}
       <motion.span
         aria-hidden="true"
-        animate={inView ? { opacity: 0.55, scale: 1 } : { opacity: 0, scale: 0.5 }}
+        animate={
+          inView ? { opacity: 0.55, scale: 1 } : { opacity: 0, scale: 0.5 }
+        }
         transition={{ duration: 1.6, delay: delay + 0.6, ease: EASE }}
         className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-[radial-gradient(circle,_rgba(201,162,39,0.28),_transparent_70%)] blur-2xl"
       />
@@ -138,16 +196,31 @@ const AnimatedBullets = ({ items, startDelay = 0, compact = false }) => {
 };
 
 /* ============================================================
-   BENEFIT
+   BENEFIT — with scroll-driven depth
+   Each column drifts at a rate based on its index.
    ============================================================ */
-const Benefit = ({ benefit, compact = false, index = 0 }) => {
+const Benefit = ({ benefit, compact = false, index = 0, sectionProgress }) => {
   const baseDelay = 0.4 + index * 0.55;
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, amount: 0.1 });
+  const shouldReduce = useReducedMotion();
+
+  // Each column floats at a different rate
+  const floatRange = 4 + index * 2; // 4, 6, 8 %
+  const yDrift = useTransform(
+    sectionProgress,
+    [0, 0.5, 1],
+    [`${floatRange}%`, '0%', `${-floatRange}%`]
+  );
+  const y_s = useSpring(yDrift, { stiffness: 90, damping: 26, mass: 0.6 });
 
   return (
-    <article
+    <motion.article
       ref={ref}
+      style={{
+        y: shouldReduce ? 0 : y_s,
+        willChange: 'transform',
+      }}
       className={
         compact
           ? 'grid grid-cols-[6.5rem_1fr] items-center gap-5'
@@ -203,7 +276,7 @@ const Benefit = ({ benefit, compact = false, index = 0 }) => {
           compact={compact}
         />
       </div>
-    </article>
+    </motion.article>
   );
 };
 
@@ -211,122 +284,215 @@ const Benefit = ({ benefit, compact = false, index = 0 }) => {
    MAIN
    ============================================================ */
 const WhyRiding = () => {
-  const desktopHeaderRef = useRef(null);
-  const desktopHeaderInView = useInView(desktopHeaderRef, { once: true, amount: 0.2 });
+  const desktopRef = useRef(null);
+  const shouldReduce = useReducedMotion();
 
-  const desktopImgRef = useRef(null);
-  const desktopImgInView = useInView(desktopImgRef, { once: true, amount: 0.15 });
+  const { scrollYProgress: desktopProgress } = useScroll({
+    target: desktopRef,
+    offset: ['start end', 'end start'],
+  });
 
-  const railRef = useRef(null);
-  const railInView = useInView(railRef, { once: true, amount: 0.15 });
+  // Background image drifts and scales
+  const bgY = useTransform(desktopProgress, [0, 0.5, 1], ['-6%', '0%', '6%']);
+  const bgScale = useTransform(
+    desktopProgress,
+    [0, 0.5, 1],
+    [1.08, 1, 1.08]
+  );
+  const bgY_s = useSpring(bgY, { stiffness: 80, damping: 28, mass: 0.7 });
+  const bgScale_s = useSpring(bgScale, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.7,
+  });
 
+  // Header counter-drifts
+  const headerY = useTransform(desktopProgress, [0, 0.5, 1], ['3%', '0%', '-3%']);
+  const headerY_s = useSpring(headerY, {
+    stiffness: 100,
+    damping: 28,
+    mass: 0.5,
+  });
+
+  // Whole section tilt
+  const sceneRotateX = useTransform(
+    desktopProgress,
+    [0, 0.5, 1],
+    [1.5, 0, -1.5]
+  );
+  const sceneRotateX_s = useSpring(sceneRotateX, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.6,
+  });
+
+  // Mobile refs
   const mobileHeaderRef = useRef(null);
-  const mobileHeaderInView = useInView(mobileHeaderRef, { once: true, amount: 0.2 });
+  const mobileHeaderInView = useInView(mobileHeaderRef, {
+    once: true,
+    amount: 0.2,
+  });
 
   const mobileImgRef = useRef(null);
-  const mobileImgInView = useInView(mobileImgRef, { once: true, amount: 0.15 });
+  const mobileImgInView = useInView(mobileImgRef, {
+    once: true,
+    amount: 0.15,
+  });
+
+  const { scrollYProgress: mobileProgress } = useScroll({
+    target: mobileImgRef,
+    offset: ['start end', 'end start'],
+  });
+  const mobileBgY = useTransform(mobileProgress, [0, 1], ['-4%', '4%']);
+  const mobileBgY_s = useSpring(mobileBgY, {
+    stiffness: 90,
+    damping: 26,
+    mass: 0.6,
+  });
 
   return (
     <section className="w-full overflow-hidden bg-[#FDFCFA]">
       {/* ===== DESKTOP ===== */}
-      <div className="relative hidden aspect-[1672/941] w-full lg:block">
-        {/* Background image */}
+      <div
+        ref={desktopRef}
+        className="relative hidden aspect-[1672/941] w-full lg:block"
+        style={{ perspective: '1600px' }}
+      >
+        {/* ==================================================
+            BACKGROUND IMAGE — camera drift
+            ================================================== */}
         <motion.div
-          ref={desktopImgRef}
-          animate={
-            desktopImgInView
-              ? { opacity: 1, scale: 1, filter: 'blur(0px)' }
-              : { opacity: 0, scale: 1.08, filter: 'blur(12px)' }
-          }
-          transition={{ duration: 2.2, ease: EASE }}
+          style={{
+            y: shouldReduce ? 0 : bgY_s,
+            scale: shouldReduce ? 1 : bgScale_s,
+            willChange: 'transform',
+          }}
           className="absolute right-0 top-0 h-[62%] w-[70%] overflow-hidden"
         >
-          <img
+          <motion.img
             src="/page 9 gpt.webp"
             alt="A child riding a white horse at sunset"
             loading="lazy"
             decoding="async"
+            initial={{ opacity: 0, filter: 'blur(12px)' }}
+            whileInView={{ opacity: 1, filter: 'blur(0px)' }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 2.2, ease: EASE }}
             className="h-full w-full object-cover object-[63%_48%]"
           />
           <div className="absolute inset-y-0 left-0 w-[42%] bg-gradient-to-r from-[#FDFCFA] via-[#FDFCFA]/75 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-[30%] bg-gradient-to-t from-[#FDFCFA] via-[#FDFCFA]/65 to-transparent" />
         </motion.div>
 
-        {/* HEADER */}
-        <header
-          ref={desktopHeaderRef}
-          className="absolute left-[6.8%] top-[15.5%] z-10 w-[48%]"
+        {/* ==================================================
+            Content — scroll tilt
+            ================================================== */}
+        <motion.div
+          style={{
+            rotateX: shouldReduce ? 0 : sceneRotateX_s,
+            transformStyle: 'preserve-3d',
+            willChange: 'transform',
+          }}
+          className="absolute inset-0"
         >
-          <motion.h4
-            initial={{ opacity: 0, x: -20 }}
-            animate={desktopHeaderInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
-            transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
-            className="mb-[2.1vw] flex items-center gap-3 type-eyebrow text-[#876B18]"
+          {/* HEADER */}
+          <motion.header
+            style={{
+              y: shouldReduce ? 0 : headerY_s,
+              willChange: 'transform',
+            }}
+            className="absolute left-[6.8%] top-[15.5%] z-10 w-[48%]"
+          >
+            <motion.h4
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
+              className="mb-[2.1vw] flex items-center gap-3 type-eyebrow text-[#876B18]"
+            >
+              <motion.span
+                animate={{ opacity: [1, 0.35, 1], scale: [1, 1.3, 1] }}
+                transition={{
+                  duration: 2.4,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+                className="inline-block h-1.5 w-1.5 rounded-full bg-[#876B18]"
+              />
+              Why Riding
+            </motion.h4>
+
+            <h2 className="type-display text-[#1A1A1A]">
+              <span className="block">
+                <WordMask text="What a child takes" delay={0.35} />
+              </span>
+              <span className="block">
+                <WordMask text="home from the arena." delay={0.75} />
+              </span>
+            </h2>
+
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.9, delay: 1.4, ease: EASE }}
+              className="mt-[1.6vw] text-base text-[#5A5A66]"
+            >
+              Riding builds more than riding.
+            </motion.p>
+
+            <motion.span
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 1.3, delay: 1.7, ease: EASE }}
+              className="mt-5 block h-[2px] w-20 origin-left bg-[#C9A227]/60"
+            />
+          </motion.header>
+
+          {/* GOLD RAIL above the three columns */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 2.4, delay: 0.3, ease: EASE }}
+            className="absolute left-[3.5%] right-[3.5%] top-[56%] z-10 h-px origin-left bg-gradient-to-r from-[#C9A227]/80 via-[#C9A227]/40 to-[#C9A227]/80"
           >
             <motion.span
-              animate={{ opacity: [1, 0.35, 1], scale: [1, 1.3, 1] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-              className="inline-block h-1.5 w-1.5 rounded-full bg-[#876B18]"
+              initial={{ opacity: 0, scale: 0 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 1.1, ease: EASE }}
+              className="absolute left-[16%] top-1/2 h-2 w-[2px] -translate-y-1/2 bg-[#C9A227]"
             />
-            Why Riding
-          </motion.h4>
+            <motion.span
+              initial={{ opacity: 0, scale: 0 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 1.65, ease: EASE }}
+              className="absolute left-[50%] top-1/2 h-2 w-[2px] -translate-y-1/2 bg-[#C9A227]"
+            />
+            <motion.span
+              initial={{ opacity: 0, scale: 0 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: 2.2, ease: EASE }}
+              className="absolute left-[84%] top-1/2 h-2 w-[2px] -translate-y-1/2 bg-[#C9A227]"
+            />
+          </motion.div>
 
-          <h2 className="type-display text-[#1A1A1A]">
-            <span className="block">
-              <WordMask text="What a child takes" delay={0.35} />
-            </span>
-            <span className="block">
-              <WordMask text="home from the arena." delay={0.75} />
-            </span>
-          </h2>
-
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={desktopHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
-            transition={{ duration: 0.9, delay: 1.4, ease: EASE }}
-            className="mt-[1.6vw] text-base text-[#5A5A66]"
-          >
-            Riding builds more than riding.
-          </motion.p>
-
-          <motion.span
-            initial={{ scaleX: 0 }}
-            animate={desktopHeaderInView ? { scaleX: 1 } : { scaleX: 0 }}
-            transition={{ duration: 1.3, delay: 1.7, ease: EASE }}
-            className="mt-5 block h-[2px] w-20 origin-left bg-[#C9A227]/60"
-          />
-        </header>
-
-        {/* GOLD RAIL */}
-        <motion.div
-          ref={railRef}
-          animate={railInView ? { scaleX: 1 } : { scaleX: 0 }}
-          transition={{ duration: 2.4, delay: 0.3, ease: EASE }}
-          className="absolute left-[3.5%] right-[3.5%] top-[56%] z-10 h-px origin-left bg-gradient-to-r from-[#C9A227]/80 via-[#C9A227]/40 to-[#C9A227]/80"
-        >
-          <motion.span
-            animate={railInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
-            transition={{ duration: 0.5, delay: 1.1, ease: EASE }}
-            className="absolute left-[16%] top-1/2 h-2 w-[2px] -translate-y-1/2 bg-[#C9A227]"
-          />
-          <motion.span
-            animate={railInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
-            transition={{ duration: 0.5, delay: 1.65, ease: EASE }}
-            className="absolute left-[50%] top-1/2 h-2 w-[2px] -translate-y-1/2 bg-[#C9A227]"
-          />
-          <motion.span
-            animate={railInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
-            transition={{ duration: 0.5, delay: 2.2, ease: EASE }}
-            className="absolute left-[84%] top-1/2 h-2 w-[2px] -translate-y-1/2 bg-[#C9A227]"
-          />
+          {/* BENEFIT COLUMNS — depth field */}
+          <div className="absolute inset-x-[3.5%] bottom-[7.2%] z-10 grid grid-cols-3 gap-[2.2vw]">
+            {benefits.map((benefit, index) => (
+              <Benefit
+                key={benefit.title}
+                benefit={benefit}
+                index={index}
+                sectionProgress={desktopProgress}
+              />
+            ))}
+          </div>
         </motion.div>
-
-        {/* BENEFIT COLUMNS */}
-        <div className="absolute inset-x-[3.5%] bottom-[7.2%] z-10 grid grid-cols-3 gap-[2.2vw]">
-          {benefits.map((benefit, index) => (
-            <Benefit key={benefit.title} benefit={benefit} index={index} />
-          ))}
-        </div>
       </div>
 
       {/* ===== MOBILE ===== */}
@@ -334,13 +500,19 @@ const WhyRiding = () => {
         <header ref={mobileHeaderRef} className="px-6 pb-7 pt-14 sm:px-10">
           <motion.h4
             initial={{ opacity: 0, x: -16 }}
-            animate={mobileHeaderInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 }}
+            animate={
+              mobileHeaderInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 }
+            }
             transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
             className="type-eyebrow mb-4 flex items-center gap-3 text-[#876B18]"
           >
             <motion.span
               animate={{ opacity: [1, 0.35, 1], scale: [1, 1.3, 1] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{
+                duration: 2.4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
               className="inline-block h-1.5 w-1.5 rounded-full bg-[#876B18]"
             />
             Why Riding
@@ -357,7 +529,9 @@ const WhyRiding = () => {
 
           <motion.p
             initial={{ opacity: 0, y: 12 }}
-            animate={mobileHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+            animate={
+              mobileHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }
+            }
             transition={{ duration: 0.9, delay: 1.3, ease: EASE }}
             className="mt-4 text-base leading-relaxed text-[#5A5A66]"
           >
@@ -372,30 +546,46 @@ const WhyRiding = () => {
           />
         </header>
 
-        <motion.div
+        <div
           ref={mobileImgRef}
-          animate={
-            mobileImgInView
-              ? { opacity: 1, scale: 1, filter: 'blur(0px)' }
-              : { opacity: 0, scale: 1.05, filter: 'blur(10px)' }
-          }
-          transition={{ duration: 1.6, ease: EASE }}
           className="relative aspect-[16/10] w-full overflow-hidden"
         >
-          <img
-            src="/page 9 gpt.webp"
-            alt="A child riding a white horse at sunset"
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover object-[72%_center]"
-          />
+          <motion.div
+            style={{
+              y: shouldReduce ? 0 : mobileBgY_s,
+              willChange: 'transform',
+            }}
+            className="absolute inset-0"
+          >
+            <motion.img
+              src="/page 9 gpt.webp"
+              alt="A child riding a white horse at sunset"
+              loading="lazy"
+              decoding="async"
+              initial={{ opacity: 0, scale: 1.08, filter: 'blur(10px)' }}
+              animate={
+                mobileImgInView
+                  ? { opacity: 1, scale: 1, filter: 'blur(0px)' }
+                  : { opacity: 0, scale: 1.08, filter: 'blur(10px)' }
+              }
+              transition={{ duration: 1.6, ease: EASE }}
+              className="h-full w-full object-cover object-[72%_center]"
+            />
+          </motion.div>
+
           <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#FDFCFA]/80 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#FDFCFA] to-transparent" />
-        </motion.div>
+        </div>
 
         <div className="space-y-3 px-6 pb-16 sm:px-10">
           {benefits.map((benefit, index) => (
-            <Benefit key={benefit.title} benefit={benefit} index={index} compact />
+            <Benefit
+              key={benefit.title}
+              benefit={benefit}
+              index={index}
+              compact
+              sectionProgress={mobileProgress}
+            />
           ))}
         </div>
       </div>

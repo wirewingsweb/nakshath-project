@@ -1,4 +1,10 @@
-import React, { createContext, useState, useContext, useCallback } from 'react';
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useCallback,
+} from 'react';
+import { stopScroll, startScroll } from '../lib/smoothScroll';
 
 const EnquiryContext = createContext();
 
@@ -9,12 +15,27 @@ export const EnquiryProvider = ({ children }) => {
   const openEnquiry = useCallback((topic = '') => {
     if (topic) setSelectedTopic(topic);
     setIsModalOpen(true);
+    // Freeze the page behind the modal — Lenis owns the scroll,
+    // so body overflow alone doesn't stop it.
+    stopScroll();
   }, []);
 
-  const closeEnquiry = useCallback(() => setIsModalOpen(false), []);
+  const closeEnquiry = useCallback(() => {
+    setIsModalOpen(false);
+    // Resume page scroll.
+    startScroll();
+  }, []);
 
   return (
-    <EnquiryContext.Provider value={{ isModalOpen, openEnquiry, closeEnquiry, selectedTopic, setSelectedTopic }}>
+    <EnquiryContext.Provider
+      value={{
+        isModalOpen,
+        openEnquiry,
+        closeEnquiry,
+        selectedTopic,
+        setSelectedTopic,
+      }}
+    >
       {children}
     </EnquiryContext.Provider>
   );

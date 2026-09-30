@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useMotionValue, animate } from 'framer-motion';
+import {
+  motion,
+  useMotionValue,
+  animate,
+  useScroll,
+  useTransform,
+  useSpring,
+  useReducedMotion,
+} from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { EASE } from '../../utils/landing-motion';
 
@@ -19,7 +27,7 @@ const SWIPE_THRESHOLD = 80;
 const WHEEL_COOLDOWN_MS = 900;
 
 /* ============================================================
-   LETTER CASCADE — slower, more deliberate
+   LETTER CASCADE
    ============================================================ */
 const CascadeText = ({ text, delay = 0 }) => {
   const chars = text.split('');
@@ -41,6 +49,9 @@ const CascadeText = ({ text, delay = 0 }) => {
   );
 };
 
+/* ============================================================
+   THE CAMPUS
+   ============================================================ */
 const TheCampus = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -49,7 +60,66 @@ const TheCampus = () => {
   const autoplayRef = useRef(null);
   const wheelLockRef = useRef(false);
   const sectionRef = useRef(null);
+  const sceneRef = useRef(null);
 
+  const shouldReduce = useReducedMotion();
+
+  // Scroll progress for the whole section
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // Whole scene tilts and drifts on scroll
+  const sceneRotateX = useTransform(scrollYProgress, [0, 0.5, 1], [2.5, 0, -2.5]);
+  const sceneY = useTransform(scrollYProgress, [0, 0.5, 1], ['4%', '0%', '-4%']);
+
+  const sceneRotateX_s = useSpring(sceneRotateX, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.6,
+  });
+  const sceneY_s = useSpring(sceneY, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.6,
+  });
+
+  // Background glows drift based on scroll
+  const glowOneX = useTransform(scrollYProgress, [0, 1], ['-8%', '8%']);
+  const glowOneY = useTransform(scrollYProgress, [0, 1], ['-6%', '6%']);
+  const glowTwoX = useTransform(scrollYProgress, [0, 1], ['6%', '-6%']);
+  const glowTwoY = useTransform(scrollYProgress, [0, 1], ['4%', '-4%']);
+  const glowOneX_s = useSpring(glowOneX, {
+    stiffness: 60,
+    damping: 30,
+    mass: 0.8,
+  });
+  const glowOneY_s = useSpring(glowOneY, {
+    stiffness: 60,
+    damping: 30,
+    mass: 0.8,
+  });
+  const glowTwoX_s = useSpring(glowTwoX, {
+    stiffness: 60,
+    damping: 30,
+    mass: 0.8,
+  });
+  const glowTwoY_s = useSpring(glowTwoY, {
+    stiffness: 60,
+    damping: 30,
+    mass: 0.8,
+  });
+
+  // Title/eyebrow counter-drift
+  const headerY = useTransform(scrollYProgress, [0, 0.5, 1], ['2%', '0%', '-2%']);
+  const headerY_s = useSpring(headerY, {
+    stiffness: 100,
+    damping: 28,
+    mass: 0.5,
+  });
+
+  // ---------- Carousel logic (unchanged) ----------
   const goNext = useCallback(() => {
     setActiveIndex((prev) => (prev + 1) % facilities.length);
   }, []);
@@ -124,27 +194,40 @@ const TheCampus = () => {
     <section
       ref={sectionRef}
       className="relative w-full overflow-hidden bg-[#FDFCFA] py-24 md:pt-[6vw] md:pb-[6vw]"
+      style={{ perspective: '1800px' }}
     >
       {/* ==================================================
-          Ambient glows — slow drift
+          AMBIENT GLOWS — scroll-driven drift
           ================================================== */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <motion.div
-          animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
-          transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut' }}
+          style={{
+            x: shouldReduce ? 0 : glowOneX_s,
+            y: shouldReduce ? 0 : glowOneY_s,
+            willChange: 'transform',
+          }}
           className="absolute left-1/2 top-1/2 h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#C9A227]/[0.06] blur-[140px]"
         />
         <motion.div
-          animate={{ x: [0, -30, 0], y: [0, 20, 0] }}
-          transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          style={{
+            x: shouldReduce ? 0 : glowTwoX_s,
+            y: shouldReduce ? 0 : glowTwoY_s,
+            willChange: 'transform',
+          }}
           className="absolute right-1/4 top-1/4 h-[500px] w-[500px] rounded-full bg-[#876B18]/[0.04] blur-[120px]"
         />
       </div>
 
       {/* ==================================================
-          HEADER
+          HEADER — counter-drift
           ================================================== */}
-      <div className="relative z-10 flex flex-col gap-6 px-6 sm:px-10 md:flex-row md:items-end md:justify-between md:px-[5.4vw]">
+      <motion.div
+        style={{
+          y: shouldReduce ? 0 : headerY_s,
+          willChange: 'transform',
+        }}
+        className="relative z-10 flex flex-col gap-6 px-6 sm:px-10 md:flex-row md:items-end md:justify-between md:px-[5.4vw]"
+      >
         <div>
           {/* Eyebrow */}
           <motion.div
@@ -162,7 +245,7 @@ const TheCampus = () => {
             <span className="text-[#876B18] type-eyebrow">The Campus</span>
           </motion.div>
 
-          {/* Title with letter cascade — slower */}
+          {/* Title with letter cascade */}
           <h2 className="type-page-title text-[#1A1A1A]">
             <CascadeText text="Everything on" delay={0.4} />
             <br />
@@ -179,7 +262,7 @@ const TheCampus = () => {
           />
         </div>
 
-        {/* Editorial right-side counter — replaces the "Scroll · Drag · Auto" line */}
+        {/* Counter */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -187,7 +270,6 @@ const TheCampus = () => {
           transition={{ duration: 1, delay: 0.7, ease: EASE }}
           className="flex items-center gap-4"
         >
-          {/* Divider */}
           <motion.span
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
@@ -203,16 +285,23 @@ const TheCampus = () => {
             {String(facilities.length).padStart(2, '0')}
           </span>
         </motion.div>
-      </div>
+      </motion.div>
 
       {/* ==================================================
-          3D COVER FLOW
+          3D COVER FLOW — whole scene tilts on scroll
           ================================================== */}
       <motion.div
+        ref={sceneRef}
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 1.6, delay: 0.3, ease: EASE }}
+        style={{
+          rotateX: shouldReduce ? 0 : sceneRotateX_s,
+          y: shouldReduce ? undefined : sceneY_s,
+          transformStyle: 'preserve-3d',
+          willChange: 'transform',
+        }}
         className="relative z-10 mt-20 md:mt-28"
       >
         <div
@@ -241,7 +330,8 @@ const TheCampus = () => {
               const translateX = offset * (CARD_WIDTH * 0.52);
               const rotateY = offset * -32;
               const scale = isActive ? 1 : Math.max(0.55, 1 - absOffset * 0.16);
-              const opacity = absOffset > 2 ? 0 : isActive ? 1 : Math.max(0.4, 0.75 - absOffset * 0.2);
+              const opacity =
+                absOffset > 2 ? 0 : isActive ? 1 : Math.max(0.4, 0.75 - absOffset * 0.2);
               const zIndex = 100 - absOffset;
               const translateZ = isActive ? 60 : -Math.abs(offset) * 140;
 
@@ -264,7 +354,11 @@ const TheCampus = () => {
                   }}
                   whileHover={
                     !isActive
-                      ? { scale: scale + 0.05, opacity: opacity + 0.15, transition: { duration: 0.5 } }
+                      ? {
+                          scale: scale + 0.05,
+                          opacity: opacity + 0.15,
+                          transition: { duration: 0.5 },
+                        }
                       : {}
                   }
                   className={`group relative overflow-hidden rounded-3xl bg-[#0C0922] transition-shadow duration-1000 ${
@@ -337,7 +431,7 @@ const TheCampus = () => {
                     />
                   )}
 
-                  {/* Active corner brackets — draw in */}
+                  {/* Corner brackets */}
                   {isActive && (
                     <div className="pointer-events-none absolute inset-5">
                       <motion.div
@@ -363,7 +457,8 @@ const TheCampus = () => {
                     transition={{ duration: 1, ease: EASE }}
                     className="pointer-events-none absolute left-6 top-5 font-mono text-[10px] font-medium uppercase tracking-[0.24em]"
                   >
-                    {String(idx + 1).padStart(2, '0')} / {String(facilities.length).padStart(2, '0')}
+                    {String(idx + 1).padStart(2, '0')} /{' '}
+                    {String(facilities.length).padStart(2, '0')}
                   </motion.span>
 
                   {/* Content */}
@@ -379,7 +474,9 @@ const TheCampus = () => {
                       className="mb-4 h-px"
                     />
                     <motion.h3
-                      animate={{ color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.8)' }}
+                      animate={{
+                        color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.8)',
+                      }}
                       transition={{ duration: 0.9, ease: EASE }}
                       className="font-serif text-2xl leading-tight tracking-tight"
                     >
@@ -418,7 +515,7 @@ const TheCampus = () => {
       </motion.div>
 
       {/* ==================================================
-          SEE ALL
+          CTA
           ================================================== */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

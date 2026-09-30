@@ -1,4 +1,11 @@
-import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useReducedMotion,
+} from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -9,6 +16,8 @@ const offers = [
   { img: '/page 11 5 gpt.webp', num: '04', title: 'Kids summer camp', desc: 'A structured holiday programme for children.' },
   { img: '/page 11 6 gpt.webp', num: '05', title: 'Early registration', desc: 'Priority slots for riders who enrol before opening.' },
 ];
+
+const EASE = [0.22, 1, 0.36, 1];
 
 /* ============================================================
    WORD-CASCADE REVEAL
@@ -26,7 +35,7 @@ const WordCascade = ({ text, delay = 0, className = '' }) => {
           transition={{
             duration: 0.8,
             delay: delay + i * 0.08,
-            ease: [0.22, 1, 0.36, 1],
+            ease: EASE,
           }}
           className="inline-block mr-[0.28em]"
         >
@@ -38,21 +47,37 @@ const WordCascade = ({ text, delay = 0, className = '' }) => {
 };
 
 /* ============================================================
-   OFFER ITEM
+   OFFER ITEM — with scroll-driven depth
+   Each item floats at a slightly different rate so the grid
+   reads as a shallow 3D field rather than a flat plane.
    ============================================================ */
-const OfferItem = ({ item, index }) => {
+const OfferItem = ({ item, index, sectionProgress }) => {
   const baseDelay = 0.4 + index * 0.1;
   const skew = index % 2 === 0 ? -4 : 4;
+  const shouldReduce = useReducedMotion();
+
+  // Staggered float depth per item — alternating shallower/deeper
+  const floatRange = 2.5 + (index % 3) * 1.5; // 2.5, 4, 5.5 %
+  const yDrift = useTransform(
+    sectionProgress,
+    [0, 0.5, 1],
+    [`${floatRange}%`, '0%', `${-floatRange}%`]
+  );
+  const y_s = useSpring(yDrift, { stiffness: 90, damping: 26, mass: 0.6 });
 
   return (
     <motion.div
+      style={{
+        y: shouldReduce ? 0 : y_s,
+        willChange: 'transform',
+      }}
       initial={{ opacity: 0, y: 30, rotate: skew }}
       whileInView={{ opacity: 1, y: 0, rotate: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{
         duration: 1,
         delay: baseDelay,
-        ease: [0.22, 1, 0.36, 1],
+        ease: EASE,
       }}
       className="group relative flex min-w-0 flex-row items-start gap-3"
     >
@@ -68,7 +93,7 @@ const OfferItem = ({ item, index }) => {
           transition={{
             duration: 1.2,
             delay: baseDelay + 0.15,
-            ease: [0.22, 1, 0.36, 1],
+            ease: EASE,
           }}
           className="absolute inset-0"
         >
@@ -83,7 +108,7 @@ const OfferItem = ({ item, index }) => {
             transition={{
               duration: 1.8,
               delay: baseDelay + 0.15,
-              ease: [0.22, 1, 0.36, 1],
+              ease: EASE,
             }}
             className="w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.06]"
           />
@@ -126,7 +151,7 @@ const OfferItem = ({ item, index }) => {
           transition={{
             duration: 0.9,
             delay: baseDelay + 0.8,
-            ease: [0.22, 1, 0.36, 1],
+            ease: EASE,
           }}
           className="mb-2 block h-px w-8 origin-left bg-[#C9A227]/60"
         />
@@ -138,7 +163,7 @@ const OfferItem = ({ item, index }) => {
           transition={{
             duration: 0.8,
             delay: baseDelay + 0.9,
-            ease: [0.22, 1, 0.36, 1],
+            ease: EASE,
           }}
           className="max-w-[9rem] text-xs font-normal leading-[1.5] text-[#5A5A66] md:max-w-[9rem] md:text-xs"
         >
@@ -153,19 +178,79 @@ const OfferItem = ({ item, index }) => {
    MAIN COMPONENT
    ============================================================ */
 const OpeningSeason = () => {
-  return (
-    <section className="overflow-hidden bg-[#FDFCFA] px-6 py-12 md:px-10 md:py-20 xl:aspect-[1920/852] xl:p-0">
-      <div className="mx-auto flex h-full w-full flex-col items-start gap-12 bg-[#FDFCFA] xl:flex-row xl:gap-0">
+  const sectionRef = useRef(null);
+  const shouldReduce = useReducedMotion();
 
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // Right image — camera drift + scale (parallax depth)
+  const imageY = useTransform(scrollYProgress, [0, 0.5, 1], ['-6%', '0%', '6%']);
+  const imageScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.1, 1, 1.1]);
+  const imageY_s = useSpring(imageY, { stiffness: 80, damping: 28, mass: 0.7 });
+  const imageScale_s = useSpring(imageScale, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.7,
+  });
+
+  // Header counter-drift (moves opposite the section tilt)
+  const headerY = useTransform(scrollYProgress, [0, 0.5, 1], ['2.5%', '0%', '-2.5%']);
+  const headerY_s = useSpring(headerY, {
+    stiffness: 100,
+    damping: 28,
+    mass: 0.5,
+  });
+
+  // Whole content plane tilt — subtle 3D rotate on X
+  const sceneRotateX = useTransform(scrollYProgress, [0, 0.5, 1], [1.2, 0, -1.2]);
+  const sceneRotateX_s = useSpring(sceneRotateX, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.6,
+  });
+
+  // Left column counter-drift (opposite the right image)
+  const leftY = useTransform(scrollYProgress, [0, 0.5, 1], ['1.5%', '0%', '-1.5%']);
+  const leftY_s = useSpring(leftY, { stiffness: 95, damping: 28, mass: 0.55 });
+
+  return (
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden bg-[#FDFCFA] px-6 py-12 md:px-10 md:py-20 xl:aspect-[1920/852] xl:p-0"
+      style={{ perspective: '1600px' }}
+    >
+      <motion.div
+        style={{
+          rotateX: shouldReduce ? 0 : sceneRotateX_s,
+          transformStyle: 'preserve-3d',
+          willChange: 'transform',
+        }}
+        className="mx-auto flex h-full w-full flex-col items-start gap-12 bg-[#FDFCFA] xl:flex-row xl:gap-0"
+      >
         {/* ===== LEFT: Offers Grid ===== */}
-        <div className="flex w-full flex-col xl:w-[71%] xl:pl-[5.9vw] xl:pr-[4.8vw] xl:pt-[4.7vw]">
-          {/* Header */}
-          <div className="mb-8 pl-0">
+        <motion.div
+          style={{
+            y: shouldReduce ? 0 : leftY_s,
+            willChange: 'transform',
+          }}
+          className="flex w-full flex-col xl:w-[71%] xl:pl-[5.9vw] xl:pr-[4.8vw] xl:pt-[4.7vw]"
+        >
+          {/* Header — counter-drifts */}
+          <motion.div
+            style={{
+              y: shouldReduce ? 0 : headerY_s,
+              willChange: 'transform',
+            }}
+            className="mb-8 pl-0"
+          >
             <motion.div
               initial={{ opacity: 0, letterSpacing: '0.05em' }}
               whileInView={{ opacity: 1, letterSpacing: '0.2em' }}
               viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 1.2, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 1.2, delay: 0.1, ease: EASE }}
               className="mb-3"
             >
               <Badge
@@ -181,12 +266,17 @@ const OpeningSeason = () => {
               <br />
               <WordCascade text="we open." delay={0.6} />
             </h2>
-          </div>
+          </motion.div>
 
-          {/* Offers Grid */}
+          {/* Offers Grid — items float at varying depths */}
           <div className="grid grid-cols-1 gap-8 pl-0 sm:grid-cols-2 xl:grid-cols-3 xl:gap-[2.5vw]">
             {offers.map((item, index) => (
-              <OfferItem key={item.num} item={item} index={index} />
+              <OfferItem
+                key={item.num}
+                item={item}
+                index={index}
+                sectionProgress={scrollYProgress}
+              />
             ))}
 
             {/* CTA Button — shadcn Button */}
@@ -194,7 +284,7 @@ const OpeningSeason = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.9, delay: 1.3, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.9, delay: 1.3, ease: EASE }}
               className="flex items-end justify-start pb-6 sm:justify-center"
             >
               <Button
@@ -204,7 +294,7 @@ const OpeningSeason = () => {
               >
                 <motion.a
                   whileHover={{ x: 4 }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.3, ease: EASE }}
                   href="#"
                   className="inline-flex items-center gap-2"
                 >
@@ -229,26 +319,30 @@ const OpeningSeason = () => {
               </Button>
             </motion.div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* ===== RIGHT IMAGE ===== */}
+        {/* ===== RIGHT IMAGE — camera drift ===== */}
         <motion.div
-          initial={{ opacity: 0, scale: 1.08 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            y: shouldReduce ? 0 : imageY_s,
+            scale: shouldReduce ? 1 : imageScale_s,
+            willChange: 'transform',
+          }}
           className="relative aspect-[4/3] w-full overflow-hidden sm:aspect-[16/9] xl:aspect-auto xl:h-full xl:w-[29%]"
         >
-          <img
+          <motion.img
             src="/page 11 1 gpt.webp"
             alt="Equestrian Facility"
             loading="lazy"
             decoding="async"
+            initial={{ opacity: 0, filter: 'blur(12px)' }}
+            whileInView={{ opacity: 1, filter: 'blur(0px)' }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 1.6, ease: EASE }}
             className="w-full h-full object-cover"
           />
         </motion.div>
-
-      </div>
+      </motion.div>
     </section>
   );
 };

@@ -1,9 +1,18 @@
 import { useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  useSpring,
+  useReducedMotion,
+} from 'framer-motion';
 import { fadeInUp, staggerContainer } from '../utils/animations';
 import SplitText from '@/components/SplitText';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+
+const EASE = [0.22, 1, 0.36, 1];
 
 /* ============================================================
    3D TILT HOOK — mouse-following rotateX/rotateY with spring
@@ -74,7 +83,7 @@ const BlurPara = ({ children, delay = 0, className = '' }) => (
     initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
     whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
     viewport={{ once: true, amount: 0 }}
-    transition={{ duration: 0.9, delay, ease: [0.22, 1, 0.36, 1] }}
+    transition={{ duration: 0.9, delay, ease: EASE }}
     className={className}
   >
     {children}
@@ -97,7 +106,7 @@ const ArenaImage3D = ({ src, alt, index, delay = 0, aspect = 'aspect-[4/3]' }) =
             initial={{ scale: 1.18, filter: 'blur(14px) brightness(0.7)' }}
             whileInView={{ scale: 1, filter: 'blur(0px) brightness(1)' }}
             viewport={{ once: true, amount: 0 }}
-            transition={{ duration: 1.6, delay: delay + 0.1, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1.6, delay: delay + 0.1, ease: EASE }}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.05]"
           />
         </div>
@@ -139,7 +148,7 @@ const ArenaText3D = ({ item, delay = 0, titleClass = 'type-card-title' }) => (
         initial={{ scaleY: 0 }}
         whileInView={{ scaleY: 1 }}
         viewport={{ once: true, amount: 0 }}
-        transition={{ duration: 0.9, delay: delay + 0.2, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.9, delay: delay + 0.2, ease: EASE }}
         className="pointer-events-none absolute -left-4 top-0 hidden h-full w-px origin-top bg-gradient-to-b from-[#C9A227] via-[#C9A227]/40 to-transparent md:block"
         style={{ transform: 'translateZ(30px)' }}
       />
@@ -148,7 +157,7 @@ const ArenaText3D = ({ item, delay = 0, titleClass = 'type-card-title' }) => (
         initial={{ opacity: 0, x: -12 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true, amount: 0 }}
-        transition={{ duration: 0.8, delay: delay + 0.2, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.8, delay: delay + 0.2, ease: EASE }}
         className="mb-5"
         style={{ transform: 'translateZ(40px)' }}
       >
@@ -187,53 +196,189 @@ const ArenaText3D = ({ item, delay = 0, titleClass = 'type-card-title' }) => (
 );
 
 /* ============================================================
-   ARENA BLOCK — alternating
+   ARENA BLOCK — 50/50 layout, image + text peel in opposite
+   directions as the section scrolls.
    ============================================================ */
-const ArenaBlock3D = ({ item, index, reverse = false }) => (
-  <div
-    className={`flex flex-col items-center gap-10 lg:gap-16 ${
-      reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'
-    }`}
-  >
-    <div className="w-full lg:w-1/2">
-      <ArenaImage3D
-        src={item.img}
-        alt={item.title}
-        index={index}
-        delay={0.2}
-        aspect="aspect-[4/3]"
-      />
+const ArenaBlock3D = ({ item, index, reverse = false, progress }) => {
+  const shouldReduce = useReducedMotion();
+  const range = 3.5 + (index % 2) * 1.5; // 3.5 / 5 / 3.5 %
+
+  const imageY = useTransform(
+    progress,
+    [0, 0.5, 1],
+    [`${range}%`, '0%', `${-range}%`]
+  );
+  const imageY_s = useSpring(imageY, {
+    stiffness: 85,
+    damping: 28,
+    mass: 0.65,
+  });
+
+  const textY = useTransform(
+    progress,
+    [0, 0.5, 1],
+    [`${-range * 0.55}%`, '0%', `${range * 0.55}%`]
+  );
+  const textY_s = useSpring(textY, {
+    stiffness: 90,
+    damping: 28,
+    mass: 0.6,
+  });
+
+  return (
+    <div
+      className={`flex flex-col items-center gap-10 lg:gap-16 ${
+        reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'
+      }`}
+    >
+      <motion.div
+        style={{
+          y: shouldReduce ? 0 : imageY_s,
+          willChange: 'transform',
+        }}
+        className="w-full lg:w-1/2"
+      >
+        <ArenaImage3D
+          src={item.img}
+          alt={item.title}
+          index={index}
+          delay={0.2}
+          aspect="aspect-[4/3]"
+        />
+      </motion.div>
+      <motion.div
+        style={{
+          y: shouldReduce ? 0 : textY_s,
+          willChange: 'transform',
+        }}
+        className="w-full lg:w-1/2"
+      >
+        <ArenaText3D item={item} delay={0.2} />
+      </motion.div>
     </div>
-    <div className="w-full lg:w-1/2">
-      <ArenaText3D item={item} delay={0.2} />
-    </div>
-  </div>
-);
+  );
+};
 
 /* ============================================================
-   HORSES LIVE — interactive hover index
+   WIDE ARENA BLOCK — 58/42 layout for the fourth block.
+   Extracted into its own component so hooks stay at top level
+   (fixes the IIFE-hook violation from the previous version).
+   ============================================================ */
+const WideArenaBlock3D = ({ item, index, reverse = false, progress }) => {
+  const shouldReduce = useReducedMotion();
+
+  const imageY = useTransform(progress, [0, 0.5, 1], ['5%', '0%', '-5%']);
+  const imageY_s = useSpring(imageY, {
+    stiffness: 85,
+    damping: 28,
+    mass: 0.65,
+  });
+
+  const textY = useTransform(progress, [0, 0.5, 1], ['-2.8%', '0%', '2.8%']);
+  const textY_s = useSpring(textY, {
+    stiffness: 90,
+    damping: 28,
+    mass: 0.6,
+  });
+
+  return (
+    <div
+      className={`flex flex-col items-center gap-10 lg:gap-16 ${
+        reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'
+      }`}
+    >
+      <motion.div
+        style={{
+          y: shouldReduce ? 0 : imageY_s,
+          willChange: 'transform',
+        }}
+        className="w-full lg:w-[58%]"
+      >
+        <ArenaImage3D
+          src={item.img}
+          alt={item.title}
+          index={index}
+          delay={0.25}
+          aspect="aspect-[16/10]"
+        />
+      </motion.div>
+      <motion.div
+        style={{
+          y: shouldReduce ? 0 : textY_s,
+          willChange: 'transform',
+        }}
+        className="w-full lg:w-[42%]"
+      >
+        <ArenaText3D
+          item={item}
+          delay={0.25}
+          titleClass="type-section-title"
+        />
+      </motion.div>
+    </div>
+  );
+};
+
+/* ============================================================
+   HORSES LIVE — interactive hover index + scroll camera
    ============================================================ */
 const HorsesLiveSection = ({ stables }) => {
   const [active, setActive] = useState(0);
+  const shouldReduce = useReducedMotion();
+
+  const sectionRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+
+  const imageY = useTransform(scrollYProgress, [0, 0.5, 1], ['3.5%', '0%', '-3.5%']);
+  const imageY_s = useSpring(imageY, {
+    stiffness: 85,
+    damping: 28,
+    mass: 0.65,
+  });
+
+  const textY = useTransform(scrollYProgress, [0, 0.5, 1], ['-1.8%', '0%', '1.8%']);
+  const textY_s = useSpring(textY, { stiffness: 90, damping: 28, mass: 0.6 });
+
+  const orbY = useTransform(scrollYProgress, [0, 0.5, 1], ['4%', '0%', '-4%']);
+  const orbY_s = useSpring(orbY, { stiffness: 80, damping: 28, mass: 0.7 });
 
   return (
-    <div className="relative w-full overflow-hidden bg-[#0C0922] py-24">
+    <div
+      ref={sectionRef}
+      className="relative w-full overflow-hidden bg-[#0C0922] py-24"
+    >
+      {/* Ambient gold orb — drifts with scroll */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.7 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true, amount: 0 }}
-        transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
-        className="pointer-events-none absolute -left-40 top-20 h-[420px] w-[420px] rounded-full bg-[#C9A227]/8 blur-[140px]"
-      />
+        style={{
+          y: shouldReduce ? 0 : orbY_s,
+          willChange: 'transform',
+        }}
+        className="pointer-events-none absolute inset-0"
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.7 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0 }}
+          transition={{ duration: 2, ease: EASE }}
+          className="absolute -left-40 top-20 h-[420px] w-[420px] rounded-full bg-[#C9A227]/8 blur-[140px]"
+        />
+      </motion.div>
 
       <div className="relative mx-auto max-w-7xl px-6">
         <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-12 lg:gap-16">
-
+          {/* Image column — drifts one direction */}
           <motion.div
+            style={{
+              y: shouldReduce ? 0 : imageY_s,
+              willChange: 'transform',
+            }}
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1, ease: EASE }}
             className="lg:col-span-5"
           >
             <TiltCard max={6} scale={1.01}>
@@ -247,7 +392,7 @@ const HorsesLiveSection = ({ stables }) => {
                     initial={{ scale: 1.12, filter: 'brightness(0.7) blur(8px)' }}
                     whileInView={{ scale: 1, filter: 'brightness(1) blur(0px)' }}
                     viewport={{ once: true, amount: 0 }}
-                    transition={{ duration: 1.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 1.5, delay: 0.2, ease: EASE }}
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
                   />
 
@@ -261,7 +406,7 @@ const HorsesLiveSection = ({ stables }) => {
                           initial={{ y: '60%', opacity: 0, filter: 'blur(8px)' }}
                           animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }}
                           exit={{ y: '-60%', opacity: 0, filter: 'blur(8px)' }}
-                          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                          transition={{ duration: 0.65, ease: EASE }}
                           className="absolute inset-0 flex items-end font-serif text-[5rem] italic leading-none text-[#C9A227] tabular-nums"
                         >
                           {String(active + 1).padStart(2, '0')}
@@ -279,7 +424,7 @@ const HorsesLiveSection = ({ stables }) => {
                           initial={{ y: 8, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
                           exit={{ y: -8, opacity: 0 }}
-                          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                          transition={{ duration: 0.5, ease: EASE }}
                           className="font-serif text-base text-white"
                         >
                           {stables[active].title}
@@ -299,12 +444,19 @@ const HorsesLiveSection = ({ stables }) => {
             </TiltCard>
           </motion.div>
 
-          <div className="lg:col-span-7">
+          {/* Text column — drifts the opposite direction */}
+          <motion.div
+            style={{
+              y: shouldReduce ? 0 : textY_s,
+              willChange: 'transform',
+            }}
+            className="lg:col-span-7"
+          >
             <motion.h4
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.7, ease: EASE }}
               className="mb-4 text-[#C9A227] type-eyebrow"
             >
               Equestrian Core
@@ -313,7 +465,7 @@ const HorsesLiveSection = ({ stables }) => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0 }}
-              transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.9, delay: 0.15, ease: EASE }}
               className="type-section-title mb-10 text-white"
             >
               Where the horses live.
@@ -323,7 +475,7 @@ const HorsesLiveSection = ({ stables }) => {
               <span className="pointer-events-none absolute left-0 top-0 hidden h-full w-px bg-white/10 md:block" />
               <motion.span
                 animate={{ scaleY: (active + 1) / stables.length }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.6, ease: EASE }}
                 className="pointer-events-none absolute left-0 top-0 hidden h-full w-px origin-top bg-[#C9A227] md:block"
               />
 
@@ -343,7 +495,7 @@ const HorsesLiveSection = ({ stables }) => {
                       transition={{
                         duration: 0.7,
                         delay: 0.15 + idx * 0.1,
-                        ease: [0.22, 1, 0.36, 1],
+                        ease: EASE,
                       }}
                       className="group block w-full cursor-pointer border-b border-white/10 py-6 text-left last:border-b-0"
                     >
@@ -373,7 +525,7 @@ const HorsesLiveSection = ({ stables }) => {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                            transition={{ duration: 0.55, ease: EASE }}
                             className="overflow-hidden"
                           >
                             <p className="max-w-lg pl-10 pt-4 text-sm font-normal leading-relaxed text-white/60">
@@ -392,13 +544,13 @@ const HorsesLiveSection = ({ stables }) => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true, amount: 0 }}
-              transition={{ duration: 0.8, delay: 1, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.8, delay: 1, ease: EASE }}
               className="mt-10 flex items-center gap-3 text-[0.6rem] font-semibold uppercase tracking-[0.22em] text-white/40 md:pl-8"
             >
               <span className="h-px w-6 bg-[#C9A227]/60" />
               Hover a room to preview
             </motion.p>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
@@ -406,146 +558,159 @@ const HorsesLiveSection = ({ stables }) => {
 };
 
 /* ============================================================
-   BEYOND CARD — Magazine editorial
-   Tilted card straightens on scroll, alternating vertical
-   offsets, paper-drop shadow, corner index, SplitText title.
+   BEYOND CARD — editorial magazine + scroll drift
    ============================================================ */
-const BeyondCardEditorial = ({ item, idx }) => {
-  // Alternate the initial rotation and vertical offset
+const BeyondCardEditorial = ({ item, idx, progress }) => {
+  const shouldReduce = useReducedMotion();
   const tiltDirection = idx % 2 === 0 ? -1 : 1;
   const isOffset = idx % 2 === 1;
+
+  const range = 3 + (idx % 2) * 2; // 3 / 5 %
+  const driftY = useTransform(
+    progress,
+    [0, 0.5, 1],
+    [`${range}%`, '0%', `${-range}%`]
+  );
+  const driftY_s = useSpring(driftY, {
+    stiffness: 90,
+    damping: 26,
+    mass: 0.6,
+  });
 
   return (
     <Dialog>
       <DialogTrigger asChild>
+        {/* OUTER — scroll drift */}
         <motion.div
-          initial={{
-            opacity: 0,
-            rotate: tiltDirection * 5,
-            y: 60,
-            scale: 0.94,
+          style={{
+            y: shouldReduce ? 0 : driftY_s,
+            willChange: 'transform',
           }}
-          whileInView={{
-            opacity: 1,
-            rotate: 0,
-            y: 0,
-            scale: 1,
-          }}
-          viewport={{ once: true, amount: 0 }}
-          transition={{
-            duration: 1.2,
-            delay: 0.15 + idx * 0.12,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          style={{ transformOrigin: isOffset ? 'top left' : 'top right' }}
-          className={`group relative ${isOffset ? 'lg:mt-24' : ''}`}
         >
-          <button type="button" className="block w-full cursor-pointer text-left">
-            {/* Paper-drop shadow that softens as the card settles */}
-            <motion.div
-              initial={{ opacity: 0.5, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, amount: 0 }}
-              transition={{ duration: 1.4, delay: 0.15 + idx * 0.12, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-none absolute -inset-x-2 bottom-0 h-12 translate-y-6 rounded-[50%] bg-[radial-gradient(ellipse_at_center,_rgba(12,9,34,0.22),_transparent_70%)] blur-2xl"
-            />
-
-            {/* Image frame */}
-            <div className="relative mb-6 overflow-hidden rounded-2xl bg-[#0C0922] shadow-[0_30px_60px_-30px_rgba(12,9,34,0.55)] transition-shadow duration-700 group-hover:shadow-[0_40px_80px_-30px_rgba(12,9,34,0.7)]">
-              <motion.img
-                src={item.img}
-                alt={item.title}
-                loading="lazy"
-                decoding="async"
-                initial={{ scale: 1.08, filter: 'brightness(0.85)' }}
-                whileInView={{ scale: 1, filter: 'brightness(1)' }}
+          {/* INNER — entrance tilt/rise */}
+          <motion.div
+            initial={{
+              opacity: 0,
+              rotate: tiltDirection * 5,
+              y: 60,
+              scale: 0.94,
+            }}
+            whileInView={{
+              opacity: 1,
+              rotate: 0,
+              y: 0,
+              scale: 1,
+            }}
+            viewport={{ once: true, amount: 0 }}
+            transition={{
+              duration: 1.2,
+              delay: 0.15 + idx * 0.12,
+              ease: EASE,
+            }}
+            style={{ transformOrigin: isOffset ? 'top left' : 'top right' }}
+            className={`group relative cursor-pointer ${isOffset ? 'lg:mt-24' : ''}`}
+          >
+            <button type="button" className="block w-full cursor-pointer text-left">
+              {/* Paper-drop shadow */}
+              <motion.div
+                initial={{ opacity: 0.5, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true, amount: 0 }}
-                transition={{ duration: 1.5, delay: 0.3 + idx * 0.12, ease: [0.22, 1, 0.36, 1] }}
-                className="aspect-[16/10] w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+                transition={{ duration: 1.4, delay: 0.15 + idx * 0.12, ease: EASE }}
+                className="pointer-events-none absolute -inset-x-2 bottom-0 h-12 translate-y-6 rounded-[50%] bg-[radial-gradient(ellipse_at_center,_rgba(12,9,34,0.22),_transparent_70%)] blur-2xl"
               />
 
-              {/* Gold rim on hover */}
-              <div className="pointer-events-none absolute inset-0 rounded-2xl border border-transparent transition-colors duration-700 group-hover:border-[#C9A227]/50" />
+              {/* Image frame */}
+              <div className="relative mb-6 overflow-hidden rounded-2xl bg-[#0C0922] shadow-[0_30px_60px_-30px_rgba(12,9,34,0.55)] transition-shadow duration-700 group-hover:shadow-[0_40px_80px_-30px_rgba(12,9,34,0.7)]">
+                <motion.img
+                  src={item.img}
+                  alt={item.title}
+                  loading="lazy"
+                  decoding="async"
+                  initial={{ scale: 1.08, filter: 'brightness(0.85)' }}
+                  whileInView={{ scale: 1, filter: 'brightness(1)' }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{ duration: 1.5, delay: 0.3 + idx * 0.12, ease: EASE }}
+                  className="aspect-[16/10] w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+                />
 
-              {/* Corner index — top-right of image */}
-              <motion.div
-                initial={{ opacity: 0, x: 12, y: -12 }}
-                whileInView={{ opacity: 1, x: 0, y: 0 }}
+                <div className="pointer-events-none absolute inset-0 rounded-2xl border border-transparent transition-colors duration-700 group-hover:border-[#C9A227]/50" />
+
+                <motion.div
+                  initial={{ opacity: 0, x: 12, y: -12 }}
+                  whileInView={{ opacity: 1, x: 0, y: 0 }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{
+                    duration: 0.9,
+                    delay: 0.85 + idx * 0.12,
+                    ease: [0.34, 1.56, 0.64, 1],
+                  }}
+                  className="pointer-events-none absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#C9A227]/60 bg-[#0C0922]/80 font-serif text-sm italic text-[#C9A227] backdrop-blur-md"
+                >
+                  {String(idx + 1).padStart(2, '0')}
+                </motion.div>
+
+                <div className="pointer-events-none absolute bottom-4 right-4 z-10 flex items-center gap-2 rounded-full border border-[#C9A227]/50 bg-[#0C0922]/85 px-3 py-1 text-[0.55rem] font-semibold uppercase tracking-[0.18em] text-[#C9A227] opacity-0 backdrop-blur-md transition-opacity duration-500 group-hover:opacity-100">
+                  View
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="7" y1="17" x2="17" y2="7" />
+                    <polyline points="7 7 17 7 17 17" />
+                  </svg>
+                </div>
+              </div>
+
+              <motion.span
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
                 viewport={{ once: true, amount: 0 }}
                 transition={{
-                  duration: 0.9,
-                  delay: 0.85 + idx * 0.12,
-                  ease: [0.34, 1.56, 0.64, 1],
+                  duration: 1,
+                  delay: 0.95 + idx * 0.12,
+                  ease: EASE,
                 }}
-                className="pointer-events-none absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[#C9A227]/60 bg-[#0C0922]/80 font-serif text-sm italic text-[#C9A227] backdrop-blur-md"
-              >
-                {String(idx + 1).padStart(2, '0')}
-              </motion.div>
-
-              {/* Small view pill on hover */}
-              <div className="pointer-events-none absolute bottom-4 right-4 z-10 flex items-center gap-2 rounded-full border border-[#C9A227]/50 bg-[#0C0922]/85 px-3 py-1 text-[0.55rem] font-semibold uppercase tracking-[0.18em] text-[#C9A227] opacity-0 backdrop-blur-md transition-opacity duration-500 group-hover:opacity-100">
-                View
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="7" y1="17" x2="17" y2="7" />
-                  <polyline points="7 7 17 7 17 17" />
-                </svg>
-              </div>
-            </div>
-
-            {/* Gold hairline that draws under the image */}
-            <motion.span
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={{ once: true, amount: 0 }}
-              transition={{
-                duration: 1,
-                delay: 0.95 + idx * 0.12,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="mb-5 block h-px w-16 origin-left bg-[#C9A227] transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:w-24"
-            />
-
-            {/* Title — SplitText word reveal */}
-            <h4 className="mb-2 text-xl font-bold uppercase tracking-wider text-[#1A1A1A] transition-colors duration-500 group-hover:text-[#876B18] md:text-2xl">
-              <SplitText
-                text={item.title}
-                className="inline-block"
-                delay={1.05 + idx * 0.12}
-                duration={0.65}
-                ease="power3.out"
-                splitType="words"
-                from={{ opacity: 0, y: 26 }}
-                to={{ opacity: 1, y: 0 }}
-                threshold={0.15}
-                rootMargin="0px"
-                textAlign="left"
+                className="mb-5 block h-px w-16 origin-left bg-[#C9A227] transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:w-24"
               />
-            </h4>
 
-            {/* Description */}
-            <motion.p
-              initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
-              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              viewport={{ once: true, amount: 0 }}
-              transition={{
-                duration: 0.8,
-                delay: 1.3 + idx * 0.12,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="text-sm leading-relaxed text-[#5A5A66]"
-            >
-              {item.desc}
-            </motion.p>
-          </button>
+              <h4 className="mb-2 text-xl font-bold uppercase tracking-wider text-[#1A1A1A] transition-colors duration-500 group-hover:text-[#876B18] md:text-2xl">
+                <SplitText
+                  text={item.title}
+                  className="inline-block"
+                  delay={1.05 + idx * 0.12}
+                  duration={0.65}
+                  ease="power3.out"
+                  splitType="words"
+                  from={{ opacity: 0, y: 26 }}
+                  to={{ opacity: 1, y: 0 }}
+                  threshold={0.15}
+                  rootMargin="0px"
+                  textAlign="left"
+                />
+              </h4>
+
+              <motion.p
+                initial={{ opacity: 0, y: 12, filter: 'blur(6px)' }}
+                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                viewport={{ once: true, amount: 0 }}
+                transition={{
+                  duration: 0.8,
+                  delay: 1.3 + idx * 0.12,
+                  ease: EASE,
+                }}
+                className="text-sm leading-relaxed text-[#5A5A66]"
+              >
+                {item.desc}
+              </motion.p>
+            </button>
+          </motion.div>
         </motion.div>
       </DialogTrigger>
 
@@ -580,6 +745,34 @@ const BeyondCardEditorial = ({ item, idx }) => {
    MAIN PAGE
    ============================================================ */
 const Facilities = () => {
+  const shouldReduce = useReducedMotion();
+
+  /* -------- Scroll cameras -------- */
+
+  // 1. Header orb drift
+  const headerRef = useRef(null);
+  const { scrollYProgress: headerProgress } = useScroll({
+    target: headerRef,
+    offset: ['start start', 'end start'],
+  });
+  const orbY = useTransform(headerProgress, [0, 1], ['0%', '45%']);
+  const orbY_s = useSpring(orbY, { stiffness: 80, damping: 28, mass: 0.7 });
+
+  // 2. Arenas section — one tracker, feeds all four blocks
+  const arenasRef = useRef(null);
+  const { scrollYProgress: arenasProgress } = useScroll({
+    target: arenasRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // 3. Beyond cards — one tracker, feeds all four cards
+  const beyondRef = useRef(null);
+  const { scrollYProgress: beyondProgress } = useScroll({
+    target: beyondRef,
+    offset: ['start end', 'end start'],
+  });
+
+  /* -------- Data -------- */
   const arenas = [
     {
       title: 'Indoor Arena',
@@ -638,16 +831,27 @@ const Facilities = () => {
 
       {/* ====== HEADER — floating 3D text layers ====== */}
       <div
+        ref={headerRef}
         className="nav-dark-hero relative overflow-hidden bg-[#0C0922] pb-24 pt-32 md:pb-28 md:pt-44"
         style={{ perspective: '1400px' }}
       >
+        {/* Gold orb — scroll drift wrapper */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.7 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1] }}
-          className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-[#C9A227]/10 blur-[140px]"
-          style={{ transform: 'translateZ(-100px)' }}
-        />
+          style={{
+            y: shouldReduce ? 0 : orbY_s,
+            willChange: 'transform',
+          }}
+          className="pointer-events-none absolute inset-0"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 2.2, ease: EASE }}
+            className="absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-[#C9A227]/10 blur-[140px]"
+            style={{ transform: 'translateZ(-100px)' }}
+          />
+        </motion.div>
+
         <motion.div
           animate={{ x: [0, 30, 0], y: [0, 18, 0] }}
           transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
@@ -695,61 +899,65 @@ const Facilities = () => {
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
             viewport={{ once: true, amount: 0 }}
-            transition={{ duration: 1.4, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1.4, delay: 0.9, ease: EASE }}
             className="mt-10 block h-px w-32 origin-left bg-[#C9A227]/70"
             style={{ transform: 'translateZ(40px)' }}
           />
         </motion.div>
       </div>
 
-      {/* ====== ARENAS — 3D tilt cards ====== */}
+      {/* ====== ARENAS — 3D tilt cards + scroll peel ====== */}
       <div
+        ref={arenasRef}
         className="relative z-10 -mt-12 w-full rounded-t-[3rem] bg-[#FDFCFA] py-24"
         style={{ perspective: '1600px' }}
       >
         <div className="space-y-20 lg:space-y-28">
           <div className="mx-auto max-w-7xl px-6">
-            <ArenaBlock3D item={arenas[0]} index={0} />
+            <ArenaBlock3D
+              item={arenas[0]}
+              index={0}
+              progress={arenasProgress}
+            />
           </div>
 
           <div className="mx-auto max-w-7xl px-6">
-            <ArenaBlock3D item={arenas[1]} index={1} reverse />
+            <ArenaBlock3D
+              item={arenas[1]}
+              index={1}
+              reverse
+              progress={arenasProgress}
+            />
           </div>
 
           <div className="mx-auto max-w-7xl px-6">
-            <ArenaBlock3D item={arenas[2]} index={2} />
+            <ArenaBlock3D
+              item={arenas[2]}
+              index={2}
+              progress={arenasProgress}
+            />
           </div>
 
+          {/* Fourth block — wide layout, uses WideArenaBlock3D */}
           <div className="w-full bg-[#F2F0EB] py-16 lg:py-24">
             <div className="mx-auto max-w-7xl px-6">
-              <div className="flex flex-col items-center gap-10 lg:flex-row-reverse lg:gap-16">
-                <div className="w-full lg:w-[58%]">
-                  <ArenaImage3D
-                    src={arenas[3].img}
-                    alt={arenas[3].title}
-                    index={3}
-                    delay={0.25}
-                    aspect="aspect-[16/10]"
-                  />
-                </div>
-                <div className="w-full lg:w-[42%]">
-                  <ArenaText3D
-                    item={arenas[3]}
-                    delay={0.25}
-                    titleClass="type-section-title"
-                  />
-                </div>
-              </div>
+              <WideArenaBlock3D
+                item={arenas[3]}
+                index={3}
+                reverse
+                progress={arenasProgress}
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* ====== WHERE THE HORSES LIVE — interactive hover index ====== */}
+      {/* ====== WHERE THE HORSES LIVE ====== */}
       <HorsesLiveSection stables={stables} />
 
-      {/* ====== BEYOND THE ARENA — Magazine editorial cards ====== */}
+      {/* ====== BEYOND THE ARENA — editorial + scroll drift ====== */}
       <div
+        ref={beyondRef}
         className="relative z-10 -mt-12 rounded-t-[3rem] bg-[#FDFCFA] py-24"
         style={{ perspective: '1600px' }}
       >
@@ -773,7 +981,12 @@ const Facilities = () => {
 
           <div className="grid grid-cols-1 gap-x-12 gap-y-20 lg:grid-cols-2 lg:gap-y-8">
             {beyond.map((item, idx) => (
-              <BeyondCardEditorial key={idx} item={item} idx={idx} />
+              <BeyondCardEditorial
+                key={idx}
+                item={item}
+                idx={idx}
+                progress={beyondProgress}
+              />
             ))}
           </div>
         </div>

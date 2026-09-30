@@ -16,10 +16,21 @@ import {
   FaYoutube,
 } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+  useInView,
+  useScroll,
+  useTransform,
+  useSpring,
+  useReducedMotion,
+} from 'framer-motion';
 import { toast } from 'sonner';
 import { useEnquiry } from '../context/EnquiryContext';
-import { BUSINESS_MAP_EMBED_URL, BUSINESS_MAP_URL } from '../constants/location';
+import {
+  BUSINESS_MAP_EMBED_URL,
+  BUSINESS_MAP_URL,
+} from '../constants/location';
 import { fadeInUp, staggerContainer } from '../utils/animations';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
@@ -29,6 +40,8 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+
+const EASE = [0.22, 1, 0.36, 1];
 
 /* ============================================================
    SECTION 1 — HEADER: Letter cascade with gold shimmer sweep
@@ -45,7 +58,7 @@ const CascadeText = ({ text, delay = 0, className = '' }) => {
           transition={{
             duration: 0.9,
             delay: delay + i * 0.04,
-            ease: [0.22, 1, 0.36, 1],
+            ease: EASE,
           }}
           style={{ display: 'inline-block', transformOrigin: 'bottom center' }}
         >
@@ -68,7 +81,7 @@ const ContactLink = ({ label, href, Icon, value, external, delay = 0 }) => {
       initial={{ opacity: 0, x: -30 }}
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true, amount: 0 }}
-      transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.8, delay, ease: EASE }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className="group relative block overflow-hidden rounded-xl py-3 pr-4"
@@ -76,14 +89,14 @@ const ContactLink = ({ label, href, Icon, value, external, delay = 0 }) => {
       <motion.span
         initial={false}
         animate={{ scaleX: hovered ? 1 : 0 }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.55, ease: EASE }}
         className="pointer-events-none absolute inset-y-0 left-0 w-full origin-left rounded-xl bg-[#C9A227]/[0.07]"
       />
 
       <div className="relative flex items-center gap-4">
         <motion.span
           animate={{ x: hovered ? 4 : 0 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.4, ease: EASE }}
           className="font-serif text-xs italic tabular-nums text-[#C9A227]/60"
         >
           ·
@@ -115,7 +128,7 @@ const ContactLink = ({ label, href, Icon, value, external, delay = 0 }) => {
             opacity: hovered ? 1 : 0,
             x: hovered ? 0 : -8,
           }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.4, ease: EASE }}
           className="shrink-0 text-[#C9A227]"
         >
           <FiArrowRight />
@@ -142,7 +155,7 @@ const Field = ({ label, children }) => {
             width: focused ? 20 : 6,
             backgroundColor: focused ? '#C9A227' : 'rgba(201,162,39,0.4)',
           }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.35, ease: EASE }}
           className="inline-block h-px"
         />
         <label className="text-[0.6rem] font-semibold uppercase tracking-[0.24em] text-[#876B18]">
@@ -154,7 +167,7 @@ const Field = ({ label, children }) => {
         <motion.span
           initial={false}
           animate={{ scaleX: focused ? 1 : 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5, ease: EASE }}
           className="absolute inset-0 origin-left bg-[#C9A227]"
         />
       </div>
@@ -163,11 +176,7 @@ const Field = ({ label, children }) => {
 };
 
 /* ============================================================
-   SECTION 4 — DRIVE TIMES: New animation
-   Row slides in from right with a scale-settle; each row has a
-   large italic serif time that scales + glows on hover; gold
-   underline expands full width; a vertical accent grows beside
-   the location name.
+   SECTION 4 — DRIVE TIMES: row slides + hover glow
    ============================================================ */
 const DriveRow = ({ item, idx }) => {
   const [hovered, setHovered] = useState(false);
@@ -180,33 +189,30 @@ const DriveRow = ({ item, idx }) => {
       transition={{
         duration: 1,
         delay: 0.15 + idx * 0.12,
-        ease: [0.22, 1, 0.36, 1],
+        ease: EASE,
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className="group relative flex items-center gap-5 py-6 pl-6"
     >
-      {/* Vertical gold rail — grows on hover */}
       <motion.span
         initial={false}
         animate={{ height: hovered ? '70%' : '0%' }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.5, ease: EASE }}
         className="absolute left-0 top-1/2 w-[2px] -translate-y-1/2 rounded-full bg-[#C9A227]"
       />
 
-      {/* Number */}
       <motion.span
         animate={{
           x: hovered ? 4 : 0,
           color: hovered ? '#C9A227' : 'rgba(201,162,39,0.35)',
         }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.4, ease: EASE }}
         className="shrink-0 font-serif text-xs italic tabular-nums"
       >
         {String(idx + 1).padStart(2, '0')}
       </motion.span>
 
-      {/* Location + route */}
       <div className="min-w-0 flex-1">
         <h3
           className={`text-lg font-medium transition-colors duration-500 md:text-xl ${
@@ -218,7 +224,6 @@ const DriveRow = ({ item, idx }) => {
         <p className="text-sm font-normal text-white/45">{item.route}</p>
       </div>
 
-      {/* Time — large italic serif, scales + glows on hover */}
       <motion.span
         animate={{
           scale: hovered ? 1.15 : 1,
@@ -226,17 +231,16 @@ const DriveRow = ({ item, idx }) => {
             ? '0 0 20px rgba(201,162,39,0.6)'
             : '0 0 0px rgba(201,162,39,0)',
         }}
-        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.45, ease: EASE }}
         className="shrink-0 font-serif text-xl italic tabular-nums text-[#C9A227] md:text-2xl"
       >
         {item.time}
       </motion.span>
 
-      {/* Gold hairline that draws on hover */}
       <motion.span
         initial={false}
         animate={{ scaleX: hovered ? 1 : 0 }}
-        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.55, ease: EASE }}
         className="pointer-events-none absolute bottom-0 left-6 right-0 h-px origin-left bg-gradient-to-r from-[#C9A227] to-[#C9A227]/20"
       />
     </motion.div>
@@ -244,7 +248,7 @@ const DriveRow = ({ item, idx }) => {
 };
 
 /* ============================================================
-   SECTION 5 — FAQ: Vertical category rail + accordion
+   SECTION 5 — FAQ rail
    ============================================================ */
 const FaqRail = ({ categories, active, onChange }) => (
   <div className="flex flex-col gap-1 md:gap-2">
@@ -261,7 +265,7 @@ const FaqRail = ({ categories, active, onChange }) => (
           transition={{
             duration: 0.6,
             delay: i * 0.08,
-            ease: [0.22, 1, 0.36, 1],
+            ease: EASE,
           }}
           className="group relative flex items-center gap-4 rounded-lg py-3 pl-5 pr-4 text-left transition-colors duration-500"
         >
@@ -271,7 +275,7 @@ const FaqRail = ({ categories, active, onChange }) => (
               opacity: isActive ? 1 : 0,
               scale: isActive ? 1 : 0.9,
             }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.45, ease: EASE }}
             className="pointer-events-none absolute inset-0 rounded-lg bg-[#0C0922]"
           />
 
@@ -307,7 +311,7 @@ const FaqRail = ({ categories, active, onChange }) => (
 );
 
 /* ============================================================
-   SECTION 6 — GROUP PILLS: Bubble-in with hover expand
+   SECTION 6 — GROUP PILLS
    ============================================================ */
 const GroupPill = ({ label, onClick, idx }) => (
   <motion.button
@@ -329,7 +333,7 @@ const GroupPill = ({ label, onClick, idx }) => (
         hover: { scaleX: 1 },
       }}
       initial={{ scaleX: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.5, ease: EASE }}
       className="pointer-events-none absolute inset-0 origin-left bg-[#C9A227]"
     />
 
@@ -347,15 +351,91 @@ const GroupPill = ({ label, onClick, idx }) => (
 );
 
 /* ============================================================
+   DRIFTING PILL — wraps a GroupPill, adds scroll-driven float.
+   Differential rate per index = 3D field.
+   ============================================================ */
+const DriftingPill = ({ children, index, progress }) => {
+  const shouldReduce = useReducedMotion();
+  const range = 2 + (index % 3) * 1.5; // 2 / 3.5 / 5 %
+  const y = useTransform(
+    progress,
+    [0, 0.5, 1],
+    [`${range}%`, '0%', `${-range}%`]
+  );
+  const y_s = useSpring(y, { stiffness: 90, damping: 26, mass: 0.6 });
+
+  return (
+    <motion.div
+      style={{
+        y: shouldReduce ? 0 : y_s,
+        willChange: 'transform',
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+/* ============================================================
    MAIN PAGE
    ============================================================ */
 const Contact = () => {
   const { openEnquiry } = useEnquiry();
   const form = useRef();
+  const shouldReduce = useReducedMotion();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('Getting Started');
 
+  /* ============================================================
+     Scroll camera — three independent trackers
+     ============================================================ */
+
+  // 1. Header orbs — parallax drift as you scroll past the hero
+  const headerRef = useRef(null);
+  const { scrollYProgress: headerProgress } = useScroll({
+    target: headerRef,
+    offset: ['start start', 'end start'],
+  });
+  const orbY = useTransform(headerProgress, [0, 1], ['0%', '38%']);
+  const orbY_s = useSpring(orbY, { stiffness: 80, damping: 28, mass: 0.7 });
+
+  // 2. Main content card — subtle counter-drift on scroll
+  const mainCardRef = useRef(null);
+  const { scrollYProgress: mainCardProgress } = useScroll({
+    target: mainCardRef,
+    offset: ['start end', 'end start'],
+  });
+  const cardY = useTransform(mainCardProgress, [0, 0.5, 1], ['1.2%', '0%', '-1.2%']);
+  const cardY_s = useSpring(cardY, { stiffness: 95, damping: 28, mass: 0.55 });
+
+  // 3. Map — inner iframe drift (inside the one-shot 3D flip wrapper)
+  const mapSectionRef = useRef(null);
+  const { scrollYProgress: mapProgress } = useScroll({
+    target: mapSectionRef,
+    offset: ['start end', 'end start'],
+  });
+  const mapInnerY = useTransform(
+    mapProgress,
+    [0, 0.5, 1],
+    ['-3.5%', '0%', '3.5%']
+  );
+  const mapInnerY_s = useSpring(mapInnerY, {
+    stiffness: 85,
+    damping: 28,
+    mass: 0.65,
+  });
+
+  // 4. Group pills — differential depth
+  const pillsRef = useRef(null);
+  const { scrollYProgress: pillsProgress } = useScroll({
+    target: pillsRef,
+    offset: ['start end', 'end start'],
+  });
+
+  /* ============================================================
+     Form submit
+     ============================================================ */
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -448,36 +528,58 @@ const Contact = () => {
 
       {/* ============================================================
          SECTION 1 — HEADER
+         Orbs drift on scroll; content cascades in place.
          ============================================================ */}
-      <div className="nav-dark-hero relative min-w-screen overflow-hidden bg-[#0C0922] pb-24 pt-32 md:pb-28 md:pt-44">
+      <div
+        ref={headerRef}
+        className="nav-dark-hero relative min-w-screen overflow-hidden bg-[#0C0922] pb-24 pt-32 md:pb-28 md:pt-44"
+      >
+        {/* Orbs — wrapped in a scroll-driven parallax layer */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.6, rotate: -20 }}
-          animate={{ opacity: 1, scale: 1, rotate: 0 }}
-          transition={{ duration: 2.4, ease: [0.22, 1, 0.36, 1] }}
-          className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-[#C9A227]/12 blur-[140px]"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-          className="pointer-events-none absolute right-20 top-20 h-40 w-40 rounded-full border border-[#C9A227]/25"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-          className="pointer-events-none absolute right-20 top-20 h-40 w-40 rounded-full border border-[#C9A227]/20"
-        />
+          style={{
+            y: shouldReduce ? 0 : orbY_s,
+            willChange: 'transform',
+          }}
+          className="pointer-events-none absolute inset-0"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.6, rotate: -20 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 2.4, ease: EASE }}
+            className="absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-[#C9A227]/12 blur-[140px]"
+          />
+          <motion.div
+            animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+            className="absolute right-20 top-20 h-40 w-40 rounded-full border border-[#C9A227]/25"
+          />
+          <motion.div
+            animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0, 0.3] }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: 0.8,
+            }}
+            className="absolute right-20 top-20 h-40 w-40 rounded-full border border-[#C9A227]/20"
+          />
+        </motion.div>
 
         <div className="relative mx-auto max-w-7xl px-6">
           <motion.h4
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
             className="mb-4 flex items-center gap-3 text-[#C9A227] type-eyebrow"
           >
             <motion.span
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
-              transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 1, delay: 0.4, ease: EASE }}
               className="inline-block h-px w-8 origin-left bg-[#C9A227]"
             />
             Get in touch
@@ -492,7 +594,7 @@ const Contact = () => {
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.9, delay: 1.4, ease: EASE }}
             className="type-lead text-white/70"
           >
             Open Tuesday to Saturday. Closed Monday. Visits welcome by prior
@@ -506,11 +608,17 @@ const Contact = () => {
          ============================================================ */}
       <div className="relative z-10 -mt-12 w-full rounded-t-[3rem] bg-[#FDFCFA] py-20">
         <div className="mx-auto max-w-7xl px-6">
+          {/* Main contact card — subtle counter-drift on scroll */}
           <motion.div
+            ref={mainCardRef}
+            style={{
+              y: shouldReduce ? 0 : cardY_s,
+              willChange: 'transform',
+            }}
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0 }}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.9, ease: EASE }}
             className="mb-24 rounded-[2.5rem] border border-[#5A5A66]/15 bg-[#FDFCFA] p-8 shadow-[0_40px_80px_-40px_rgba(12,9,34,0.35)] md:p-14"
           >
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
@@ -520,7 +628,7 @@ const Contact = () => {
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, amount: 0 }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.7, ease: EASE }}
                   className="mb-4 text-[#C9A227] type-eyebrow"
                 >
                   Reach us
@@ -570,7 +678,7 @@ const Contact = () => {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0 }}
-                  transition={{ duration: 0.7, delay: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.7, delay: 0.65, ease: EASE }}
                   className="mt-8"
                 >
                   <h4 className="mb-4 text-[#C9A227] type-eyebrow">Follow</h4>
@@ -587,7 +695,7 @@ const Contact = () => {
                         transition={{
                           duration: 0.6,
                           delay: 0.7 + i * 0.06,
-                          ease: [0.22, 1, 0.36, 1],
+                          ease: EASE,
                         }}
                         whileHover={{ y: -3 }}
                         className="group/soc inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#C9A227]/30 bg-transparent text-[#C9A227] transition-colors duration-500 hover:border-[#C9A227] hover:bg-[#C9A227] hover:text-[#0C0922]"
@@ -607,19 +715,23 @@ const Contact = () => {
                   initial={{ opacity: 0, x: 20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, amount: 0 }}
-                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.8, ease: EASE }}
                   className="type-section-title mb-10 text-[#1A1A1A]"
                 >
                   Send us an enquiry.
                 </motion.h2>
 
-                <form ref={form} onSubmit={handleSubmit} className="flex flex-col gap-8">
+                <form
+                  ref={form}
+                  onSubmit={handleSubmit}
+                  className="flex flex-col gap-8"
+                >
                   <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0 }}
-                      transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
                     >
                       <Field label="Full Name">
                         <input
@@ -635,7 +747,7 @@ const Contact = () => {
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0 }}
-                      transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
                     >
                       <Field label="Phone Number">
                         <input
@@ -652,7 +764,7 @@ const Contact = () => {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0 }}
-                    transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.7, delay: 0.3, ease: EASE }}
                   >
                     <Field label="Email">
                       <input
@@ -668,7 +780,7 @@ const Contact = () => {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0 }}
-                    transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.7, delay: 0.4, ease: EASE }}
                   >
                     <Field label="What is this about?">
                       <div className="relative">
@@ -699,7 +811,7 @@ const Contact = () => {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0 }}
-                    transition={{ duration: 0.7, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.7, delay: 0.5, ease: EASE }}
                   >
                     <Field label="Your Message">
                       <textarea
@@ -714,12 +826,12 @@ const Contact = () => {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0 }}
-                    transition={{ duration: 0.7, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.7, delay: 0.6, ease: EASE }}
                     className="flex flex-col items-start"
                   >
                     <motion.div
                       whileHover={{ x: isSubmitting ? 0 : 4 }}
-                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.3, ease: EASE }}
                     >
                       <Button
                         type="submit"
@@ -740,17 +852,19 @@ const Contact = () => {
           </motion.div>
 
           {/* ============================================================
-             SECTION 3 — GETTING HERE (NEW ANIMATIONS)
+             SECTION 3 — GETTING HERE
+             Map keeps its 3D flip-in reveal, adds inner scroll drift.
              ============================================================ */}
           <motion.div
+            ref={mapSectionRef}
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0 }}
-            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.9, ease: EASE }}
             className="mb-24 w-full overflow-hidden rounded-3xl bg-[#0C0922]"
           >
             <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
-              {/* Map — 3D flip-in reveal with gold rim draw */}
+              {/* Map — 3D flip-in reveal + inner scroll camera drift */}
               <div
                 className="w-full p-0 xl:p-10"
                 style={{ perspective: '1400px' }}
@@ -771,22 +885,31 @@ const Contact = () => {
                   viewport={{ once: true, amount: 0 }}
                   transition={{
                     duration: 1.5,
-                    ease: [0.22, 1, 0.36, 1],
+                    ease: EASE,
                   }}
                   style={{ transformStyle: 'preserve-3d' }}
                   className="relative h-[400px] w-full md:h-[700px]"
                 >
                   <div className="relative h-full w-full overflow-hidden xl:rounded-tl-[3rem]">
-                    <iframe
-                      src={BUSINESS_MAP_EMBED_URL}
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      allowFullScreen=""
-                      loading="lazy"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      title="Nakshath Equestrian Club Location Map"
-                    ></iframe>
+                    {/* Inner drift wrapper — map contents move slowly inside the frame */}
+                    <motion.div
+                      style={{
+                        y: shouldReduce ? 0 : mapInnerY_s,
+                        willChange: 'transform',
+                      }}
+                      className="absolute inset-0"
+                    >
+                      <iframe
+                        src={BUSINESS_MAP_EMBED_URL}
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0 }}
+                        allowFullScreen=""
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        title="Nakshath Equestrian Club Location Map"
+                      ></iframe>
+                    </motion.div>
 
                     {/* Gold corner accents that draw in */}
                     <motion.span
@@ -796,7 +919,7 @@ const Contact = () => {
                       transition={{
                         duration: 1,
                         delay: 1.1,
-                        ease: [0.22, 1, 0.36, 1],
+                        ease: EASE,
                       }}
                       className="pointer-events-none absolute left-0 top-0 h-[2px] w-16 origin-left bg-[#C9A227]"
                     />
@@ -807,7 +930,7 @@ const Contact = () => {
                       transition={{
                         duration: 1,
                         delay: 1.3,
-                        ease: [0.22, 1, 0.36, 1],
+                        ease: EASE,
                       }}
                       className="pointer-events-none absolute left-0 top-0 h-16 w-[2px] origin-top bg-[#C9A227]"
                     />
@@ -815,13 +938,13 @@ const Contact = () => {
                 </motion.div>
               </div>
 
-              {/* Drive Times — new row animation */}
+              {/* Drive Times */}
               <div className="flex flex-col justify-center p-6 md:p-16 lg:pr-24">
                 <motion.h4
                   initial={{ opacity: 0, y: 15 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0 }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.7, ease: EASE }}
                   className="mb-4 text-[#C9A227] type-eyebrow"
                 >
                   Getting Here
@@ -830,7 +953,7 @@ const Contact = () => {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0 }}
-                  transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
                   className="type-section-title mb-12 text-white"
                 >
                   Closer than you think.
@@ -857,7 +980,7 @@ const Contact = () => {
                   initial={{ opacity: 0, x: -12 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, amount: 0 }}
-                  transition={{ duration: 0.7, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.7, delay: 0.9, ease: EASE }}
                   whileHover={{ x: 5 }}
                   href={BUSINESS_MAP_URL}
                   target="_blank"
@@ -878,14 +1001,14 @@ const Contact = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.8, ease: EASE }}
             className="mb-24"
           >
             <motion.h4
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, amount: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.6, ease: EASE }}
               className="mb-4 text-[#C9A227] type-eyebrow"
             >
               Questions
@@ -894,7 +1017,7 @@ const Contact = () => {
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, amount: 0 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
               className="type-section-title mb-12 text-[#1A1A1A]"
             >
               Before you ride.
@@ -918,7 +1041,7 @@ const Contact = () => {
                     initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -12 }}
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.5, ease: EASE }}
                   >
                     <Accordion type="single" collapsible className="w-full">
                       {activeQuestions.map((faq, i) => (
@@ -929,7 +1052,7 @@ const Contact = () => {
                           transition={{
                             duration: 0.55,
                             delay: i * 0.05,
-                            ease: [0.22, 1, 0.36, 1],
+                            ease: EASE,
                           }}
                         >
                           <AccordionItem
@@ -954,12 +1077,13 @@ const Contact = () => {
 
           {/* ============================================================
              SECTION 5 — GROUP BOOKINGS
+             Pills float at differential rates (shallow 3D field).
              ============================================================ */}
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, amount: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.8, ease: EASE }}
             className="relative mx-auto w-full bg-[#0C0922] px-5 py-24 md:px-15 lg:left-1/2 lg:w-screen lg:-translate-x-1/2"
           >
             <div className="mx-auto max-w-7xl">
@@ -967,7 +1091,7 @@ const Contact = () => {
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, amount: 0 }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.6, ease: EASE }}
                 className="mb-4 text-[#C9A227] type-eyebrow"
               >
                 Not Just Lessons
@@ -978,7 +1102,7 @@ const Contact = () => {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0 }}
-                  transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
                   className="type-section-title leading-tight text-white"
                 >
                   Bring a group.
@@ -987,7 +1111,7 @@ const Contact = () => {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0 }}
-                  transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
                   className="max-w-md text-lg font-normal text-white/70 lg:pt-4"
                 >
                   The arenas, the café and the grounds are open to groups as well
@@ -995,7 +1119,10 @@ const Contact = () => {
                 </motion.p>
               </div>
 
-              <div className="mb-12 mt-16 flex flex-wrap gap-4">
+              <div
+                ref={pillsRef}
+                className="mb-12 mt-16 flex flex-wrap gap-4"
+              >
                 {[
                   'Corporate Days',
                   'School Visits',
@@ -1003,12 +1130,17 @@ const Contact = () => {
                   'Photoshoots',
                   'Guest Rides',
                 ].map((item, idx) => (
-                  <GroupPill
+                  <DriftingPill
                     key={idx}
-                    label={item}
-                    idx={idx}
-                    onClick={() => openEnquiry('Group Booking')}
-                  />
+                    index={idx}
+                    progress={pillsProgress}
+                  >
+                    <GroupPill
+                      label={item}
+                      idx={idx}
+                      onClick={() => openEnquiry('Group Booking')}
+                    />
+                  </DriftingPill>
                 ))}
               </div>
 
@@ -1016,11 +1148,11 @@ const Contact = () => {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0 }}
-                transition={{ duration: 0.7, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.7, delay: 0.7, ease: EASE }}
               >
                 <motion.div
                   whileHover={{ x: 5 }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.3, ease: EASE }}
                   className="inline-block"
                 >
                   <button

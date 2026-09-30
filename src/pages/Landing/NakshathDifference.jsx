@@ -1,5 +1,12 @@
-import { useRef, useState, useEffect } from 'react';
-import { motion, useInView, useScroll, useTransform } from 'framer-motion';
+import { useRef, useState } from 'react';
+import {
+  motion,
+  useInView,
+  useScroll,
+  useTransform,
+  useSpring,
+  useReducedMotion,
+} from 'framer-motion';
 import ShinyText from '../../components/ShinyText';
 import { EASE, EASE_SNAP } from '../../utils/landing-motion';
 
@@ -28,7 +35,6 @@ const CascadeText = ({ text, delay = 0, className = '' }) => {
 
 /* ============================================================
    DRAWN ICON — SVG path draws in when in view
-   Every path in the SVG gets animated with pathLength
    ============================================================ */
 const DrawnIcon = ({ children, delay = 0, size = 56 }) => {
   const ref = useRef(null);
@@ -56,7 +62,6 @@ const DrawnIcon = ({ children, delay = 0, size = 56 }) => {
       >
         {children}
       </svg>
-      {/* Soft halo behind the icon */}
       <motion.span
         initial={{ opacity: 0, scale: 0.3 }}
         animate={inView ? { opacity: 1, scale: 1 } : {}}
@@ -68,11 +73,25 @@ const DrawnIcon = ({ children, delay = 0, size = 56 }) => {
 };
 
 /* ============================================================
-   FEATURE CARD — with cursor spotlight, drawn icon, numbered corner
+   FEATURE CARD — cursor spotlight + scroll depth
    ============================================================ */
-const FeatureCard = ({ feature, idx }) => {
+const FeatureCard = ({ feature, idx, progress }) => {
   const [spot, setSpot] = useState({ x: '50%', y: '50%', visible: false });
   const cardRef = useRef(null);
+  const shouldReduce = useReducedMotion();
+
+  // 4-step depth ladder: 2 / 3.3 / 4.6 / 5.9 %
+  const range = 2 + (idx % 4) * 1.3;
+  const driftY = useTransform(
+    progress,
+    [0, 0.5, 1],
+    [`${range}%`, '0%', `${-range}%`]
+  );
+  const driftY_s = useSpring(driftY, {
+    stiffness: 90,
+    damping: 26,
+    mass: 0.6,
+  });
 
   const onMove = (e) => {
     if (!cardRef.current) return;
@@ -87,101 +106,91 @@ const FeatureCard = ({ feature, idx }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 60, filter: 'blur(10px)', scale: 0.94 }}
-      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
-      viewport={{ once: true, amount: 0 }}
-      transition={{
-        duration: 0.95,
-        delay: 0.25 + idx * 0.14,
-        ease: EASE,
+      style={{
+        y: shouldReduce ? 0 : driftY_s,
+        willChange: 'transform',
       }}
-      onMouseEnter={onMove}
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
-      ref={cardRef}
-      className="group relative overflow-hidden rounded-2xl border border-white/15 bg-[#0C0922]/50 p-6 backdrop-blur-[3px] transition-colors duration-500 hover:border-[#C9A227]/60 md:min-h-[220px]"
     >
-      {/* ==================================================
-          Cursor spotlight — gold halo follows the mouse
-          ================================================== */}
-      <div
-        className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300"
-        style={{
-          opacity: spot.visible ? 1 : 0,
-          background: `radial-gradient(280px circle at ${spot.x} ${spot.y}, rgba(201,162,39,0.22), transparent 60%)`,
-        }}
-      />
-
-      {/* Grid texture — barely visible */}
-      <div
-        className="pointer-events-none absolute inset-0 z-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(201,162,39,1) 1px, transparent 1px), linear-gradient(90deg, rgba(201,162,39,1) 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
-
-      {/* ==================================================
-          Numbered corner — top right
-          ================================================== */}
-      <motion.span
-        initial={{ opacity: 0, x: 12, y: -12 }}
-        whileInView={{ opacity: 1, x: 0, y: 0 }}
-        viewport={{ once: true, amount: 0 }}
-        transition={{
-          duration: 0.7,
-          delay: 0.7 + idx * 0.14,
-          ease: [0.34, 1.56, 0.64, 1],
-        }}
-        className="absolute right-4 top-4 z-10 font-serif text-xs italic tabular-nums text-[#C9A227]/60"
-      >
-        {String(idx + 1).padStart(2, '0')}
-      </motion.span>
-
-      {/* ==================================================
-          Icon drawn in with SVG stroke animation
-          ================================================== */}
-      <div className="relative z-10 mb-5 flex justify-start md:justify-center">
-        <DrawnIcon delay={0.55 + idx * 0.14}>
-          {feature.icon}
-        </DrawnIcon>
-      </div>
-
-      {/* ==================================================
-          Title with word-by-word mask
-          ================================================== */}
-      <motion.h4
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0 }}
-        transition={{
-          duration: 0.7,
-          delay: 0.9 + idx * 0.14,
-          ease: EASE,
-        }}
-        className="relative z-10 text-left text-sm font-semibold uppercase tracking-[0.14em] text-[#C9A227] md:text-center"
-      >
-        {feature.title}
-      </motion.h4>
-
-      {/* ==================================================
-          Underline draws across
-          ================================================== */}
       <motion.div
-        initial={{ scaleX: 0 }}
-        whileInView={{ scaleX: 1 }}
+        initial={{ opacity: 0, y: 60, filter: 'blur(10px)', scale: 0.94 }}
+        whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
         viewport={{ once: true, amount: 0 }}
         transition={{
-          duration: 0.8,
-          delay: 1.05 + idx * 0.14,
+          duration: 0.95,
+          delay: 0.25 + idx * 0.14,
           ease: EASE,
         }}
-        className="relative z-10 mt-4 h-px origin-left bg-gradient-to-r from-[#C9A227]/70 via-[#C9A227]/30 to-transparent md:mx-auto"
-      />
+        onMouseEnter={onMove}
+        onMouseMove={onMove}
+        onMouseLeave={onLeave}
+        ref={cardRef}
+        className="group relative overflow-hidden rounded-2xl border border-white/15 bg-[#0C0922]/50 p-6 backdrop-blur-[3px] transition-colors duration-500 hover:border-[#C9A227]/60 md:min-h-[220px]"
+      >
+        <div
+          className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300"
+          style={{
+            opacity: spot.visible ? 1 : 0,
+            background: `radial-gradient(280px circle at ${spot.x} ${spot.y}, rgba(201,162,39,0.22), transparent 60%)`,
+          }}
+        />
 
-      {/* Bottom-right corner bracket — draws on hover */}
-      <span className="pointer-events-none absolute bottom-3 right-3 h-3 w-3 border-b border-r border-[#C9A227]/0 transition-all duration-700 group-hover:border-[#C9A227]/60" />
+        <div
+          className="pointer-events-none absolute inset-0 z-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(201,162,39,1) 1px, transparent 1px), linear-gradient(90deg, rgba(201,162,39,1) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+
+        <motion.span
+          initial={{ opacity: 0, x: 12, y: -12 }}
+          whileInView={{ opacity: 1, x: 0, y: 0 }}
+          viewport={{ once: true, amount: 0 }}
+          transition={{
+            duration: 0.7,
+            delay: 0.7 + idx * 0.14,
+            ease: [0.34, 1.56, 0.64, 1],
+          }}
+          className="absolute right-4 top-4 z-10 font-serif text-xs italic tabular-nums text-[#C9A227]/60"
+        >
+          {String(idx + 1).padStart(2, '0')}
+        </motion.span>
+
+        <div className="relative z-10 mb-5 flex justify-start md:justify-center">
+          <DrawnIcon delay={0.55 + idx * 0.14}>
+            {feature.icon}
+          </DrawnIcon>
+        </div>
+
+        <motion.h4
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0 }}
+          transition={{
+            duration: 0.7,
+            delay: 0.9 + idx * 0.14,
+            ease: EASE,
+          }}
+          className="relative z-10 text-left text-sm font-semibold uppercase tracking-[0.14em] text-[#C9A227] md:text-center"
+        >
+          {feature.title}
+        </motion.h4>
+
+        <motion.div
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true, amount: 0 }}
+          transition={{
+            duration: 0.8,
+            delay: 1.05 + idx * 0.14,
+            ease: EASE,
+          }}
+          className="relative z-10 mt-4 h-px origin-left bg-gradient-to-r from-[#C9A227]/70 via-[#C9A227]/30 to-transparent md:mx-auto"
+        />
+
+        <span className="pointer-events-none absolute bottom-3 right-3 h-3 w-3 border-b border-r border-[#C9A227]/0 transition-all duration-700 group-hover:border-[#C9A227]/60" />
+      </motion.div>
     </motion.div>
   );
 };
@@ -191,14 +200,40 @@ const FeatureCard = ({ feature, idx }) => {
    ============================================================ */
 const NakshathDifference = () => {
   const sectionRef = useRef(null);
+  const shouldReduce = useReducedMotion();
 
-  // Background parallax
+  /* ============================================================
+     Scroll cameras — three layers:
+     1. Background (existing)
+     2. Header counter-drift
+     3. Feature cards feed off the section tracker
+     ============================================================ */
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start end', 'end start'],
   });
+
+  // Existing background parallax (converted to spring)
   const bgScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.1, 1.02, 1.1]);
   const bgY = useTransform(scrollYProgress, [0, 1], ['-4%', '4%']);
+  const bgScale_s = useSpring(bgScale, {
+    stiffness: 85,
+    damping: 28,
+    mass: 0.65,
+  });
+  const bgY_s = useSpring(bgY, { stiffness: 85, damping: 28, mass: 0.65 });
+
+  // Header — counter-drift up (opposite the background)
+  const headerY = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    ['2.5%', '0%', '-2.5%']
+  );
+  const headerY_s = useSpring(headerY, {
+    stiffness: 90,
+    damping: 28,
+    mass: 0.6,
+  });
 
   const features = [
     {
@@ -410,7 +445,11 @@ const NakshathDifference = () => {
           className="absolute inset-0"
         >
           <motion.img
-            style={{ scale: bgScale, y: bgY }}
+            style={{
+              scale: shouldReduce ? 1 : bgScale_s,
+              y: shouldReduce ? 0 : bgY_s,
+              willChange: 'transform',
+            }}
             src="/find difference.webp"
             alt="Indoor Arena Background"
             loading="lazy"
@@ -419,19 +458,22 @@ const NakshathDifference = () => {
           />
         </motion.div>
 
-        {/* Left-heavy dark gradient so text on the left is readable,
-            image shows through on the right */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0C0922]/60 via-[#0C0922]/72 to-[#0C0922] lg:bg-gradient-to-r lg:from-[#0C0922]/85 lg:via-[#0C0922]/55 lg:to-[#0C0922]/35" />
 
-        {/* Extra vignette on the far right to soften the edge */}
         <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-[#0C0922]/60 to-transparent" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6">
         {/* ==================================================
-            HEADER — left aligned
+            HEADER — counter-drift on scroll
             ================================================== */}
-        <div className="mb-14 max-w-2xl [text-shadow:0_2px_16px_rgba(0,0,0,.72)] md:mb-20">
+        <motion.div
+          style={{
+            y: shouldReduce ? 0 : headerY_s,
+            willChange: 'transform',
+          }}
+          className="mb-14 max-w-2xl [text-shadow:0_2px_16px_rgba(0,0,0,.72)] md:mb-20"
+        >
           <motion.h4
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -476,14 +518,19 @@ const NakshathDifference = () => {
             designed to inspire discipline, strength and excellence through
             world-class equestrian training and sporting experiences.
           </motion.p>
-        </div>
+        </motion.div>
 
         {/* ==================================================
-            FEATURE CARDS — 4 across on desktop
+            FEATURE CARDS — 4 across, differential depth
             ================================================== */}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:mr-[15%] lg:grid-cols-4">
           {features.map((feature, idx) => (
-            <FeatureCard key={idx} feature={feature} idx={idx} />
+            <FeatureCard
+              key={idx}
+              feature={feature}
+              idx={idx}
+              progress={scrollYProgress}
+            />
           ))}
         </div>
       </div>

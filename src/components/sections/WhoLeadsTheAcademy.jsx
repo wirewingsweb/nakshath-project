@@ -1,10 +1,17 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useInView } from 'framer-motion';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useInView,
+  useReducedMotion,
+} from 'framer-motion';
 import { EASE } from '../../utils/landing-motion';
 
 /* ============================================================
-   LETTER CASCADE
+   LETTER CASCADE — per-character X-axis rotation
    ============================================================ */
 const CascadeName = ({ text, delay = 0, className = '' }) => {
   const chars = text.split('');
@@ -16,7 +23,11 @@ const CascadeName = ({ text, delay = 0, className = '' }) => {
           initial={{ opacity: 0, y: 60, rotateX: -90, filter: 'blur(10px)' }}
           whileInView={{ opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)' }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.9, delay: delay + i * 0.045, ease: EASE }}
+          transition={{
+            duration: 0.9,
+            delay: delay + i * 0.045,
+            ease: EASE,
+          }}
           style={{ display: 'inline-block', transformOrigin: 'bottom center' }}
         >
           {c === ' ' ? '\u00A0' : c}
@@ -27,7 +38,7 @@ const CascadeName = ({ text, delay = 0, className = '' }) => {
 };
 
 /* ============================================================
-   LINE MASK
+   LINE MASK — reliable via useInView on outer container
    ============================================================ */
 const LineMask = ({ children, delay = 0 }) => {
   const ref = useRef(null);
@@ -48,7 +59,7 @@ const LineMask = ({ children, delay = 0 }) => {
 };
 
 /* ============================================================
-   ACHIEVEMENT
+   ACHIEVEMENT — value + label rise in sequence
    ============================================================ */
 const Achievement = ({ value, label, delay = 0 }) => (
   <div className="flex flex-col pb-5 sm:pb-0">
@@ -57,7 +68,7 @@ const Achievement = ({ value, label, delay = 0 }) => (
       whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.9, delay, ease: EASE }}
-      className="text-[clamp(1.1rem,2.2vw,1.45rem)] leading-none font-serif text-[#1A1A1A] whitespace-nowrap"
+      className="text-[clamp(1.1rem,2.2vw,1.45rem)] font-serif leading-none text-[#1A1A1A] whitespace-nowrap"
     >
       {value}
     </motion.span>
@@ -75,7 +86,7 @@ const Achievement = ({ value, label, delay = 0 }) => (
 );
 
 /* ============================================================
-   FLOATING GOLD PARTICLES
+   FLOATING GOLD PARTICLES — over the portrait
    ============================================================ */
 const GoldParticles = () => {
   const particles = Array.from({ length: 10 }).map((_, i) => ({
@@ -118,8 +129,48 @@ const GoldParticles = () => {
 
 /* ============================================================
    WHO LEADS THE ACADEMY
+   Scroll-driven camera: portrait drifts and tilts on Y-axis,
+   text panel counter-drifts for parallax depth.
    ============================================================ */
 const WhoLeadsTheAcademy = () => {
+  const sectionRef = useRef(null);
+  const shouldReduce = useReducedMotion();
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // Portrait: drifts up, rotates on Y-axis
+  const portraitY = useTransform(scrollYProgress, [0, 0.5, 1], ['8%', '0%', '-8%']);
+  const portraitRotateY = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    [6, 0, -6]
+  );
+  const portraitScale = useTransform(scrollYProgress, [0, 0.5, 1], [0.98, 1, 0.98]);
+
+  const portraitY_s = useSpring(portraitY, {
+    stiffness: 90,
+    damping: 26,
+    mass: 0.6,
+  });
+  const portraitRotateY_s = useSpring(portraitRotateY, {
+    stiffness: 90,
+    damping: 26,
+    mass: 0.6,
+  });
+  const portraitScale_s = useSpring(portraitScale, {
+    stiffness: 90,
+    damping: 26,
+    mass: 0.6,
+  });
+
+  // Text panel: counter-drift, slower
+  const textY = useTransform(scrollYProgress, [0, 0.5, 1], ['4%', '0%', '-4%']);
+  const textY_s = useSpring(textY, { stiffness: 100, damping: 28, mass: 0.5 });
+
+  // Image carousel (unchanged logic)
   const slides = ['/founder-nakshath-rounded.webp', '/founder-nakshath-rounded.webp'];
   const [activeSlide, setActiveSlide] = useState(0);
 
@@ -132,16 +183,22 @@ const WhoLeadsTheAcademy = () => {
   }, [slides.length]);
 
   return (
-    <section className="relative z-10 w-full overflow-hidden bg-[#F2F0EB] md:py-16 xl:h-[58.9vw] xl:overflow-visible xl:py-0">
-
+    <section
+      ref={sectionRef}
+      className="relative z-10 w-full overflow-hidden bg-[#F2F0EB] md:py-16 xl:h-[58.9vw] xl:overflow-visible xl:py-0"
+      style={{ perspective: '1600px' }}
+    >
       {/* ==================================================
-          IMAGE — slide in from left + subtle Ken Burns + particles
+          IMAGE CAROUSEL with 3D scroll camera
           ================================================== */}
       <motion.div
-        initial={{ opacity: 0, x: -60, filter: 'blur(8px)' }}
-        whileInView={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 1.1, ease: EASE }}
+        style={{
+          y: shouldReduce ? 0 : portraitY_s,
+          rotateY: shouldReduce ? 0 : portraitRotateY_s,
+          scale: shouldReduce ? 1 : portraitScale_s,
+          transformStyle: 'preserve-3d',
+          willChange: 'transform',
+        }}
         className="relative z-[1] mx-5 aspect-[9/16] overflow-hidden rounded-sm sm:mx-auto sm:w-[28rem] md:w-[min(42vw,22rem)] xl:absolute xl:left-[6.2%] xl:top-[-6.6%] xl:mx-0 xl:w-[31.5%]"
         role="region"
         aria-label="Founder image carousel"
@@ -156,7 +213,7 @@ const WhoLeadsTheAcademy = () => {
           className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_rgba(201,162,39,0.12),_transparent_70%)]"
         />
 
-        {/* Ken Burns breathing */}
+        {/* Slow breathing Ken Burns */}
         <motion.div
           animate={{ scale: [1, 1.02, 1] }}
           transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
@@ -203,24 +260,38 @@ const WhoLeadsTheAcademy = () => {
       </motion.div>
 
       {/* ==================================================
-          TEXT CONTENT
+          TEXT CONTENT with counter-drift
           ================================================== */}
-      <div className="relative z-10 px-6 pb-16 pt-10 sm:px-10 md:mx-auto md:max-w-[64rem] md:px-10 md:pb-20 md:pt-14 xl:absolute xl:left-[46.4%] xl:top-[11.5%] xl:mx-0 xl:w-[50.5%] xl:max-w-none xl:p-0">
+      <motion.div
+        style={{
+          y: shouldReduce ? 0 : textY_s,
+          willChange: 'transform',
+        }}
+        className="relative z-10 px-6 pb-16 pt-10 sm:px-10 md:mx-auto md:max-w-[64rem] md:px-10 md:pb-20 md:pt-14 xl:absolute xl:left-[46.4%] xl:top-[11.5%] xl:mx-0 xl:w-[50.5%] xl:max-w-none xl:p-0"
+      >
         <div className="w-full xl:max-w-none">
+          {/* Eyebrow */}
           <motion.h4
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
-            className="mb-4 text-[#876B18] type-eyebrow"
+            className="mb-4 flex items-center gap-3 text-[#876B18] type-eyebrow"
           >
+            <motion.span
+              animate={{ opacity: [1, 0.35, 1], scale: [1, 1.3, 1] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+              className="inline-block h-1.5 w-1.5 rounded-full bg-[#876B18]"
+            />
             Who Leads The Academy
           </motion.h4>
 
+          {/* Name with letter cascade */}
           <h2 className="type-page-title mb-2 text-[#1A1A1A] xl:whitespace-nowrap">
             <CascadeName text="Nakshath Venkatesh" delay={0.4} />
           </h2>
 
+          {/* Founder label */}
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -231,7 +302,8 @@ const WhoLeadsTheAcademy = () => {
             Founder
           </motion.p>
 
-          <div className="mt-10 mb-12 grid max-w-[44rem] grid-cols-1 gap-y-6 sm:grid-cols-3 sm:gap-x-6 xl:mb-[5vw] xl:mt-[6.8vw] xl:max-w-[47vw]">
+          {/* Achievements */}
+          <div className="mb-12 mt-10 grid max-w-[44rem] grid-cols-1 gap-y-6 sm:grid-cols-3 sm:gap-x-6 xl:mb-[5vw] xl:mt-[6.8vw] xl:max-w-[47vw]">
             <Achievement
               value="Silver"
               label={<>CSIO INTERNATIONAL<br />SHOW JUMPING</>}
@@ -249,6 +321,7 @@ const WhoLeadsTheAcademy = () => {
             />
           </div>
 
+          {/* Quote — line mask reveal */}
           <p className="type-lead mb-8 max-w-[39rem] font-serif text-[#1A1A1A]">
             <LineMask delay={0.3}>
               To build a world-class environment and a
@@ -261,6 +334,7 @@ const WhoLeadsTheAcademy = () => {
             </LineMask>
           </p>
 
+          {/* CTA */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -282,7 +356,7 @@ const WhoLeadsTheAcademy = () => {
             </Link>
           </motion.div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };

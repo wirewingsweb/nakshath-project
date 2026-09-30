@@ -1,11 +1,51 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useReducedMotion,
+} from 'framer-motion';
+import { useRef } from 'react';
 import { fadeInUp, staggerContainer } from '../utils/animations';
 
+const EASE = [0.22, 1, 0.36, 1];
+
 const PrivacyPolicy = () => {
+  const sectionRef = useRef(null);
+  const shouldReduce = useReducedMotion();
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // Ambient glow drifts as you read
+  const glowY = useTransform(scrollYProgress, [0, 0.5, 1], ['-4%', '0%', '4%']);
+  const glowY_s = useSpring(glowY, { stiffness: 80, damping: 28, mass: 0.7 });
+
+  // Card subtle lift
+  const cardY = useTransform(scrollYProgress, [0, 0.5, 1], ['1%', '0%', '-1%']);
+  const cardY_s = useSpring(cardY, { stiffness: 95, damping: 28, mass: 0.55 });
+
   return (
-    <div className="min-h-screen bg-[#0C0922] pb-16 pt-32 md:pt-44">
-      <div className="max-w-4xl mx-auto px-6">
+    <div
+      ref={sectionRef}
+      className="relative min-h-screen overflow-hidden bg-[#0C0922] pb-16 pt-32 md:pt-44"
+    >
+      {/* Ambient gold glow — drift on scroll */}
+      <motion.div
+        style={{
+          y: shouldReduce ? 0 : glowY_s,
+          willChange: 'transform',
+        }}
+        className="pointer-events-none absolute inset-0"
+      >
+        <div className="absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-[#C9A227]/8 blur-[160px]" />
+        <div className="absolute -left-40 bottom-40 h-[420px] w-[420px] rounded-full bg-[#C9A227]/6 blur-[160px]" />
+      </motion.div>
+
+      <div className="relative max-w-4xl mx-auto px-6">
         <motion.h4
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -24,165 +64,172 @@ const PrivacyPolicy = () => {
         </motion.h1>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="bg-white rounded-2xl p-8 md:p-12 shadow-xl"
+          style={{
+            y: shouldReduce ? 0 : cardY_s,
+            willChange: 'transform',
+          }}
         >
           <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={staggerContainer}
-            className="prose prose-lg max-w-none text-[#1A1A1A] font-normal leading-relaxed"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
+            className="bg-white rounded-2xl p-8 md:p-12 shadow-xl"
           >
-            <motion.p variants={fadeInUp}>
-              Nakshath Global Sports & Equestrian Solutions Pvt. Ltd. ("NGSES", "Nakshath Equestrian Club", "we", "us" or "our") respects the privacy of riders, parents/guardians, visitors, customers and website users. This Privacy Policy explains how personal information provided through our website, booking system, enquiry forms and related interactions may be collected, used, stored and protected.
-            </motion.p>
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={staggerContainer}
+              className="prose prose-lg max-w-none text-[#1A1A1A] font-normal leading-relaxed"
+            >
+              <motion.p variants={fadeInUp}>
+                Nakshath Global Sports &amp; Equestrian Solutions Pvt. Ltd. ("NGSES", "Nakshath Equestrian Club", "we", "us" or "our") respects the privacy of riders, parents/guardians, visitors, customers and website users. This Privacy Policy explains how personal information provided through our website, booking system, enquiry forms and related interactions may be collected, used, stored and protected.
+              </motion.p>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.1 Information We May Collect</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Name, age or date of birth where required, mobile number and email address.</li>
-                <li>Parent/guardian details for minors.</li>
-                <li>Booking, riding-session and service information.</li>
-                <li>Emergency contact information.</li>
-                <li>Medical or safety-related information voluntarily disclosed where relevant to safe participation in equestrian activities.</li>
-                <li>Payment and transaction information.</li>
-                <li>Enquiries and communications made through our website, telephone, WhatsApp, email or other approved channels.</li>
-                <li>Feedback, testimonials and reviews.</li>
-                <li>Website usage information such as device/browser information, IP address and cookies, where applicable.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.1 Information We May Collect</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Name, age or date of birth where required, mobile number and email address.</li>
+                  <li>Parent/guardian details for minors.</li>
+                  <li>Booking, riding-session and service information.</li>
+                  <li>Emergency contact information.</li>
+                  <li>Medical or safety-related information voluntarily disclosed where relevant to safe participation in equestrian activities.</li>
+                  <li>Payment and transaction information.</li>
+                  <li>Enquiries and communications made through our website, telephone, WhatsApp, email or other approved channels.</li>
+                  <li>Feedback, testimonials and reviews.</li>
+                  <li>Website usage information such as device/browser information, IP address and cookies, where applicable.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.2 How We Use Information</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Processing riding-session, training and guest-ride bookings.</li>
-                <li>Managing registrations, rider records and customer accounts.</li>
-                <li>Communicating booking confirmations, cancellations, reminders and schedule changes.</li>
-                <li>Providing riding and other equestrian services.</li>
-                <li>Supporting rider and horse safety and responding to emergencies.</li>
-                <li>Contacting parents/guardians or emergency contacts where necessary.</li>
-                <li>Processing payments and maintaining transaction records.</li>
-                <li>Responding to enquiries and customer-support requests.</li>
-                <li>Improving our website, facilities, programmes and services.</li>
-                <li>Sending promotional or marketing communications where appropriate and permitted.</li>
-                <li>Complying with applicable legal, regulatory, accounting, contractual and safety requirements.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.2 How We Use Information</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Processing riding-session, training and guest-ride bookings.</li>
+                  <li>Managing registrations, rider records and customer accounts.</li>
+                  <li>Communicating booking confirmations, cancellations, reminders and schedule changes.</li>
+                  <li>Providing riding and other equestrian services.</li>
+                  <li>Supporting rider and horse safety and responding to emergencies.</li>
+                  <li>Contacting parents/guardians or emergency contacts where necessary.</li>
+                  <li>Processing payments and maintaining transaction records.</li>
+                  <li>Responding to enquiries and customer-support requests.</li>
+                  <li>Improving our website, facilities, programmes and services.</li>
+                  <li>Sending promotional or marketing communications where appropriate and permitted.</li>
+                  <li>Complying with applicable legal, regulatory, accounting, contractual and safety requirements.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.3 Information Relating to Children</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>NGSES provides riding services to children aged 5 years and above.</li>
-                <li>Where personal information relating to a minor is required, it should be provided by, or with the appropriate involvement and consent of, the child's parent or lawful guardian.</li>
-                <li>NGSES will seek to collect only information reasonably necessary for registration, booking, communication, safety and participation in equestrian activities.</li>
-                <li>Parental/guardian consent and other safeguards will be implemented where required under applicable data-protection law.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.3 Information Relating to Children</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>NGSES provides riding services to children aged 5 years and above.</li>
+                  <li>Where personal information relating to a minor is required, it should be provided by, or with the appropriate involvement and consent of, the child's parent or lawful guardian.</li>
+                  <li>NGSES will seek to collect only information reasonably necessary for registration, booking, communication, safety and participation in equestrian activities.</li>
+                  <li>Parental/guardian consent and other safeguards will be implemented where required under applicable data-protection law.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.4 Medical and Safety Information</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Horse riding is a physical activity. Riders may be requested to disclose information relevant to safe participation.</li>
-                <li>Medical or safety-related information voluntarily provided to NGSES will be used primarily for rider safety, emergency response and administration of equestrian activities.</li>
-                <li>Riders and parents/guardians are responsible for providing accurate and current information relevant to safe participation.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.4 Medical and Safety Information</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Horse riding is a physical activity. Riders may be requested to disclose information relevant to safe participation.</li>
+                  <li>Medical or safety-related information voluntarily provided to NGSES will be used primarily for rider safety, emergency response and administration of equestrian activities.</li>
+                  <li>Riders and parents/guardians are responsible for providing accurate and current information relevant to safe participation.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.5 Payments</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Payments made through the website may be processed through third-party payment gateways or financial service providers.</li>
-                <li>NGSES does not intend to directly store complete debit-card or credit-card details where payments are processed by a third-party provider.</li>
-                <li>Payment information may also be governed by the privacy policy and terms of the relevant payment provider.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.5 Payments</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Payments made through the website may be processed through third-party payment gateways or financial service providers.</li>
+                  <li>NGSES does not intend to directly store complete debit-card or credit-card details where payments are processed by a third-party provider.</li>
+                  <li>Payment information may also be governed by the privacy policy and terms of the relevant payment provider.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.6 Sharing of Personal Information</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>NGSES does not sell personal information.</li>
-                <li>Information may be shared where reasonably necessary with website/technology providers, booking providers, payment processors, communication providers, professional advisers, and government, regulatory or law-enforcement authorities where legally required.</li>
-                <li>Where third-party service providers process information for NGSES, appropriate safeguards should be maintained as applicable.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.6 Sharing of Personal Information</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>NGSES does not sell personal information.</li>
+                  <li>Information may be shared where reasonably necessary with website/technology providers, booking providers, payment processors, communication providers, professional advisers, and government, regulatory or law-enforcement authorities where legally required.</li>
+                  <li>Where third-party service providers process information for NGSES, appropriate safeguards should be maintained as applicable.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.7 Photographs and Videos</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Photographs or videos may occasionally be taken at the facility for training, event documentation, promotional or social-media purposes.</li>
-                <li>Where appropriate, NGSES will obtain relevant consent before using identifiable photographs or videos for promotional purposes, particularly in relation to minors.</li>
-                <li>Customers with concerns regarding photography or promotional use should contact NGSES.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.7 Photographs and Videos</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Photographs or videos may occasionally be taken at the facility for training, event documentation, promotional or social-media purposes.</li>
+                  <li>Where appropriate, NGSES will obtain relevant consent before using identifiable photographs or videos for promotional purposes, particularly in relation to minors.</li>
+                  <li>Customers with concerns regarding photography or promotional use should contact NGSES.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.8 Cookies and Website Technologies</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>The website may use cookies and similar technologies to operate the website, understand usage, remember preferences and improve visitor experience.</li>
-                <li>Third-party services such as analytics, maps, social-media tools or payment services may also use cookies or similar technologies according to their respective policies.</li>
-                <li>Where required by applicable law, users will be provided appropriate choices regarding non-essential cookies.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.8 Cookies and Website Technologies</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>The website may use cookies and similar technologies to operate the website, understand usage, remember preferences and improve visitor experience.</li>
+                  <li>Third-party services such as analytics, maps, social-media tools or payment services may also use cookies or similar technologies according to their respective policies.</li>
+                  <li>Where required by applicable law, users will be provided appropriate choices regarding non-essential cookies.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.9 Marketing Communications</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Where permitted, NGSES may send information about riding programmes, events, offers, competitions or other services.</li>
-                <li>Recipients may request to stop receiving promotional communications through an unsubscribe option, where available, or by contacting NGSES.</li>
-                <li>Operational communications relating to existing bookings or services may still be sent where necessary.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.9 Marketing Communications</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Where permitted, NGSES may send information about riding programmes, events, offers, competitions or other services.</li>
+                  <li>Recipients may request to stop receiving promotional communications through an unsubscribe option, where available, or by contacting NGSES.</li>
+                  <li>Operational communications relating to existing bookings or services may still be sent where necessary.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.10 Data Security</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>NGSES takes reasonable administrative, organisational and technical measures to protect personal information against unauthorised access, misuse, loss, alteration or disclosure.</li>
-                <li>No internet-based transmission or electronic storage system can be guaranteed to be completely secure.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.10 Data Security</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>NGSES takes reasonable administrative, organisational and technical measures to protect personal information against unauthorised access, misuse, loss, alteration or disclosure.</li>
+                  <li>No internet-based transmission or electronic storage system can be guaranteed to be completely secure.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.11 Data Retention</h2>
-              <p>Personal information will be retained only for as long as reasonably necessary for the purpose for which it was collected or as required under applicable legal, regulatory, accounting, contractual or safety obligations. When information is no longer required, NGSES may securely delete, anonymise or otherwise dispose of it as appropriate.</p>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.11 Data Retention</h2>
+                <p>Personal information will be retained only for as long as reasonably necessary for the purpose for which it was collected or as required under applicable legal, regulatory, accounting, contractual or safety obligations. When information is no longer required, NGSES may securely delete, anonymise or otherwise dispose of it as appropriate.</p>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.12 Your Choices and Rights</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Subject to applicable law, individuals may contact NGSES regarding access to, correction or updating of their personal information.</li>
-                <li>Where applicable, individuals may request withdrawal of consent or deletion/erasure of personal information.</li>
-                <li>Individuals may raise a concern or grievance regarding the handling of their personal information.</li>
-                <li>NGSES may need to verify the identity of the person making a request before acting upon it.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.12 Your Choices and Rights</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>Subject to applicable law, individuals may contact NGSES regarding access to, correction or updating of their personal information.</li>
+                  <li>Where applicable, individuals may request withdrawal of consent or deletion/erasure of personal information.</li>
+                  <li>Individuals may raise a concern or grievance regarding the handling of their personal information.</li>
+                  <li>NGSES may need to verify the identity of the person making a request before acting upon it.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.13 Third-Party Websites</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>The website may contain links to third-party websites, social-media platforms, maps, payment gateways or other services.</li>
-                <li>NGSES is not responsible for the privacy practices or content of independent third-party services. Users should review their respective privacy policies before providing information.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.13 Third-Party Websites</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>The website may contain links to third-party websites, social-media platforms, maps, payment gateways or other services.</li>
+                  <li>NGSES is not responsible for the privacy practices or content of independent third-party services. Users should review their respective privacy policies before providing information.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.14 Changes to This Privacy Policy</h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>NGSES may update this Privacy Policy periodically to reflect changes in services, technology, operational requirements or applicable law.</li>
-                <li>The latest version will be published on the website together with the updated effective or revision date.</li>
-              </ul>
-            </motion.div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.14 Changes to This Privacy Policy</h2>
+                <ul className="list-disc pl-6 space-y-2">
+                  <li>NGSES may update this Privacy Policy periodically to reflect changes in services, technology, operational requirements or applicable law.</li>
+                  <li>The latest version will be published on the website together with the updated effective or revision date.</li>
+                </ul>
+              </motion.div>
 
-            <motion.div variants={fadeInUp}>
-              <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.15 Contact & Privacy Grievances</h2>
-              <p>For privacy-related questions, requests or complaints, please contact:</p>
-              <div className="mt-4 space-y-2 bg-[#FDFCFA] p-6 rounded-xl">
-                <p><strong>Company:</strong> Nakshath Global Sports & Equestrian Solutions Pvt. Ltd.</p>
-                <p><strong>Brand / Facility:</strong> Nakshath Equestrian Club</p>
-                <p><strong>Email:</strong> info@ngses.in</p>
-                <p><strong>Phone:</strong> 8460846946</p>
-              </div>
+              <motion.div variants={fadeInUp}>
+                <h2 className="text-xl md:text-2xl font-serif mt-8 mb-4">3.15 Contact &amp; Privacy Grievances</h2>
+                <p>For privacy-related questions, requests or complaints, please contact:</p>
+                <div className="mt-4 space-y-2 bg-[#FDFCFA] p-6 rounded-xl">
+                  <p><strong>Company:</strong> Nakshath Global Sports &amp; Equestrian Solutions Pvt. Ltd.</p>
+                  <p><strong>Brand / Facility:</strong> Nakshath Equestrian Club</p>
+                  <p><strong>Email:</strong> info@ngses.in</p>
+                  <p><strong>Phone:</strong> 8460846946</p>
+                </div>
+              </motion.div>
             </motion.div>
           </motion.div>
         </motion.div>

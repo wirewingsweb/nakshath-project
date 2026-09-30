@@ -1,5 +1,12 @@
 import { useRef, useState } from 'react';
-import { motion, useInView } from 'framer-motion';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useInView,
+  useReducedMotion,
+} from 'framer-motion';
 import { EASE } from '../../utils/landing-motion';
 
 const features = [
@@ -42,7 +49,7 @@ const features = [
 ];
 
 /* ============================================================
-   IDLE ANIMATIONS — kept from original
+   IDLE + HOVER ANIMATIONS
    ============================================================ */
 const idleAnimations = {
   breathing: {
@@ -109,7 +116,7 @@ const hoverEffects = {
 };
 
 /* ============================================================
-   LETTER CASCADE — per-character rotation reveal
+   LETTER CASCADE
    ============================================================ */
 const CascadeText = ({ text, delay = 0 }) => {
   const chars = text.split('');
@@ -132,28 +139,42 @@ const CascadeText = ({ text, delay = 0 }) => {
 };
 
 /* ============================================================
-   FEATURE CARD — tracks hover to drive both the icon animation
-   and the text/underline transitions together
+   FEATURE CARD — with scroll-driven float + idle animation
+   Each card drifts at a rate based on its index, creating
+   a subtle 3D field.
    ============================================================ */
-const FeatureCard = ({ item, index, isInView }) => {
+const FeatureCard = ({ item, index, isInView, sectionProgress }) => {
   const [hovered, setHovered] = useState(false);
   const idle = idleAnimations[item.variant];
   const hover = hoverEffects[item.variant];
   const num = String(index + 1).padStart(2, '0');
 
+  // Each card drifts at slightly different rate (parallax per column)
+  const floatRange = 5 + (index % 3) * 2; // 5, 7, 9 %
+  const y = useTransform(
+    sectionProgress,
+    [0, 0.5, 1],
+    [`${floatRange}%`, '0%', `${-floatRange}%`]
+  );
+  const y_s = useSpring(y, { stiffness: 90, damping: 26, mass: 0.6 });
+
+  const shouldReduce = useReducedMotion();
+
   return (
     <motion.div
+      style={{
+        y: shouldReduce ? 0 : y_s,
+        willChange: 'transform',
+      }}
       initial={{ opacity: 0, y: 50, filter: 'blur(10px)' }}
-      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      whileInView={{ opacity: 1, filter: 'blur(0px)' }}
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.9, delay: 0.3 + index * 0.09, ease: EASE }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className="group relative cursor-pointer"
     >
-      {/* ==================================================
-          Number + drawing gold rule
-          ================================================== */}
+      {/* Number + drawing rule */}
       <div className="mb-6 flex items-center gap-3">
         <motion.span
           animate={{
@@ -176,11 +197,8 @@ const FeatureCard = ({ item, index, isInView }) => {
         />
       </div>
 
-      {/* ==================================================
-          Icon + text
-          ================================================== */}
+      {/* Icon + text */}
       <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-start gap-4 min-[360px]:grid-cols-[5.7rem_minmax(0,1fr)] min-[360px]:gap-5 md:grid-cols-[6rem_minmax(0,1fr)] md:gap-6">
-        {/* Animated icon */}
         <motion.div
           animate={
             isInView
@@ -189,7 +207,9 @@ const FeatureCard = ({ item, index, isInView }) => {
                 : idle.animate
               : {}
           }
-          transition={hovered ? { duration: 0.4, ease: EASE } : idle.transition}
+          transition={
+            hovered ? { duration: 0.4, ease: EASE } : idle.transition
+          }
           className="mt-1 flex aspect-square w-full items-center justify-center overflow-visible"
           style={{ transformStyle: 'preserve-3d' }}
         >
@@ -202,7 +222,6 @@ const FeatureCard = ({ item, index, isInView }) => {
           />
         </motion.div>
 
-        {/* Text */}
         <div className="flex flex-col">
           <motion.h3
             animate={{
@@ -220,9 +239,7 @@ const FeatureCard = ({ item, index, isInView }) => {
         </div>
       </div>
 
-      {/* ==================================================
-          Bottom gold hairline — grows on hover
-          ================================================== */}
+      {/* Bottom gold hairline */}
       <span className="mt-6 block h-px w-10 origin-left bg-[#C9A227]/50 transition-[width] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:w-full group-hover:bg-[#C9A227]" />
     </motion.div>
   );
@@ -233,16 +250,36 @@ const FeatureCard = ({ item, index, isInView }) => {
    ============================================================ */
 const ArenaFeatures = () => {
   const sectionRef = useRef(null);
+  const shouldReduce = useReducedMotion();
+
   const isInView = useInView(sectionRef, { once: false, amount: 0.1 });
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // Whole section tilts softly on scroll
+  const sectionRotateX = useTransform(scrollYProgress, [0, 0.5, 1], [2, 0, -2]);
+  const sectionY = useTransform(scrollYProgress, [0, 0.5, 1], ['2%', '0%', '-2%']);
+  const sectionRotateX_s = useSpring(sectionRotateX, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.6,
+  });
+  const sectionY_s = useSpring(sectionY, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.6,
+  });
 
   return (
     <section
       ref={sectionRef}
       className="relative overflow-hidden bg-[#0C0922] px-6 py-16 text-white md:px-[8vw] md:py-24"
+      style={{ perspective: '1600px' }}
     >
-      {/* ==================================================
-          Ambient gold glow — top right
-          ================================================== */}
+      {/* Ambient gold glow — top right */}
       <motion.div
         initial={{ opacity: 0, scale: 0.7 }}
         whileInView={{ opacity: 1, scale: 1 }}
@@ -272,13 +309,20 @@ const ArenaFeatures = () => {
         }}
       />
 
-      <div className="relative mx-auto w-full max-w-[96rem]">
-
-        {/* ==================================================
-            HEADER — cascading title + drawing rule
-            ================================================== */}
+      {/* ==================================================
+          Content wrapper — scroll-driven tilt + drift
+          ================================================== */}
+      <motion.div
+        style={{
+          rotateX: shouldReduce ? 0 : sectionRotateX_s,
+          y: shouldReduce ? 0 : sectionY_s,
+          transformStyle: 'preserve-3d',
+          willChange: 'transform',
+        }}
+        className="relative mx-auto w-full max-w-[96rem]"
+      >
+        {/* HEADER */}
         <div className="mb-14 md:mb-20">
-          {/* Eyebrow with pulsing dot */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -288,20 +332,22 @@ const ArenaFeatures = () => {
           >
             <motion.span
               animate={{ opacity: [1, 0.35, 1], scale: [1, 1.3, 1] }}
-              transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{
+                duration: 2.4,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
               className="inline-block h-1.5 w-1.5 rounded-full bg-[#C9A227]"
             />
             <span className="text-[#C9A227] type-eyebrow">The Arena</span>
           </motion.div>
 
-          {/* Title with letter cascade */}
           <h2 className="type-page-title max-w-3xl leading-[1.08]">
             <CascadeText text="Built so the training" delay={0.3} />
             <br />
             <CascadeText text="never stops." delay={1.2} />
           </h2>
 
-          {/* Drawing gold rule under the title */}
           <motion.div
             initial={{ scaleX: 0 }}
             whileInView={{ scaleX: 1 }}
@@ -311,9 +357,7 @@ const ArenaFeatures = () => {
           />
         </div>
 
-        {/* ==================================================
-            FEATURES GRID — each with number, icon, hover reveals
-            ================================================== */}
+        {/* FEATURES GRID with per-card scroll float */}
         <div className="grid grid-cols-1 gap-x-12 gap-y-14 md:grid-cols-2 md:gap-y-16 xl:grid-cols-3 xl:gap-x-[4vw]">
           {features.map((item, index) => (
             <FeatureCard
@@ -321,10 +365,11 @@ const ArenaFeatures = () => {
               item={item}
               index={index}
               isInView={isInView}
+              sectionProgress={scrollYProgress}
             />
           ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };

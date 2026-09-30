@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { fadeInUp, staggerContainer, slideFromLeft } from '../../utils/animations';
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useInView, useReducedMotion } from 'framer-motion';
 import { FiX } from 'react-icons/fi';
 import { EASE } from '../../utils/landing-motion';
 
 /* ============================================================
-   LINE LIFT (right column)
+   LINE LIFT — reliable via useInView on outer container
    ============================================================ */
 const LineLift = ({ children, delay = 0, duration = 1.3 }) => {
   const ref = useRef(null);
@@ -26,7 +25,7 @@ const LineLift = ({ children, delay = 0, duration = 1.3 }) => {
 };
 
 /* ============================================================
-   GOLD BLOOM (right column)
+   GOLD BLOOM — accent text that glows after landing
    ============================================================ */
 const GoldBloom = ({ children, delay = 0 }) => {
   const ref = useRef(null);
@@ -49,7 +48,7 @@ const GoldBloom = ({ children, delay = 0 }) => {
 };
 
 /* ============================================================
-   SCAN LINE — sweeps down over the map once
+   SCAN LINE — passes down over the map after reveal
    ============================================================ */
 const ScanLine = ({ delay = 0 }) => (
   <motion.span
@@ -67,7 +66,7 @@ const ScanLine = ({ delay = 0 }) => (
 );
 
 /* ============================================================
-   LEGEND ITEM — simple, no interactivity
+   LEGEND ITEM
    ============================================================ */
 const LegendItem = ({ number, label, delay = 0 }) => (
   <motion.div
@@ -96,7 +95,7 @@ const LegendItem = ({ number, label, delay = 0 }) => (
 );
 
 /* ============================================================
-   CAMPUS KEY
+   CAMPUS KEY DATA
    ============================================================ */
 const campusKey = [
   ['1', 'Indoor arena'],
@@ -112,7 +111,29 @@ const campusKey = [
    ============================================================ */
 const WhoWeAre = () => {
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const sectionRef = useRef(null);
+  const shouldReduce = useReducedMotion();
 
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // Card drifts up slightly and away from the frame
+  const cardY = useTransform(scrollYProgress, [0, 0.5, 1], ['6%', '0%', '-6%']);
+  const cardRotate = useTransform(scrollYProgress, [0, 0.5, 1], [-3, 0, 3]);
+  const cardY_s = useSpring(cardY, { stiffness: 90, damping: 26, mass: 0.6 });
+  const cardRotate_s = useSpring(cardRotate, {
+    stiffness: 90,
+    damping: 26,
+    mass: 0.6,
+  });
+
+  // Right text drifts opposite direction
+  const textY = useTransform(scrollYProgress, [0, 0.5, 1], ['3%', '0%', '-3%']);
+  const textY_s = useSpring(textY, { stiffness: 100, damping: 28, mass: 0.5 });
+
+  // Body scroll lock for lightbox
   useEffect(() => {
     if (!isMapOpen) return undefined;
     const onKey = (e) => e.key === 'Escape' && setIsMapOpen(false);
@@ -127,46 +148,57 @@ const WhoWeAre = () => {
 
   return (
     <>
-      <section className="mobile-cta-exclusion w-full bg-[#FDFCFA] py-14 md:py-16">
-        <div className="grid min-h-[31.75rem] w-full grid-cols-1 items-center overflow-hidden rounded-r-[2.25rem] bg-[#0C0922] md:min-h-[42rem] md:w-[93.2%] md:grid-cols-[48%_52%]">
-
+      <section
+        ref={sectionRef}
+        className="mobile-cta-exclusion w-full bg-[#FDFCFA] py-14 md:py-16"
+      >
+        <div
+          className="grid min-h-[31.75rem] w-full grid-cols-1 items-center overflow-hidden rounded-r-[2.25rem] bg-[#0C0922] md:min-h-[42rem] md:w-[93.2%] md:grid-cols-[48%_52%]"
+          style={{ perspective: '1400px' }}
+        >
           {/* ==================================================
               LEFT: Campus Map Card
+              Scroll-driven drift + rotate
               ================================================== */}
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            variants={slideFromLeft}
-            className="flex justify-center md:justify-end px-5 pt-12 md:py-11 md:pl-10 md:pr-[4.5vw]"
+            style={{
+              y: shouldReduce ? 0 : cardY_s,
+              rotateY: shouldReduce ? 0 : cardRotate_s,
+              transformStyle: 'preserve-3d',
+              willChange: 'transform',
+            }}
+            className="flex justify-center px-5 pt-12 md:justify-end md:py-11 md:pl-10 md:pr-[4.5vw]"
           >
             <motion.button
               type="button"
               onClick={() => setIsMapOpen(true)}
+              initial={{ opacity: 0, y: 40, filter: 'blur(10px)' }}
+              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 1.2, delay: 0.2, ease: EASE }}
               whileHover={{ y: -6 }}
               whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               aria-label="Open campus map in fullscreen"
-              className="group relative flex h-auto w-full max-w-[22rem] cursor-pointer flex-col rounded-xl bg-[#FDFCFA] px-5 pb-6 pt-5 md:w-[min(31vw,27rem)] md:max-w-none md:px-5 md:pb-6 md:pt-5 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] transition-shadow duration-500 hover:shadow-[0_30px_60px_-15px_rgba(201,162,39,0.35)] text-left"
+              className="group relative flex h-auto w-full max-w-[22rem] cursor-pointer flex-col rounded-xl bg-[#FDFCFA] px-5 pb-6 pt-5 text-left shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] transition-shadow duration-500 hover:shadow-[0_30px_60px_-15px_rgba(201,162,39,0.35)] md:w-[min(31vw,27rem)] md:max-w-none md:px-5 md:pb-6 md:pt-5"
             >
-              {/* Map image with blur-to-sharp reveal + scan sweep */}
+              {/* Map image with blur-to-sharp reveal + scan line */}
               <div className="relative">
                 <motion.img
-                  initial={{ opacity: 0, filter: 'blur(12px) brightness(1.15)' }}
-                  whileInView={{ opacity: 1, filter: 'blur(0px) brightness(1)' }}
-                  viewport={{ once: true, amount: 0 }}
-                  transition={{ duration: 1.4, delay: 0.4, ease: EASE }}
                   src="/page 3 gpt.webp"
                   alt="Campus Map"
                   loading="lazy"
                   decoding="async"
+                  initial={{ opacity: 0, filter: 'blur(12px) brightness(1.15)' }}
+                  whileInView={{ opacity: 1, filter: 'blur(0px) brightness(1)' }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{ duration: 1.4, delay: 0.4, ease: EASE }}
                   className="block h-auto w-full transition-transform duration-500 group-hover:scale-[1.03]"
                 />
 
                 <ScanLine delay={1.2} />
 
                 {/* Expand hint pill */}
-                <div className="pointer-events-none absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-[#0C0922]/85 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
+                <div className="pointer-events-none absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-[#0C0922]/85 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="15 3 21 3 21 9" />
                     <polyline points="9 21 3 21 3 15" />
@@ -194,8 +226,15 @@ const WhoWeAre = () => {
           {/* ==================================================
               RIGHT: Text Content
               ================================================== */}
-          <div className="px-8 py-14 sm:px-12 md:py-12 md:pl-[4.25vw] md:pr-12 text-white">
+          <motion.div
+            style={{
+              y: shouldReduce ? 0 : textY_s,
+              willChange: 'transform',
+            }}
+            className="px-8 py-14 text-white sm:px-12 md:py-12 md:pl-[4.25vw] md:pr-12"
+          >
             <div className="max-w-[20rem]">
+              {/* Eyebrow */}
               <motion.h4
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -205,20 +244,33 @@ const WhoWeAre = () => {
               >
                 <motion.span
                   animate={{ opacity: [1, 0.35, 1], scale: [1, 1.3, 1] }}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                  transition={{
+                    duration: 2.4,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
                   className="inline-block h-1.5 w-1.5 rounded-full bg-[#876B18]"
                 />
                 Who We Are
               </motion.h4>
 
-              <div className="space-y-9 md:space-y-[4.2vw] text-base md:text-lg leading-[1.55] font-normal tracking-[0.01em] text-white/90">
+              {/* Paragraphs with LineLift reveal + gold blooms */}
+              <div className="space-y-9 text-base font-normal leading-[1.55] tracking-[0.01em] text-white/90 md:space-y-[4.2vw] md:text-lg">
+                {/* Paragraph 1 */}
                 <div>
-                  <LineLift delay={0.3}>A working equestrian academy</LineLift>
-                  <LineLift delay={0.5}>on the edge of Bengaluru.</LineLift>
+                  <LineLift delay={0.3}>
+                    A working equestrian academy
+                  </LineLift>
+                  <LineLift delay={0.5}>
+                    on the edge of Bengaluru.
+                  </LineLift>
                 </div>
 
+                {/* Paragraph 2 */}
                 <div>
-                  <LineLift delay={0.9}>Show jumping and dressage,</LineLift>
+                  <LineLift delay={0.9}>
+                    Show jumping and dressage,
+                  </LineLift>
                   <LineLift delay={1.1}>
                     taught from <GoldBloom delay={2.4}>first sit</GoldBloom>
                   </LineLift>
@@ -227,13 +279,18 @@ const WhoWeAre = () => {
                   </LineLift>
                 </div>
 
+                {/* Paragraph 3 */}
                 <div>
-                  <LineLift delay={1.7}>Four arenas, stables and cottages</LineLift>
-                  <LineLift delay={1.9}>across a single campus.</LineLift>
+                  <LineLift delay={1.7}>
+                    Four arenas, stables and cottages
+                  </LineLift>
+                  <LineLift delay={1.9}>
+                    across a single campus.
+                  </LineLift>
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -255,7 +312,7 @@ const WhoWeAre = () => {
               initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
               animate={{ opacity: 1, backdropFilter: 'blur(24px)' }}
               exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.5, ease: EASE }}
               className="absolute inset-0 bg-[#0C0922]/75"
               aria-hidden="true"
             />
@@ -283,7 +340,7 @@ const WhoWeAre = () => {
                 setIsMapOpen(false);
               }}
               aria-label="Close map"
-              className="absolute top-5 right-5 md:top-8 md:right-8 z-[20] flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-[#C9A227] hover:text-[#0C0922] transition-colors"
+              className="absolute right-5 top-5 z-[20] flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition-colors hover:bg-[#C9A227] hover:text-[#0C0922] md:right-8 md:top-8"
             >
               <FiX size={22} />
             </motion.button>
@@ -292,11 +349,11 @@ const WhoWeAre = () => {
               initial={{ scale: 0.6, opacity: 0, y: 60, rotateX: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
               exit={{ scale: 0.6, opacity: 0, y: 60, rotateX: 20 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.7, ease: EASE }}
               whileHover={{
                 y: -10,
                 scale: 1.03,
-                transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+                transition: { duration: 0.5, ease: EASE },
               }}
               onClick={(e) => e.stopPropagation()}
               className="relative z-10 flex max-h-[90vh] max-w-[90vw] items-center justify-center"
@@ -305,12 +362,18 @@ const WhoWeAre = () => {
               <motion.img
                 src="/page 3 gpt.webp"
                 alt="Campus Map — Fullscreen"
-                initial={{ filter: 'brightness(1) drop-shadow(0 20px 40px rgba(0,0,0,0.4))' }}
-                whileHover={{ filter: 'brightness(1.05) drop-shadow(0 40px 60px rgba(201,162,35,0.35))' }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                initial={{
+                  filter: 'brightness(1) drop-shadow(0 20px 40px rgba(0,0,0,0.4))',
+                }}
+                whileHover={{
+                  filter:
+                    'brightness(1.05) drop-shadow(0 40px 60px rgba(201,162,35,0.35))',
+                }}
+                transition={{ duration: 0.6, ease: EASE }}
                 className="max-h-[85vh] w-auto max-w-full object-contain"
                 style={{
-                  filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.55)) drop-shadow(0 0 40px rgba(201,162,39,0.15))',
+                  filter:
+                    'drop-shadow(0 25px 50px rgba(0,0,0,0.55)) drop-shadow(0 0 40px rgba(201,162,39,0.15))',
                 }}
               />
             </motion.div>

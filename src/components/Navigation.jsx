@@ -5,6 +5,7 @@ import { FaFacebookF } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEnquiry } from '../context/EnquiryContext';
 import { BUSINESS_MAP_URL } from '../constants/location';
+import { stopScroll, startScroll } from '../lib/smoothScroll';
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,6 +14,10 @@ const Navigation = () => {
   const { openEnquiry } = useEnquiry();
   const location = useLocation();
 
+  /* ============================================================
+     Detect whether we've scrolled past the hero
+     (drives nav solid / transparent state)
+     ============================================================ */
   useEffect(() => {
     let frameId;
 
@@ -21,7 +26,8 @@ const Navigation = () => {
         const darkHero = document.querySelector('.nav-dark-hero');
 
         if (darkHero) {
-          const navHeight = document.querySelector('nav')?.getBoundingClientRect().height ?? 0;
+          const navHeight =
+            document.querySelector('nav')?.getBoundingClientRect().height ?? 0;
           setIsPastHero(darkHero.getBoundingClientRect().bottom <= navHeight);
           return;
         }
@@ -41,8 +47,13 @@ const Navigation = () => {
     };
   }, [location.pathname]);
 
+  /* ============================================================
+     Hide mobile trial-ride tab when a footer CTA is visible
+     ============================================================ */
   useEffect(() => {
-    const exclusionZones = Array.from(document.querySelectorAll('#footer-trial-cta, .mobile-cta-exclusion'));
+    const exclusionZones = Array.from(
+      document.querySelectorAll('#footer-trial-cta, .mobile-cta-exclusion')
+    );
     if (!exclusionZones.length) return undefined;
 
     const visibleZones = new Set();
@@ -55,22 +66,32 @@ const Navigation = () => {
         });
         setIsFooterCtaVisible(visibleZones.size > 0);
       },
-      { threshold: 0.08 },
+      { threshold: 0.08 }
     );
 
     exclusionZones.forEach((zone) => observer.observe(zone));
     return () => observer.disconnect();
   }, [location.pathname]);
 
+  /* ============================================================
+     Lock scroll when the menu is open
+     - Body overflow: keeps non-Lenis devices (and reduced-motion) locked
+     - Lenis stop/start: actually halts the Lenis RAF loop
+     ============================================================ */
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
 
     if (isMenuOpen) {
       document.body.style.overflow = 'hidden';
+      stopScroll();
+    } else {
+      document.body.style.overflow = previousOverflow || '';
+      startScroll();
     }
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = previousOverflow || '';
+      startScroll();
     };
   }, [isMenuOpen]);
 
@@ -86,7 +107,7 @@ const Navigation = () => {
 
   return (
     <div className="relative w-full">
-      {/* ====== Standard Navbar with Subtle Glassmorphism ====== */}
+      {/* ====== STANDARD NAVBAR ====== */}
       <motion.nav
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -97,7 +118,17 @@ const Navigation = () => {
             : 'border-b border-transparent bg-transparent text-white'
         }`}
       >
-        {/* ===== ANIMATED HAMBURGER BUTTON ===== */}
+        {/* Gold underline — draws in when past hero */}
+        <motion.div
+          aria-hidden="true"
+          initial={false}
+          animate={{ scaleX: isPastHero ? 1 : 0 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transformOrigin: '0% 50%' }}
+          className="pointer-events-none absolute bottom-0 left-0 h-[1.5px] w-full bg-gradient-to-r from-[#C9A227]/0 via-[#C9A227]/70 to-[#C9A227]/0"
+        />
+
+        {/* ===== ANIMATED HAMBURGER ===== */}
         <motion.button
           onClick={() => setIsMenuOpen(true)}
           whileHover="hover"
@@ -140,7 +171,10 @@ const Navigation = () => {
         </motion.button>
 
         {/* Navbar Logo */}
-        <Link to="/" className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
+        <Link
+          to="/"
+          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
+        >
           <motion.img
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
@@ -152,7 +186,7 @@ const Navigation = () => {
           />
         </Link>
 
-        {/* Book Trial Ride - Desktop */}
+        {/* Book Trial Ride — Desktop */}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.97 }}
@@ -200,7 +234,11 @@ const Navigation = () => {
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: '-100%' }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+              transition={{
+                duration: 1.2,
+                ease: [0.22, 1, 0.36, 1],
+                delay: 0.1,
+              }}
               className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-transparent via-[#C9A227]/10 to-transparent"
             />
 
@@ -263,7 +301,9 @@ const Navigation = () => {
                 animate="visible"
                 variants={{
                   hidden: {},
-                  visible: { transition: { staggerChildren: 0.07, delayChildren: 0.45 } },
+                  visible: {
+                    transition: { staggerChildren: 0.07, delayChildren: 0.45 },
+                  },
                 }}
                 className="flex w-full flex-col justify-center space-y-3.5 pl-0 md:w-1/2 md:space-y-5 md:pl-8"
               >
@@ -275,7 +315,10 @@ const Navigation = () => {
                       visible: {
                         opacity: 1,
                         x: 0,
-                        transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+                        transition: {
+                          duration: 0.5,
+                          ease: [0.22, 1, 0.36, 1],
+                        },
                       },
                     }}
                   >
@@ -322,31 +365,41 @@ const Navigation = () => {
                 className="flex w-full flex-col justify-center space-y-6 border-t border-white/20 pt-8 font-sans text-sm tracking-wide text-white/80 md:w-[42%] md:space-y-6 md:border-l md:border-t-0 md:pl-16 md:pt-0"
               >
                 <div>
-                  <h4 className="text-[#C9A227] text-xs uppercase font-bold mb-2 tracking-[0.1em]">Visit Us</h4>
+                  <h4 className="text-[#C9A227] text-xs uppercase font-bold mb-2 tracking-[0.1em]">
+                    Visit Us
+                  </h4>
                   <a
                     href={BUSINESS_MAP_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block text-[13px] leading-relaxed text-white/70 no-underline transition-colors hover:text-[#C9A227]"
                   >
-                    Inside BEML Cooperative Society<br />
-                    S. Medahalli, Sarjapura<br />
+                    Inside BEML Cooperative Society
+                    <br />
+                    S. Medahalli, Sarjapura
+                    <br />
                     Bengaluru, Karnataka 562107
                   </a>
                 </div>
 
                 <div>
-                  <h4 className="text-[#C9A227] text-xs uppercase font-bold mb-2 tracking-[0.1em]">Contact</h4>
+                  <h4 className="text-[#C9A227] text-xs uppercase font-bold mb-2 tracking-[0.1em]">
+                    Contact
+                  </h4>
                   <p className="text-white/70 text-[13px]">
-                    8460 846 946<br />
+                    8460 846 946
+                    <br />
                     enquiry@ngses.in
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="text-[#C9A227] text-xs uppercase font-bold mb-2 tracking-[0.1em]">Hours</h4>
+                  <h4 className="text-[#C9A227] text-xs uppercase font-bold mb-2 tracking-[0.1em]">
+                    Hours
+                  </h4>
                   <p className="text-white/70 text-[13px]">
-                    Tuesday–Saturday: Open<br />
+                    Tuesday–Saturday: Open
+                    <br />
                     Monday: Closed
                   </p>
                 </div>
@@ -360,7 +413,17 @@ const Navigation = () => {
                     rel="noopener noreferrer"
                     className="text-white"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
                       <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                       <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
@@ -374,7 +437,13 @@ const Navigation = () => {
                     rel="noopener noreferrer"
                     className="text-white"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
                       <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                     </svg>
                   </motion.a>
@@ -386,7 +455,13 @@ const Navigation = () => {
                     rel="noopener noreferrer"
                     className="text-white"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
                       <path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.65 0-5.79 2.737-5.79 5.568 0 1.105.424 2.287.955 2.934.105.126.12.235.089.358-.06.246-.195.792-.222.904-.07.299-.286.364-.515.222-1.915-1.068-3.114-2.703-3.114-4.787 0-3.157 2.505-6.674 7.662-6.674 4.019 0 6.664 2.869 6.664 6.63 0 4.358-2.748 7.804-6.459 7.804-1.261 0-2.448-.655-2.855-1.426l-.778 2.961c-.281 1.084-1.068 2.452-1.59 3.281C9.535 23.879 10.742 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z" />
                     </svg>
                   </motion.a>
@@ -398,7 +473,13 @@ const Navigation = () => {
                     rel="noopener noreferrer"
                     className="text-white"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                     </svg>
                   </motion.a>
@@ -422,7 +503,17 @@ const Navigation = () => {
                     download="Nakshath-Brochure.pdf"
                     className="flex items-center gap-2 text-white/60 text-xs font-medium uppercase tracking-widest hover:text-[#C9A227] transition-colors"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
@@ -433,9 +524,11 @@ const Navigation = () => {
 
                 <div className="pt-6">
                   <p className="type-caption font-sans tracking-wide text-white/50">
-                    Nakshath Equestrian Club<br />
-                    Promoted and managed by<br />
-                    Nakshath Global Sports & Equestrian Solutions Pvt Ltd
+                    Nakshath Equestrian Club
+                    <br />
+                    Promoted and managed by
+                    <br />
+                    Nakshath Global Sports &amp; Equestrian Solutions Pvt Ltd
                   </p>
                 </div>
               </motion.div>
@@ -449,13 +542,25 @@ const Navigation = () => {
               className="type-caption relative z-10 border-t border-white/10 p-6 text-white/50"
             >
               <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 md:justify-end">
-                <Link to="/terms-and-conditions" className="hover:text-white transition-colors" onClick={() => setIsMenuOpen(false)}>
-                  Terms & Conditions
+                <Link
+                  to="/terms-and-conditions"
+                  className="hover:text-white transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Terms &amp; Conditions
                 </Link>
-                <Link to="/refund-and-cancellation" className="hover:text-white transition-colors" onClick={() => setIsMenuOpen(false)}>
-                  Refund & Cancellation
+                <Link
+                  to="/refund-and-cancellation"
+                  className="hover:text-white transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Refund &amp; Cancellation
                 </Link>
-                <Link to="/privacy-policy" className="hover:text-white transition-colors" onClick={() => setIsMenuOpen(false)}>
+                <Link
+                  to="/privacy-policy"
+                  className="hover:text-white transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
                   Privacy Policy
                 </Link>
               </div>

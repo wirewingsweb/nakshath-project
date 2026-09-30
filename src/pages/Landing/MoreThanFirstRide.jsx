@@ -1,5 +1,11 @@
-import { useRef, useState, useMemo } from 'react';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+import { useRef, useState } from 'react';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useReducedMotion,
+} from 'framer-motion';
 import ShinyText from '../../components/ShinyText';
 import { EASE, EASE_SNAP } from '../../utils/landing-motion';
 
@@ -61,13 +67,31 @@ const CursorSpotlight = ({ containerRef }) => {
 };
 
 /* ============================================================
-   FEATURE ROW — numbered editorial row, expands on hover
+   FEATURE ROW — differential scroll drift per row
    ============================================================ */
-const FeatureRow = ({ feature, idx }) => {
+const FeatureRow = ({ feature, idx, progress }) => {
   const [hovered, setHovered] = useState(false);
+  const shouldReduce = useReducedMotion();
+
+  // Differential drift: 1.5 / 2.4 / 3.3 %
+  const range = 1.5 + idx * 0.9;
+  const driftY = useTransform(
+    progress,
+    [0, 0.5, 1],
+    [`${range}%`, '0%', `${-range}%`]
+  );
+  const driftY_s = useSpring(driftY, {
+    stiffness: 90,
+    damping: 26,
+    mass: 0.6,
+  });
 
   return (
     <motion.div
+      style={{
+        y: shouldReduce ? 0 : driftY_s,
+        willChange: 'transform',
+      }}
       initial={{ opacity: 0, y: 40, filter: 'blur(8px)' }}
       whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
       viewport={{ once: true, amount: 0 }}
@@ -85,7 +109,6 @@ const FeatureRow = ({ feature, idx }) => {
       />
 
       <div className="relative flex items-start gap-5 md:gap-8">
-        {/* Number — big italic serif */}
         <motion.span
           animate={{
             x: hovered ? 4 : 0,
@@ -97,7 +120,6 @@ const FeatureRow = ({ feature, idx }) => {
           {String(idx + 1).padStart(2, '0')}
         </motion.span>
 
-        {/* Icon — spins on hover */}
         <motion.div
           animate={{
             rotate: hovered ? 12 : 0,
@@ -109,7 +131,6 @@ const FeatureRow = ({ feature, idx }) => {
           {feature.icon}
         </motion.div>
 
-        {/* Content */}
         <div className="min-w-0 flex-1">
           <motion.h4
             animate={{ letterSpacing: hovered ? '0.02em' : '0em' }}
@@ -123,7 +144,6 @@ const FeatureRow = ({ feature, idx }) => {
             {feature.desc}
           </p>
 
-          {/* Hidden detail line — reveals on hover */}
           <motion.div
             initial={false}
             animate={{
@@ -150,17 +170,53 @@ const FeatureRow = ({ feature, idx }) => {
 const MoreThanFirstRide = () => {
   const sectionRef = useRef(null);
   const imageWrapRef = useRef(null);
+  const shouldReduce = useReducedMotion();
 
-  // Scroll-linked parallax on the image
+  /* ============================================================
+     Scroll cameras — section-level, plus one tracker for the
+     feature-row depth field.
+     ============================================================ */
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start end', 'end start'],
   });
+
+  // Existing image parallax (kept, but converted to spring)
   const imageY = useTransform(scrollYProgress, [0, 1], ['-5%', '5%']);
   const imageScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.08, 1.02, 1.08]);
+  const imageY_s = useSpring(imageY, { stiffness: 85, damping: 28, mass: 0.65 });
+  const imageScale_s = useSpring(imageScale, {
+    stiffness: 85,
+    damping: 28,
+    mass: 0.65,
+  });
 
-  // Gold thread on the right column that fills as you scroll
+  // Gold thread (kept as-is)
   const threadProgress = useTransform(scrollYProgress, [0.25, 0.9], [0, 1]);
+
+  // Left image column counter-drift — one direction
+  const leftColumnY = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    ['2.5%', '0%', '-2.5%']
+  );
+  const leftColumnY_s = useSpring(leftColumnY, {
+    stiffness: 90,
+    damping: 28,
+    mass: 0.6,
+  });
+
+  // Right content column counter-drifts the opposite way
+  const rightColumnY = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    ['-1.5%', '0%', '1.5%']
+  );
+  const rightColumnY_s = useSpring(rightColumnY, {
+    stiffness: 90,
+    damping: 28,
+    mass: 0.6,
+  });
 
   const features = [
     {
@@ -201,12 +257,17 @@ const MoreThanFirstRide = () => {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-16">
 
           {/* ==================================================
-              LEFT — Sticky image with cursor spotlight + curtain
+              LEFT — Sticky image + counter-drift
               ================================================== */}
-          <div className="lg:col-span-5">
+          <motion.div
+            style={{
+              y: shouldReduce ? 0 : leftColumnY_s,
+              willChange: 'transform',
+            }}
+            className="lg:col-span-5"
+          >
             <div className="lg:sticky lg:top-32">
               <div ref={imageWrapRef} className="group relative">
-                {/* Curtain reveal — two side panels slide apart */}
                 <motion.div
                   initial={{ scaleX: 1 }}
                   whileInView={{ scaleX: 0 }}
@@ -222,7 +283,6 @@ const MoreThanFirstRide = () => {
                   className="pointer-events-none absolute inset-0 z-30 origin-right bg-[#F2F0EB]"
                 />
 
-                {/* Gold frame that draws after the curtain opens */}
                 <motion.span
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: 1 }}
@@ -245,24 +305,23 @@ const MoreThanFirstRide = () => {
                   className="pointer-events-none absolute bottom-0 right-0 h-[2px] w-full origin-right bg-[#C9A227] z-20"
                 />
 
-                {/* Image with parallax */}
                 <div className="relative overflow-hidden rounded-sm">
                   <motion.img
-                    style={{ y: imageY, scale: imageScale }}
+                    style={{
+                      y: shouldReduce ? 0 : imageY_s,
+                      scale: shouldReduce ? 1 : imageScale_s,
+                      willChange: 'transform',
+                    }}
                     src="/page 2 gpt.webp"
                     alt="Rider with horse"
                     loading="lazy"
                     decoding="async"
                     className="h-full w-full object-cover"
                   />
-                  {/* Warm gradient overlay */}
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0C0922]/45 via-transparent to-transparent" />
-
-                  {/* Cursor spotlight */}
                   <CursorSpotlight containerRef={imageWrapRef} />
                 </div>
 
-                {/* Corner accent brackets */}
                 <motion.span
                   initial={{ opacity: 0, scale: 0.5 }}
                   whileInView={{ opacity: 1, scale: 1 }}
@@ -278,7 +337,6 @@ const MoreThanFirstRide = () => {
                   className="pointer-events-none absolute -bottom-3 -right-3 h-5 w-5 border-b-2 border-r-2 border-[#C9A227]"
                 />
 
-                {/* Caption tag on the image */}
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -293,13 +351,18 @@ const MoreThanFirstRide = () => {
                 </motion.div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* ==================================================
-              RIGHT — Editorial content with numbered rows
+              RIGHT — Editorial content + counter-drift + row depth field
               ================================================== */}
-          <div className="lg:col-span-7">
-            {/* Eyebrow */}
+          <motion.div
+            style={{
+              y: shouldReduce ? 0 : rightColumnY_s,
+              willChange: 'transform',
+            }}
+            className="lg:col-span-7"
+          >
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -317,7 +380,6 @@ const MoreThanFirstRide = () => {
               />
             </motion.div>
 
-            {/* Massive title with letter cascade + ShinyText */}
             <h2 className="type-page-title mb-5 leading-[1.05]">
               <span className="block text-[#1A1A1A]">
                 <CascadeText text="A" delay={0.3} />
@@ -332,7 +394,6 @@ const MoreThanFirstRide = () => {
               </span>
             </h2>
 
-            {/* Draw line */}
             <motion.div
               initial={{ scaleX: 0 }}
               whileInView={{ scaleX: 1 }}
@@ -341,7 +402,6 @@ const MoreThanFirstRide = () => {
               className="mb-8 h-[2px] w-20 origin-left bg-[#C9A227]/50"
             />
 
-            {/* Description with line-by-line mask */}
             <motion.p
               initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
               whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -354,11 +414,8 @@ const MoreThanFirstRide = () => {
               introduction to that world.
             </motion.p>
 
-            {/* Feature rows with vertical gold thread */}
             <div className="relative">
-              {/* Vertical rail on the left */}
               <span className="pointer-events-none absolute left-0 top-0 hidden h-full w-px bg-[#1A1A1A]/10 md:block" />
-              {/* Gold thread that fills with scroll */}
               <motion.span
                 style={{ scaleY: threadProgress }}
                 className="pointer-events-none absolute left-0 top-0 hidden h-full w-px origin-top bg-[#C9A227] md:block"
@@ -366,12 +423,16 @@ const MoreThanFirstRide = () => {
 
               <div className="md:pl-0">
                 {features.map((feature, idx) => (
-                  <FeatureRow key={idx} feature={feature} idx={idx} />
+                  <FeatureRow
+                    key={idx}
+                    feature={feature}
+                    idx={idx}
+                    progress={scrollYProgress}
+                  />
                 ))}
               </div>
             </div>
 
-            {/* Bottom caption */}
             <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
@@ -382,7 +443,7 @@ const MoreThanFirstRide = () => {
               <span className="h-px w-6 bg-[#C9A227]/60" />
               Hover a line to preview
             </motion.div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

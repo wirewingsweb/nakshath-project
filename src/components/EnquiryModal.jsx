@@ -24,8 +24,10 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
+const EASE = [0.22, 1, 0.36, 1];
+
 /* ============================================================
-   LETTER CASCADE
+   LETTER CASCADE — 3D flip down per character
    ============================================================ */
 const CascadeText = ({ text, delay = 0, className = '' }) => {
   const chars = text.split('');
@@ -39,7 +41,7 @@ const CascadeText = ({ text, delay = 0, className = '' }) => {
           transition={{
             duration: 0.7,
             delay: delay + i * 0.035,
-            ease: [0.22, 1, 0.36, 1],
+            ease: EASE,
           }}
           style={{ display: 'inline-block', transformOrigin: 'bottom center' }}
         >
@@ -57,7 +59,7 @@ const FormSection = ({ number, title, delay = 0 }) => (
   <motion.div
     initial={{ opacity: 0, x: -16 }}
     animate={{ opacity: 1, x: 0 }}
-    transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+    transition={{ duration: 0.6, delay, ease: EASE }}
     className="mb-5 flex items-center gap-3"
   >
     <span className="font-serif text-xs italic tabular-nums text-[#C9A227]">
@@ -69,26 +71,35 @@ const FormSection = ({ number, title, delay = 0 }) => (
     <motion.span
       initial={{ scaleX: 0 }}
       animate={{ scaleX: 1 }}
-      transition={{ duration: 0.9, delay: delay + 0.2, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.9, delay: delay + 0.2, ease: EASE }}
       className="h-px flex-1 origin-left bg-[#C9A227]/40"
     />
   </motion.div>
 );
 
 /* ============================================================
-   FLOATING GOLD PARTICLES
+   GOLD PARTICLES — differential depth
+   Bigger = closer to camera = drifts further on both axes.
+   Smaller = farther = barely moves. Reads as a 3D field.
    ============================================================ */
 const GoldParticles = () => {
   const particles = useMemo(
     () =>
-      Array.from({ length: 14 }).map((_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        top: 20 + Math.random() * 80,
-        size: 1 + Math.random() * 2.5,
-        delay: Math.random() * 5,
-        duration: 6 + Math.random() * 6,
-      })),
+      Array.from({ length: 14 }).map((_, i) => {
+        const size = 1 + Math.random() * 2.5;
+        // Bigger particles travel further on both axes.
+        const travel = 40 + size * 28;
+        return {
+          id: i,
+          left: Math.random() * 100,
+          top: 20 + Math.random() * 80,
+          size,
+          delay: Math.random() * 5,
+          duration: 6 + Math.random() * 6,
+          xDrift: (Math.random() - 0.5) * travel * 0.6,
+          yDrift: travel,
+        };
+      }),
     []
   );
 
@@ -97,10 +108,11 @@ const GoldParticles = () => {
       {particles.map((p) => (
         <motion.span
           key={p.id}
-          initial={{ opacity: 0, y: 0 }}
+          initial={{ opacity: 0, y: 0, x: 0 }}
           animate={{
             opacity: [0, 0.7, 0],
-            y: [-10, -120],
+            y: [0, -p.yDrift],
+            x: [0, p.xDrift],
           }}
           transition={{
             duration: p.duration,
@@ -122,7 +134,7 @@ const GoldParticles = () => {
 };
 
 /* ============================================================
-   SUCCESS STATE
+   SUCCESS STATE — subtle rotateY flip on entrance
    ============================================================ */
 const SuccessState = () => (
   <motion.div
@@ -130,25 +142,26 @@ const SuccessState = () => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -10 }}
-    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    transition={{ duration: 0.5, ease: EASE }}
     className="flex h-full min-h-[420px] flex-col items-center justify-center py-12 text-center"
   >
     <motion.div
-      initial={{ scale: 0.5 }}
-      animate={{ scale: 1 }}
+      initial={{ scale: 0.5, rotateY: -50 }}
+      animate={{ scale: 1, rotateY: 0 }}
       transition={{ type: 'spring', stiffness: 180, damping: 16 }}
+      style={{ transformStyle: 'preserve-3d', perspective: '800px' }}
       className="relative mb-7 flex h-24 w-24 items-center justify-center"
     >
       <motion.span
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.6, delay: 0.1, ease: EASE }}
         className="absolute inset-0 rounded-full bg-[#C9A227]/15"
       />
       <motion.span
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.5, delay: 0.25, ease: EASE }}
         className="absolute inset-3 rounded-full bg-[#C9A227]/25"
       />
       <svg
@@ -164,7 +177,7 @@ const SuccessState = () => (
           d="M20 6L9 17l-5-5"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
-          transition={{ duration: 0.7, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.7, delay: 0.4, ease: EASE }}
         />
       </svg>
     </motion.div>
@@ -172,7 +185,7 @@ const SuccessState = () => (
     <motion.h3
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.55, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ delay: 0.55, duration: 0.6, ease: EASE }}
       className="mb-3 font-serif text-2xl text-[#1A1A1A]"
     >
       Thank you
@@ -181,7 +194,7 @@ const SuccessState = () => (
     <motion.p
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.7, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ delay: 0.7, duration: 0.6, ease: EASE }}
       className="max-w-sm text-sm leading-relaxed text-[#5A5A66]"
     >
       Your enquiry has reached us. Our team will connect with you within one
@@ -334,7 +347,15 @@ const EnquiryModal = () => {
         </DialogDescription>
 
         {/* ============ MODAL BODY ============ */}
-        <div className="modal-scrollbar relative flex max-h-[95vh] flex-col overflow-y-auto rounded-3xl bg-[#FDFCFA] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.8)] md:flex-row md:overflow-hidden">
+        {/*
+            data-lenis-prevent on the scroll container:
+            Lenis is globally stopped while the modal is open,
+            but we still need THIS element to scroll natively.
+        */}
+        <div
+          data-lenis-prevent
+          className="modal-scrollbar relative flex max-h-[95vh] flex-col overflow-y-auto rounded-3xl bg-[#FDFCFA] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.8)] md:flex-row md:overflow-hidden"
+        >
           {/* Soft gold rim glow */}
           <span
             aria-hidden="true"
@@ -348,7 +369,7 @@ const EnquiryModal = () => {
             aria-label="Close enquiry form"
             whileHover={{ scale: 1.1, rotate: 90 }}
             whileTap={{ scale: 0.92 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.25, ease: EASE }}
             className="absolute right-4 top-4 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition-colors hover:text-[#C9A227]"
           >
             <FiX size={20} />
@@ -358,47 +379,55 @@ const EnquiryModal = () => {
               LEFT PANEL
               ================================================== */}
           <div className="relative w-full shrink-0 overflow-hidden bg-[#0C0922] md:w-[45%]">
-            {/* Background image */}
+            {/* Background image — scale + blur reveal (cinematic decode) */}
             <motion.img
               src="/enquiry-bg.webp"
               alt=""
               aria-hidden="true"
-              initial={{ scale: 1.15, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
+              initial={{
+                scale: 1.15,
+                opacity: 0,
+                filter: 'blur(14px) brightness(0.6)',
+              }}
+              animate={{
+                scale: 1,
+                opacity: 1,
+                filter: 'blur(0px) brightness(1)',
+              }}
+              transition={{ duration: 1.6, ease: EASE }}
               className="absolute inset-0 h-full w-full object-cover"
             />
 
-            {/* Vignette gradient */}
+            {/* Vignette gradient — slow breathing zoom (unchanged) */}
             <motion.div
               animate={{ scale: [1, 1.06, 1] }}
               transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
               className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#0C0922]/30 via-[#0C0922]/45 to-[#0C0922]/75"
             />
 
-            {/* Floating particles */}
+            {/* Floating particles — differential Z depth */}
             <GoldParticles />
 
             {/* Corner accents */}
             <motion.span
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
-              transition={{ duration: 1.1, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 1.1, delay: 0.5, ease: EASE }}
               className="pointer-events-none absolute left-6 top-6 z-10 h-px w-10 origin-left bg-[#C9A227]/60"
             />
             <motion.span
               initial={{ scaleY: 0 }}
               animate={{ scaleY: 1 }}
-              transition={{ duration: 1.1, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 1.1, delay: 0.7, ease: EASE }}
               className="pointer-events-none absolute left-6 top-6 z-10 h-10 w-px origin-top bg-[#C9A227]/60"
             />
 
-            {/* Content — no translateZ, keeps text crisp */}
+            {/* Content */}
             <div className="relative z-10 flex h-full flex-col items-center justify-center px-8 py-12 text-center md:py-0">
               <motion.img
                 initial={{ opacity: 0, y: -20, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
                 src="/nakshath logo head.webp"
                 alt="Nakshath Logo"
                 className="mb-6 h-24 object-contain md:h-32"
@@ -413,14 +442,14 @@ const EnquiryModal = () => {
               <motion.div
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
-                transition={{ duration: 0.9, delay: 1.35, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.9, delay: 1.35, ease: EASE }}
                 className="mb-6 h-1 w-16 origin-center bg-[#C9A227]"
               />
 
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.55, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.8, delay: 1.55, ease: EASE }}
                 className="max-w-xs text-lg leading-relaxed text-white/90"
               >
                 Experience Nakshath Equestrian Club.
@@ -433,7 +462,14 @@ const EnquiryModal = () => {
           {/* ==================================================
               RIGHT PANEL
               ================================================== */}
-          <div className="modal-scrollbar w-full bg-[#FDFCFA] p-8 md:w-[55%] md:overflow-y-auto md:p-12">
+          {/*
+              data-lenis-prevent — this is the inner scroll
+              container on desktop; keeps Lenis out of its way.
+          */}
+          <div
+            data-lenis-prevent
+            className="modal-scrollbar w-full bg-[#FDFCFA] p-8 md:w-[55%] md:overflow-y-auto md:p-12"
+          >
             <AnimatePresence mode="wait">
               {isSuccess ? (
                 <SuccessState key="success" />
@@ -443,24 +479,20 @@ const EnquiryModal = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.4, ease: EASE }}
                 >
                   {/* Header */}
                   <motion.div
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
                     className="mb-8"
                   >
                     <div className="mb-3 flex items-center gap-3">
                       <motion.span
                         initial={{ scaleX: 0 }}
                         animate={{ scaleX: 1 }}
-                        transition={{
-                          duration: 0.9,
-                          delay: 0.4,
-                          ease: [0.22, 1, 0.36, 1],
-                        }}
+                        transition={{ duration: 0.9, delay: 0.4, ease: EASE }}
                         className="inline-block h-px w-6 origin-left bg-[#C9A227]"
                       />
                       <span className="text-[#C9A227] type-eyebrow">
@@ -476,18 +508,23 @@ const EnquiryModal = () => {
                     </p>
                   </motion.div>
 
-                  <form ref={form} onSubmit={handleSubmit} className="space-y-6">
+                  {/*
+                      perspective on the form so the per-field
+                      z: -60 → z: 0 reveals read as depth.
+                  */}
+                  <form
+                    ref={form}
+                    onSubmit={handleSubmit}
+                    className="space-y-6"
+                    style={{ perspective: '1200px' }}
+                  >
                     {/* SECTION 01 */}
                     <FormSection number="01" title="About You" delay={0.35} />
 
                     <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.7,
-                        delay: 0.45,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
+                      initial={{ opacity: 0, y: 16, z: -60 }}
+                      animate={{ opacity: 1, y: 0, z: 0 }}
+                      transition={{ duration: 0.7, delay: 0.45, ease: EASE }}
                       className="grid grid-cols-1 gap-4 md:grid-cols-2"
                     >
                       <Field label="First Name">
@@ -511,13 +548,9 @@ const EnquiryModal = () => {
                     </motion.div>
 
                     <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.7,
-                        delay: 0.55,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
+                      initial={{ opacity: 0, y: 16, z: -60 }}
+                      animate={{ opacity: 1, y: 0, z: 0 }}
+                      transition={{ duration: 0.7, delay: 0.55, ease: EASE }}
                     >
                       <Field label="Phone Number">
                         <div className="relative">
@@ -534,13 +567,9 @@ const EnquiryModal = () => {
                     </motion.div>
 
                     <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.7,
-                        delay: 0.65,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
+                      initial={{ opacity: 0, y: 16, z: -60 }}
+                      animate={{ opacity: 1, y: 0, z: 0 }}
+                      transition={{ duration: 0.7, delay: 0.65, ease: EASE }}
                     >
                       <Field label="Email Address">
                         <div className="relative">
@@ -562,13 +591,9 @@ const EnquiryModal = () => {
                     </div>
 
                     <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.7,
-                        delay: 0.85,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
+                      initial={{ opacity: 0, y: 16, z: -60 }}
+                      animate={{ opacity: 1, y: 0, z: 0 }}
+                      transition={{ duration: 0.7, delay: 0.85, ease: EASE }}
                       className="grid grid-cols-1 gap-4 md:grid-cols-2"
                     >
                       <Field label="Preferred Date">
@@ -599,13 +624,9 @@ const EnquiryModal = () => {
                     </div>
 
                     <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.7,
-                        delay: 1.05,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
+                      initial={{ opacity: 0, y: 16, z: -60 }}
+                      animate={{ opacity: 1, y: 0, z: 0 }}
+                      transition={{ duration: 0.7, delay: 1.05, ease: EASE }}
                     >
                       <label className="mb-3 flex items-center gap-2 text-[0.6rem] font-semibold uppercase tracking-[0.24em] text-[#876B18]">
                         <span className="inline-block h-px w-3 bg-[#C9A227]/60" />
@@ -630,7 +651,7 @@ const EnquiryModal = () => {
                               transition={{
                                 duration: 0.4,
                                 delay: 1.1 + i * 0.03,
-                                ease: [0.22, 1, 0.36, 1],
+                                ease: EASE,
                               }}
                               whileHover={{ y: -2 }}
                               whileTap={{ scale: 0.95 }}
@@ -648,13 +669,9 @@ const EnquiryModal = () => {
                     </motion.div>
 
                     <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.7,
-                        delay: 1.35,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
+                      initial={{ opacity: 0, y: 16, z: -60 }}
+                      animate={{ opacity: 1, y: 0, z: 0 }}
+                      transition={{ duration: 0.7, delay: 1.35, ease: EASE }}
                     >
                       <Field label="How did you hear about us?">
                         <div className="relative">
@@ -676,13 +693,9 @@ const EnquiryModal = () => {
                     </motion.div>
 
                     <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.7,
-                        delay: 1.45,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
+                      initial={{ opacity: 0, y: 16, z: -60 }}
+                      animate={{ opacity: 1, y: 0, z: 0 }}
+                      transition={{ duration: 0.7, delay: 1.45, ease: EASE }}
                     >
                       <Field label="Additional Message (Optional)">
                         <div className="relative">
@@ -698,13 +711,9 @@ const EnquiryModal = () => {
                     </motion.div>
 
                     <motion.div
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        duration: 0.7,
-                        delay: 1.55,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
+                      initial={{ opacity: 0, y: 16, z: -60 }}
+                      animate={{ opacity: 1, y: 0, z: 0 }}
+                      transition={{ duration: 0.7, delay: 1.55, ease: EASE }}
                       className="pt-2"
                     >
                       <Button

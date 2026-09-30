@@ -6,6 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 let lenis = null;
+let rafCallback = null;
 
 export const initSmoothScroll = () => {
   if (lenis) return lenis;
@@ -19,18 +20,26 @@ export const initSmoothScroll = () => {
     infinite: false,
   });
 
-  // Connect Lenis to GSAP ScrollTrigger
+  // Keep GSAP ScrollTrigger in sync with Lenis
   lenis.on("scroll", ScrollTrigger.update);
 
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
+  // Store the RAF callback so we can remove it on destroy.
+  // (StrictMode double-mounts → without this, the old callback
+  //  keeps firing after lenis is nulled → "Cannot read 'raf' of null".)
+  rafCallback = (time) => {
+    lenis?.raf(time * 1000);
+  };
+  gsap.ticker.add(rafCallback);
   gsap.ticker.lagSmoothing(0);
 
   return lenis;
 };
 
 export const destroySmoothScroll = () => {
+  if (rafCallback) {
+    gsap.ticker.remove(rafCallback);
+    rafCallback = null;
+  }
   if (lenis) {
     lenis.destroy();
     lenis = null;
@@ -38,3 +47,12 @@ export const destroySmoothScroll = () => {
 };
 
 export const getLenis = () => lenis;
+
+// Used by the mobile nav overlay + (later) the enquiry modal
+export const stopScroll = () => {
+  lenis?.stop();
+};
+
+export const startScroll = () => {
+  lenis?.start();
+};

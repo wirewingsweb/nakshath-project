@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useReducedMotion,
+} from 'framer-motion';
 import { BUSINESS_MAP_EMBED_URL, BUSINESS_MAP_URL } from '../../constants/location';
 
 const driveTimes = [
@@ -118,38 +124,108 @@ const DriveRow = ({ item, idx }) => (
    ============================================================ */
 const WhereWeAre = () => {
   const [mapLoaded, setMapLoaded] = useState(false);
+  const sectionRef = useRef(null);
+  const shouldReduce = useReducedMotion();
 
   useEffect(() => {
     const t = setTimeout(() => setMapLoaded(true), 1500);
     return () => clearTimeout(t);
   }, []);
 
-  return (
-    <section className="overflow-hidden bg-[#FDFCFA] px-6 py-24 md:px-20">
-      <div className="mx-auto flex min-h-[600px] max-w-7xl flex-col gap-12 lg:flex-row lg:gap-16">
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
 
+  // ===== Left column — counter-drift =====
+  const leftY = useTransform(scrollYProgress, [0, 0.5, 1], ['2%', '0%', '-2%']);
+  const leftY_s = useSpring(leftY, { stiffness: 95, damping: 28, mass: 0.55 });
+
+  // ===== Header counter-drift (opposite the section tilt) =====
+  const headerY = useTransform(scrollYProgress, [0, 0.5, 1], ['2.5%', '0%', '-2.5%']);
+  const headerY_s = useSpring(headerY, {
+    stiffness: 100,
+    damping: 28,
+    mass: 0.5,
+  });
+
+  // ===== Bottom image — camera drift + scale =====
+  const imageY = useTransform(scrollYProgress, [0, 0.5, 1], ['-4%', '0%', '4%']);
+  const imageScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.06, 1, 1.06]);
+  const imageY_s = useSpring(imageY, { stiffness: 85, damping: 28, mass: 0.65 });
+  const imageScale_s = useSpring(imageScale, {
+    stiffness: 85,
+    damping: 28,
+    mass: 0.65,
+  });
+
+  // ===== Right map — deeper parallax (drifts more than left) =====
+  const mapY = useTransform(scrollYProgress, [0, 0.5, 1], ['-5%', '0%', '5%']);
+  const mapScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.05, 1, 1.05]);
+  const mapY_s = useSpring(mapY, { stiffness: 80, damping: 28, mass: 0.7 });
+  const mapScale_s = useSpring(mapScale, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.7,
+  });
+
+  // ===== Whole content plane tilt =====
+  const sceneRotateX = useTransform(scrollYProgress, [0, 0.5, 1], [1.2, 0, -1.2]);
+  const sceneRotateX_s = useSpring(sceneRotateX, {
+    stiffness: 80,
+    damping: 28,
+    mass: 0.6,
+  });
+
+  return (
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden bg-[#FDFCFA] px-6 py-24 md:px-20"
+      style={{ perspective: '1600px' }}
+    >
+      <motion.div
+        style={{
+          rotateX: shouldReduce ? 0 : sceneRotateX_s,
+          transformStyle: 'preserve-3d',
+          willChange: 'transform',
+        }}
+        className="mx-auto flex min-h-[600px] max-w-7xl flex-col gap-12 lg:flex-row lg:gap-16"
+      >
         {/* ==================================================
             LEFT COLUMN
             ================================================== */}
-        <div className="flex w-full flex-col justify-between lg:w-[40%]">
+        <motion.div
+          style={{
+            y: shouldReduce ? 0 : leftY_s,
+            willChange: 'transform',
+          }}
+          className="flex w-full flex-col justify-between lg:w-[40%]"
+        >
           <div className="flex flex-col">
-
-            {/* Eyebrow */}
-            <motion.h4
-              initial={{ opacity: 0, letterSpacing: '0.05em' }}
-              whileInView={{ opacity: 1, letterSpacing: '0.2em' }}
-              viewport={{ once: true, amount: 0 }}
-              transition={{ duration: 1.2, delay: 0.1, ease: EASE }}
-              className="mb-4 text-[0.625rem] font-bold uppercase text-[#C9A227]"
+            {/* Header — counter-drifts */}
+            <motion.div
+              style={{
+                y: shouldReduce ? 0 : headerY_s,
+                willChange: 'transform',
+              }}
             >
-              Where We Are
-            </motion.h4>
+              {/* Eyebrow */}
+              <motion.h4
+                initial={{ opacity: 0, letterSpacing: '0.05em' }}
+                whileInView={{ opacity: 1, letterSpacing: '0.2em' }}
+                viewport={{ once: true, amount: 0 }}
+                transition={{ duration: 1.2, delay: 0.1, ease: EASE }}
+                className="mb-4 text-[0.625rem] font-bold uppercase text-[#C9A227]"
+              >
+                Where We Are
+              </motion.h4>
 
-            {/* Title — 3D flip down, line by line */}
-            <h2 className="type-page-title mb-8 text-[#1A1A1A]">
-              <FlippedLine delay={0.25}>Sarjapura,</FlippedLine>
-              <FlippedLine delay={0.45}>Bengaluru.</FlippedLine>
-            </h2>
+              {/* Title — 3D flip down, line by line */}
+              <h2 className="type-page-title mb-8 text-[#1A1A1A]">
+                <FlippedLine delay={0.25}>Sarjapura,</FlippedLine>
+                <FlippedLine delay={0.45}>Bengaluru.</FlippedLine>
+              </h2>
+            </motion.div>
 
             {/* Info block — no rail, just the rows */}
             <div className="mb-8 space-y-6">
@@ -272,6 +348,7 @@ const WhereWeAre = () => {
 
           {/* ==================================================
               BOTTOM IMAGE — horizontal curtain reveal from left
+              + scroll camera drift
               ================================================== */}
           <div className="mt-10 w-full overflow-hidden rounded-xl shadow-lg lg:mt-0">
             <motion.div
@@ -281,23 +358,32 @@ const WhereWeAre = () => {
               transition={{ duration: 1.5, delay: 1, ease: [0.76, 0, 0.24, 1] }}
               className="relative"
             >
-              <motion.img
-                src="/page 12 gpt.webp"
-                alt="Equestrian Facility"
-                loading="lazy"
-                decoding="async"
-                initial={{ scale: 1.12 }}
-                whileInView={{ scale: 1 }}
-                viewport={{ once: true, amount: 0 }}
-                transition={{ duration: 1.8, delay: 1, ease: EASE }}
-                className="block h-full w-full object-cover"
-              />
+              <motion.div
+                style={{
+                  y: shouldReduce ? 0 : imageY_s,
+                  scale: shouldReduce ? 1 : imageScale_s,
+                  willChange: 'transform',
+                }}
+              >
+                <motion.img
+                  src="/page 12 gpt.webp"
+                  alt="Equestrian Facility"
+                  loading="lazy"
+                  decoding="async"
+                  initial={{ scale: 1.12 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: true, amount: 0 }}
+                  transition={{ duration: 1.8, delay: 1, ease: EASE }}
+                  className="block h-full w-full object-cover"
+                />
+              </motion.div>
             </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         {/* ==================================================
             RIGHT COLUMN: MAP — horizontal curtain from right
+            + deeper parallax drift
             ================================================== */}
         <motion.div
           initial={{ clipPath: 'inset(0 0 0 100%)' }}
@@ -306,37 +392,47 @@ const WhereWeAre = () => {
           transition={{ duration: 1.6, delay: 0.2, ease: [0.76, 0, 0.24, 1] }}
           className="group/map relative h-[500px] w-full overflow-hidden rounded-2xl border border-[#5A5A66]/20 bg-[#FDFCFA] shadow-lg md:h-[600px] lg:h-auto lg:w-[60%]"
         >
-          {/* Loading shimmer — fades after map settles */}
+          {/* Inner parallax wrapper around the map content */}
           <motion.div
-            initial={{ opacity: 1 }}
-            animate={{ opacity: mapLoaded ? 0 : 1 }}
-            transition={{ duration: 1, ease: 'easeInOut' }}
-            className="pointer-events-none absolute inset-0 z-10 overflow-hidden bg-[#FDFCFA]"
+            style={{
+              y: shouldReduce ? 0 : mapY_s,
+              scale: shouldReduce ? 1 : mapScale_s,
+              willChange: 'transform',
+            }}
+            className="absolute inset-0"
           >
+            {/* Loading shimmer — fades after map settles */}
             <motion.div
-              animate={{ x: ['-100%', '200%'] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute inset-y-0 w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-[#C9A227]/12 to-transparent"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: mapLoaded ? 0 : 1 }}
+              transition={{ duration: 1, ease: 'easeInOut' }}
+              className="pointer-events-none absolute inset-0 z-10 overflow-hidden bg-[#FDFCFA]"
+            >
+              <motion.div
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute inset-y-0 w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-[#C9A227]/12 to-transparent"
+              />
+            </motion.div>
+
+            <iframe
+              src={BUSINESS_MAP_EMBED_URL}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Nakshath Equestrian Club Location Map"
+              className="relative z-[1] h-full w-full"
             />
           </motion.div>
 
-          <iframe
-            src={BUSINESS_MAP_EMBED_URL}
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen=""
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="Nakshath Equestrian Club Location Map"
-            className="relative z-[1]"
-          />
-
           {/* Gold rim on hover */}
-          <div className="pointer-events-none absolute inset-0 rounded-2xl border border-transparent transition-colors duration-700 group-hover/map:border-[#C9A227]/40" />
+          <div className="pointer-events-none absolute inset-0 z-[2] rounded-2xl border border-transparent transition-colors duration-700 group-hover/map:border-[#C9A227]/40" />
         </motion.div>
 
-      </div>
+      </motion.div>
     </section>
   );
 };
