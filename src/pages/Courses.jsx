@@ -1,7 +1,11 @@
-// src/pages/Courses.jsx
-import { useEnquiry } from '../context/EnquiryContext';
+// src/pages/Horses.jsx
+import { useRef } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import SectionDots from '../components/SectionDots';
 import ShinyText from '../components/ShinyText';
+import { EASE_PRIMARY } from '../utils/motion';
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion';
+import { useInViewOnce } from '../hooks/useInViewOnce';
 import {
   Reveal,
   FadeUp,
@@ -9,372 +13,814 @@ import {
   Stagger,
   StaggerItem,
   SplitText,
+  DriftImage,
   InteractiveCard,
 } from '../components/motion';
 
 const CHAPTERS = [
-  { id: 'chapter-courses-intro', label: 'Programs' },
-  { id: 'chapter-pathways',      label: 'Pathways' },
-  { id: 'chapter-structure',     label: 'Structure' },
-  { id: 'chapter-trial',         label: 'Trial' },
-  { id: 'chapter-disciplines',   label: 'Disciplines' },
-  { id: 'chapter-beyond-riding', label: 'Beyond' },
+  { id: 'chapter-horses-intro', label: 'Horses' },
+  { id: 'chapter-matching',     label: 'Matching' },
+  { id: 'chapter-day',          label: 'Stables' },
+  { id: 'chapter-meet',         label: 'Meet' },
+  { id: 'chapter-care',         label: 'Care' },
+  { id: 'chapter-safety',       label: 'Safety' },
 ];
 
-const Courses = () => {
-  const { openEnquiry } = useEnquiry();
+// ═══════════════════════════════════════════════════════════════
+// Section wrapper — cursor ambient glow
+// ═══════════════════════════════════════════════════════════════
 
-  const levels = [
-    { level: 'Level 1', sessions: '10 lessons', price: '₹11,999', label: 'Getting started' },
-    { level: 'Level 2', sessions: '20 lessons', price: '₹29,999', label: 'Building the seat' },
-    { level: 'Level 3', sessions: '20 lessons', price: '₹32,999', label: 'Trot to canter' },
+const SectionGlow = ({ children, className = '', tone = 'dark' }) => {
+  const prefersReduced = usePrefersReducedMotion();
+  const ref = useRef(null);
+
+  const mx = useMotionValue(0.5);
+  const my = useMotionValue(0.5);
+  const sx = useSpring(mx, { damping: 60, stiffness: 60, mass: 0.8 });
+  const sy = useSpring(my, { damping: 60, stiffness: 60, mass: 0.8 });
+  const left = useTransform(sx, (v) => `${v * 100}%`);
+  const top = useTransform(sy, (v) => `${v * 100}%`);
+
+  const handleMove = (e) => {
+    if (prefersReduced) return;
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    mx.set((e.clientX - rect.left) / rect.width);
+    my.set((e.clientY - rect.top) / rect.height);
+  };
+
+  return (
+    <section ref={ref} onMouseMove={handleMove} className={`relative ${className}`}>
+      {!prefersReduced && (
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute z-0 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            left,
+            top,
+            background:
+              tone === 'dark'
+                ? 'radial-gradient(circle, rgba(201,162,39,0.14) 0%, rgba(201,162,39,0.03) 45%, transparent 70%)'
+                : 'radial-gradient(circle, rgba(201,162,39,0.10) 0%, rgba(201,162,39,0.02) 45%, transparent 70%)',
+            filter: 'blur(60px)',
+            mixBlendMode: tone === 'dark' ? 'screen' : 'multiply',
+          }}
+        />
+      )}
+      <div className="relative z-10">{children}</div>
+    </section>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// REVEAL 1 — Ink Drop
+// ═══════════════════════════════════════════════════════════════
+
+const InkDropReveal = ({ children, delay = 0, className = '', prefersReduced }) => (
+  <motion.div
+    className={className}
+    initial={
+      prefersReduced
+        ? false
+        : { clipPath: 'circle(0% at 0% 0%)', opacity: 0 }
+    }
+    whileInView={
+      prefersReduced
+        ? {}
+        : { clipPath: 'circle(150% at 0% 0%)', opacity: 1 }
+    }
+    viewport={{ once: true, amount: 0.3 }}
+    transition={
+      prefersReduced
+        ? { duration: 0 }
+        : {
+            opacity: { duration: 0.2, delay },
+            clipPath: { duration: 1.1, delay, ease: [0.22, 1, 0.36, 1] },
+          }
+    }
+  >
+    {children}
+  </motion.div>
+);
+
+// ═══════════════════════════════════════════════════════════════
+// REVEAL 2 — Letterbox
+// ═══════════════════════════════════════════════════════════════
+
+const LetterboxReveal = ({ children, delay = 0, className = '', prefersReduced }) => (
+  <motion.div className={`relative overflow-hidden ${className}`}>
+    {children}
+    {!prefersReduced && (
+      <>
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 z-20 h-1/2 bg-[#FDFCFA]"
+          initial={{ y: 0 }}
+          whileInView={{ y: '-100%' }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.9, delay, ease: [0.76, 0, 0.24, 1] }}
+        />
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-1/2 bg-[#FDFCFA]"
+          initial={{ y: 0 }}
+          whileInView={{ y: '100%' }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.9, delay: delay + 0.08, ease: [0.76, 0, 0.24, 1] }}
+        />
+      </>
+    )}
+  </motion.div>
+);
+
+// ═══════════════════════════════════════════════════════════════
+// REVEAL 3 — Bottom-Up Rise
+// ═══════════════════════════════════════════════════════════════
+
+const RiseReveal = ({ children, delay = 0, className = '', prefersReduced }) => (
+  <motion.div
+    className={className}
+    initial={
+      prefersReduced ? false : { opacity: 0, y: 60, scale: 0.94 }
+    }
+    whileInView={
+      prefersReduced ? {} : { opacity: 1, y: 0, scale: 1 }
+    }
+    viewport={{ once: true, amount: 0.3 }}
+    transition={
+      prefersReduced
+        ? { duration: 0 }
+        : { duration: 0.9, delay, ease: [0.22, 1, 0.36, 1] }
+    }
+  >
+    {children}
+  </motion.div>
+);
+
+// ═══════════════════════════════════════════════════════════════
+// Interactive Match Item
+// ═══════════════════════════════════════════════════════════════
+
+const MatchItem = ({ item, prefersReduced }) => {
+  const ref = useRef(null);
+
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const sx = useSpring(mx, { damping: 25, stiffness: 180, mass: 0.6 });
+  const sy = useSpring(my, { damping: 25, stiffness: 180, mass: 0.6 });
+  const rX = useTransform(sy, [-0.5, 0.5], [3, -3]);
+  const rY = useTransform(sx, [-0.5, 0.5], [-3, 3]);
+  const spotLeft = useTransform(sx, [-0.5, 0.5], ['0%', '100%']);
+  const spotTop = useTransform(sy, [-0.5, 0.5], ['0%', '100%']);
+
+  const handleMove = (e) => {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    mx.set((e.clientX - rect.left) / rect.width - 0.5);
+    my.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleLeave = () => {
+    mx.set(0);
+    my.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMove}
+      onMouseLeave={handleLeave}
+      className="group relative flex gap-6 rounded-lg p-3 transition-all duration-500 hover:bg-[#F5F1E8]/40"
+      style={
+        prefersReduced
+          ? undefined
+          : {
+              rotateX: rX,
+              rotateY: rY,
+              transformPerspective: 1200,
+              transformStyle: 'preserve-3d',
+            }
+      }
+    >
+      {!prefersReduced && (
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 rounded-lg opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          style={{
+            left: spotLeft,
+            top: spotTop,
+            background:
+              'radial-gradient(circle at center, rgba(201,162,39,0.10) 0%, transparent 70%)',
+            filter: 'blur(25px)',
+          }}
+        />
+      )}
+
+      <motion.span
+        className="flex-shrink-0 font-serif text-5xl text-[#C9A227] transition-all duration-500 group-hover:scale-110 group-hover:text-[#876B18]"
+        whileHover={prefersReduced ? undefined : { rotate: -3 }}
+      >
+        {item.num}
+      </motion.span>
+
+      <div className="relative">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-3 top-1 h-0 w-[2px] bg-[#C9A227] transition-all duration-500 group-hover:h-full"
+        />
+        <h4 className="mb-3 font-serif text-xl text-[#1A1A1A] transition-colors duration-500 group-hover:text-[#876B18]">
+          {item.title}
+        </h4>
+        <p className="font-normal leading-relaxed text-[#5A5A66] transition-colors duration-500 group-hover:text-[#1A1A1A]">
+          {item.desc}
+        </p>
+      </div>
+    </motion.div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// Interactive Horse Card
+// ═══════════════════════════════════════════════════════════════
+
+const HorseCard = ({ horse, index, prefersReduced }) => {
+  const ref = useRef(null);
+  const [imageInViewRef, imageInView] = useInViewOnce({ amount: 0.2 });
+
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const sx = useSpring(mx, { damping: 25, stiffness: 180, mass: 0.6 });
+  const sy = useSpring(my, { damping: 25, stiffness: 180, mass: 0.6 });
+  const rX = useTransform(sy, [-0.5, 0.5], [6, -6]);
+  const rY = useTransform(sx, [-0.5, 0.5], [-6, 6]);
+  const spotLeft = useTransform(sx, [-0.5, 0.5], ['0%', '100%']);
+  const spotTop = useTransform(sy, [-0.5, 0.5], ['0%', '100%']);
+
+  const handleMove = (e) => {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    mx.set((e.clientX - rect.left) / rect.width - 0.5);
+    my.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleLeave = () => {
+    mx.set(0);
+    my.set(0);
+  };
+
+  const revealDelay = index * 0.08;
+
+  return (
+    <LetterboxReveal delay={revealDelay} prefersReduced={prefersReduced}>
+      <motion.div
+        ref={ref}
+        onMouseMove={handleMove}
+        onMouseLeave={handleLeave}
+        className="group flex flex-col"
+        style={
+          prefersReduced
+            ? undefined
+            : {
+                rotateX: rX,
+                rotateY: rY,
+                transformPerspective: 1200,
+                transformStyle: 'preserve-3d',
+              }
+        }
+      >
+        <motion.div
+          ref={imageInViewRef}
+          className="relative w-full overflow-hidden rounded-xl bg-[#F2F0EB]"
+          initial={
+            prefersReduced
+              ? false
+              : { clipPath: 'polygon(0 0, 0 0, 0 100%, 0 100%)' }
+          }
+          animate={
+            imageInView && !prefersReduced
+              ? {
+                  clipPath: [
+                    'polygon(0 0, 0 0, 0 100%, 0 100%)',
+                    'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
+                  ],
+                }
+              : {}
+          }
+          transition={
+            prefersReduced
+              ? { duration: 0 }
+              : {
+                  duration: 1.2,
+                  delay: revealDelay + 0.3,
+                  ease: [0.76, 0, 0.24, 1],
+                }
+          }
+        >
+          <img
+            src={horse.img}
+            alt={horse.name}
+            loading="lazy"
+            decoding="async"
+            className="aspect-[9/16] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+
+          {!prefersReduced && (
+            <motion.div
+              aria-hidden="true"
+              className="pointer-events-none absolute h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+              style={{
+                left: spotLeft,
+                top: spotTop,
+                background:
+                  'radial-gradient(circle, rgba(245,230,168,0.35) 0%, rgba(201,162,39,0.12) 45%, transparent 75%)',
+                filter: 'blur(30px)',
+                mixBlendMode: 'screen',
+              }}
+            />
+          )}
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent"
+          />
+
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 translate-y-2 p-4 opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#C9A227]">
+                {horse.level} · {horse.discipline}
+              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="2.4"
+                stroke="currentColor"
+                className="h-3 w-3 text-[#C9A227]"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </div>
+          </div>
+
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-xl ring-0 ring-[#C9A227] transition-all duration-500 group-hover:ring-2 group-hover:ring-inset"
+          />
+
+          {!prefersReduced && (
+            <>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-3 h-6 w-6 opacity-0 transition-all duration-500 group-hover:left-4 group-hover:top-4 group-hover:opacity-100"
+              >
+                <div className="absolute left-0 top-0 h-full w-px bg-[#C9A227]" />
+                <div className="absolute left-0 top-0 h-px w-full bg-[#C9A227]" />
+              </div>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-3 right-3 h-6 w-6 opacity-0 transition-all duration-500 group-hover:bottom-4 group-hover:right-4 group-hover:opacity-100"
+              >
+                <div className="absolute bottom-0 right-0 h-full w-px bg-[#C9A227]" />
+                <div className="absolute bottom-0 right-0 h-px w-full bg-[#C9A227]" />
+              </div>
+            </>
+          )}
+        </motion.div>
+
+        <div className="mt-6">
+          <h3 className="mb-1 font-serif text-xl text-[#1A1A1A] transition-colors duration-300 group-hover:text-[#876B18] md:text-2xl">
+            {horse.name}
+          </h3>
+          <p className="mb-4 text-sm font-normal leading-relaxed text-[#5A5A66]">
+            {horse.breed} · {horse.age} · {horse.gender} · {horse.colour}
+          </p>
+          <p className="mb-4 font-normal leading-relaxed text-[#5A5A66] transition-colors duration-300 group-hover:text-[#1A1A1A]">
+            {horse.temperament}
+          </p>
+          <div className="flex gap-3 text-xs font-semibold uppercase tracking-wider text-[#C9A227]">
+            <span className="transition-all duration-500 group-hover:tracking-widest">{horse.level}</span>
+            <span className="transition-all duration-500 group-hover:tracking-widest">{horse.discipline}</span>
+          </div>
+        </div>
+      </motion.div>
+    </LetterboxReveal>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+// Main Component
+// ═══════════════════════════════════════════════════════════════
+
+const Horses = () => {
+  const prefersReduced = usePrefersReducedMotion();
+
+  const horses = [
+    { name: 'Vibrato', breed: 'Warmblood', age: '17 Yrs.', gender: 'Gelding', colour: 'Chestnut', temperament: 'Steady and unflurried. The horse most first-time riders start on.', level: 'Advanced', discipline: 'General Riding', img: '/Vibrato.webp' },
+    { name: 'Simbha', breed: 'Thoroughbred', age: '9 Yrs.', gender: 'Gelding', colour: 'Dark Bay', temperament: 'Responsive and forward-going. Suits riders building confidence at trot and canter.', level: 'Intermediate', discipline: 'Show Jumping', img: '/Simbha.webp' },
+    { name: 'Phebe', breed: 'Thoroughbred', age: '8 Yrs.', gender: 'Mare', colour: 'Bay', temperament: 'Patient and consistent. Trained for flatwork and figures.', level: 'Intermediate', discipline: 'Dressage', img: '/Phebe.webp' },
+    { name: 'Rani', breed: 'Thoroughbred', age: '11 Yrs.', gender: 'Gelding', colour: 'Chestnut', temperament: 'Bold over fences and honest to the jump. Ridden by competing riders.', level: 'Advanced', discipline: 'Show Jumping', img: '/Rani.webp' },
   ];
 
-  const disciplines = [
-    { title: 'Show Jumping', status: 'Taught Here', desc: 'Riders guide horses over obstacle courses with speed and accuracy.', img: '/show jumping.webp' },
-    { title: 'Dressage', status: 'Taught Here', desc: 'Harmony, control, and precise movements ridden to a set pattern.', img: '/dressage.webp' },
-    { title: 'Eventing', status: 'Coming Soon', desc: 'Combines dressage, cross-country and show jumping.', img: '/eventing.webp' },
+  const matchItems = [
+    { num: '01', title: 'Temperament first, ability second', desc: 'A horse can be well schooled and still be wrong for a nervous beginner. Every horse is assessed for calmness and consistency before it is assessed for what it can do.' },
+    { num: '02', title: 'Matched to the rider, not to availability', desc: "Horses are allocated on the rider's experience, confidence and goals. Nobody is put on whatever happens to be free that morning." },
+    { num: '03', title: 'Ponies for the youngest riders', desc: 'Children from five years begin on ponies sized and schooled for them, not on a grown-up-sized horse.' },
+    { num: '04', title: 'The same pairing, session after session', desc: 'Progress compounds when horse and rider know each other. Pairings are kept consistent rather than switching week to week.' },
   ];
 
-  const groupServices = [
-    { title: 'Guest Rides', desc: 'A one-off horse experience, no enrolment.', img: '/beyond ride 1.webp' },
-    { title: 'Summer Camps', desc: 'Holiday programmes for children.', img: '/beyond ride 2.webp' },
-    { title: 'School Visits', desc: 'Group sessions for schools.', img: '/beyond ride 3.webp' },
-    { title: 'Corporate Days', desc: 'Team days on the property.', img: '/beyond ride 4.webp' },
-    { title: 'Photoshoots', desc: 'The arenas and grounds, by arrangement.', img: '/beyond ride 5.webp' },
+  const careItems = [
+    { title: 'Individual stalls', desc: 'Individual stables with fresh water, clean, dry bedding, and private bathrooms, with maximum 4 hours of access to the stalls.' },
+    { title: 'Fixed feeding routine', desc: 'Horses are fed three times a day, plus free access to a hay feeder. They are not fed during exercise.' },
+    { title: 'Daily exercise', desc: 'Every horse is exercised every day, including days when no riding is scheduled. Horses are rested only as advised.' },
+    { title: 'Exercise on non-riding days', desc: 'Horses are turned out for at least 6 hours a day in cold months and 4 hours in hotter months. Horses go out in quiet, consistent groups.' },
+    { title: 'Health team', desc: 'Vaccination, deworming, and hoof care are managed by a team that includes a veterinarian and a farrier.' },
+    { title: 'Saddlery team', desc: "Every horse's saddle, bridle and bit are checked and adjusted to ensure the horse's comfort throughout the day." },
+    { title: 'Medical room', desc: 'A dedicated room on site for treatments and recovery.' },
   ];
 
   return (
     <div className="min-h-screen bg-[#FDFCFA]">
       <SectionDots chapters={CHAPTERS} />
 
-      {/* CHAPTER: Courses Intro */}
-      <div id="chapter-courses-intro" className="nav-dark-hero bg-[#0C0922] pb-24 pt-32 md:pb-28 md:pt-44">
-        <div className="max-w-7xl mx-auto px-6">
-          <Reveal as="div" y={8} duration={0.5}>
-            <h4 className="type-eyebrow mb-4">
-              <ShinyText
-                text="Programs"
-                color="#C9A227"
-                shineColor="#F5F1E8"
-                speed={2.5}
-                spread={120}
-              />
-            </h4>
-          </Reveal>
-
-          <Reveal as="div" y={30} duration={0.7} delay={0.15} amount={0.3}>
-            <h1 className="type-page-title text-white leading-tight mb-4">
-              Four ways in,<br />
-              <ShinyText
-                text="one path forward."
-                color="#C9A227"
-                shineColor="#F5F1E8"
-                speed={2.5}
-                spread={120}
-              />
-            </h1>
-          </Reveal>
-
-          <FadeUp as="p" size="text" delay={0.35} className="type-lead text-white/70">
-            Whether you have never sat on a horse, or are preparing for a competition, the route through is the same one.
-          </FadeUp>
-        </div>
-      </div>
-
-      {/* CHAPTER: Pathways */}
-      <div id="chapter-pathways" className="relative z-10 -mt-12 rounded-t-[3rem] bg-[#FDFCFA] py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="space-y-20">
-
-            {/* Kids Special */}
-            <div className="flex flex-col lg:flex-row gap-10 items-center">
-              <div className="w-full lg:w-1/2">
-                <ImageReveal amount={0.2} className="w-full">
-                  <img src="/kids special.webp" alt="Kids Program" loading="lazy" decoding="async" className="w-full rounded-3xl shadow-lg object-cover aspect-[4/3]" />
-                </ImageReveal>
-              </div>
-              <Stagger gap={0.1} amount={0.2} className="w-full lg:w-1/2">
-                <StaggerItem>
-                  <h4 className="text-[#C9A227] type-eyebrow mb-2">From Five Years Old</h4>
-                </StaggerItem>
-                <StaggerItem>
-                  <h3 className="type-card-title text-[#1A1A1A] mb-4">Kids Special Riding Program</h3>
-                </StaggerItem>
-                <StaggerItem>
-                  <p className="text-[#5A5A66] font-normal mb-4">Children start on ponies, on the ground, learning to approach, handle, and tack up before they learn to sit on one.</p>
-                </StaggerItem>
-                <StaggerItem>
-                  <p className="text-[#5A5A66] font-normal">Pony riding, confidence building, physical coordination, and horsemanship.</p>
-                </StaggerItem>
-              </Stagger>
-            </div>
-
-            {/* Beginner Program */}
-            <div className="flex flex-col lg:flex-row-reverse gap-10 items-center">
-              <div className="w-full lg:w-1/2">
-                <ImageReveal amount={0.2} className="w-full">
-                  <img src="/beginner program.webp" alt="Beginner Program" loading="lazy" decoding="async" className="w-full rounded-3xl shadow-lg object-cover aspect-[4/3]" />
-                </ImageReveal>
-              </div>
-              <Stagger gap={0.1} amount={0.2} className="w-full lg:w-1/2">
-                <StaggerItem>
-                  <h4 className="text-[#C9A227] type-eyebrow mb-2">No Experience Needed</h4>
-                </StaggerItem>
-                <StaggerItem>
-                  <h3 className="type-card-title text-[#1A1A1A] mb-4">Beginner Program</h3>
-                </StaggerItem>
-                <StaggerItem>
-                  <p className="text-[#5A5A66] font-normal">For first-time riders of any age. You will learn how a horse thinks and moves before you learn to sit on one. The skills you build here apply at every level.</p>
-                </StaggerItem>
-              </Stagger>
-            </div>
-
-            {/* Intermediate Training */}
-            <div className="flex flex-col lg:flex-row gap-10 items-center">
-              <div className="w-full lg:w-1/2">
-                <ImageReveal amount={0.2} className="w-full">
-                  <img src="/intermediate program.webp" alt="Intermediate Training" loading="lazy" decoding="async" className="w-full rounded-3xl shadow-lg object-cover aspect-[4/3]" />
-                </ImageReveal>
-              </div>
-              <Stagger gap={0.1} amount={0.2} className="w-full lg:w-1/2">
-                <StaggerItem>
-                  <h4 className="text-[#C9A227] type-eyebrow mb-2">For Riders Building Independence</h4>
-                </StaggerItem>
-                <StaggerItem>
-                  <h3 className="type-card-title text-[#1A1A1A] mb-4">Intermediate Training</h3>
-                </StaggerItem>
-                <StaggerItem>
-                  <p className="text-[#5A5A66] font-normal">Once you are steady on a flat, the work becomes about communication — asking nicely and getting a considered answer. The pace slows, the detail gets finer, and the riding changes.</p>
-                </StaggerItem>
-              </Stagger>
-            </div>
-
-            {/* Professional Competition Training */}
-            <Reveal as="div" y={20} duration={0.8} amount={0.15}>
-              <div className="bg-[#0C0922] rounded-3xl overflow-hidden">
-                <div className="flex flex-col lg:flex-row items-center gap-8 p-8 md:p-12 lg:p-16">
-                  <Stagger gap={0.1} amount={0.2} className="w-full lg:w-[55%] z-10">
-                    <StaggerItem>
-                      <h4 className="text-[#C9A227] type-eyebrow mb-4">For Competing Riders</h4>
-                    </StaggerItem>
-                    <StaggerItem>
-                      <h3 className="type-section-title text-white mb-6 leading-tight">Professional<br />Competition Training</h3>
-                    </StaggerItem>
-                    <StaggerItem>
-                      <p className="text-white/80 font-normal leading-relaxed mb-6 max-w-md">Show jumping and dressage preparation for riders entering competition, coached by a rider currently long-listed for Team India. Course technique, round planning, and performance assessed against the standards you will be judged on.</p>
-                    </StaggerItem>
-                    <StaggerItem>
-                      <p className="text-white/80 font-normal leading-relaxed">Show jumping preparation · Technique · Performance assessment · Advanced training sessions</p>
-                    </StaggerItem>
-                  </Stagger>
-
-                  <div className="w-full lg:w-[45%] flex justify-center">
-                    <div className="w-full max-w-md">
-                      <ImageReveal amount={0.2} className="w-full">
-                        <img src="/pro training.webp" alt="Professional Competition Training" loading="lazy" decoding="async" className="w-full h-auto object-cover rounded-3xl shadow-2xl" />
-                      </ImageReveal>
-                    </div>
-                  </div>
-                </div>
-              </div>
+      {/* ═══════════════════════════════════════════════════════
+          CHAPTER: Horses Intro (dark)
+      ═══════════════════════════════════════════════════════ */}
+      <div id="chapter-horses-intro" className="nav-dark-hero bg-[#0C0922] pb-24 pt-32 md:pb-28 md:pt-44">
+        <SectionGlow tone="dark">
+          <div className="mx-auto max-w-7xl px-6">
+            <Reveal as="div" y={8} duration={0.5}>
+              <h4 className="group type-eyebrow mb-4 flex cursor-default items-center gap-3">
+                <motion.span
+                  aria-hidden="true"
+                  className="inline-block h-1.5 w-1.5 rounded-full bg-[#C9A227]"
+                  animate={
+                    prefersReduced
+                      ? { scale: 1, opacity: 1 }
+                      : { scale: [1, 1.6, 1], opacity: [1, 0.4, 1] }
+                  }
+                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                <ShinyText
+                  text="Our Horses"
+                  color="#C9A227"
+                  shineColor="#F5F1E8"
+                  speed={2.5}
+                  spread={120}
+                />
+              </h4>
             </Reveal>
 
+            <Reveal as="div" y={30} duration={0.7} delay={0.15} amount={0.3}>
+              <h1 className="type-page-title-long mb-6 text-white [&_*]:transition-colors [&_*]:duration-500 hover:[&_*]:text-[#C9A227]">
+                The horse is chosen for the rider,{' '}
+                <ShinyText
+                  text="not the other way around."
+                  color="#C9A227"
+                  shineColor="#F5F1E8"
+                  speed={2.5}
+                  spread={120}
+                />
+              </h1>
+            </Reveal>
+
+            <FadeUp
+              as="p"
+              size="text"
+              delay={0.35}
+              className="type-lead text-white/70"
+            >
+              Every horse is matched by the rider's experience, ability, confidence and goals.
+            </FadeUp>
           </div>
-        </div>
+        </SectionGlow>
       </div>
 
-      {/* CHAPTER: Structure */}
-      <div id="chapter-structure" className="bg-[#FDFCFA] py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <FadeUp size="text" className="mb-4">
-            <h4 className="type-eyebrow text-[#C9A227]">Structure</h4>
-          </FadeUp>
+      {/* ═══════════════════════════════════════════════════════
+          CHAPTER: How Matching Works (light) — INK DROP
+      ═══════════════════════════════════════════════════════ */}
+      <div id="chapter-matching" className="relative z-10 -mt-12 rounded-t-[3rem] bg-[#FDFCFA] py-24">
+        <SectionGlow tone="light">
+          <div className="mx-auto max-w-7xl px-6">
+            <FadeUp size="text" className="mb-4">
+              <h4 className="type-eyebrow text-[#C9A227]">How Matching Works</h4>
+            </FadeUp>
 
-          <SplitText
-            as="h2"
-            className="type-section-title text-[#1A1A1A] mb-6"
-            wordDelay={0.04}
-            startDelay={0.1}
-            amount={0.3}
-          >
-            Fifty lessons to a canter.
-          </SplitText>
-
-          <FadeUp as="p" size="text" delay={0.25} className="type-lead mb-16 text-[#5A5A66]">
-            Riders progress in blocks. Level 1 is ten lessons — enough to know whether riding is for you. Levels 2 and 3 are twenty each. Most riders reach a confident, independent canter by the end of the third.
-          </FadeUp>
-
-          <Reveal as="div" y={20} duration={0.7} amount={0.15}>
-            <div className="w-full">
-              <div className="space-y-0">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-b border-[#5A5A66]/20 text-xs font-medium uppercase tracking-widest font-bold text-[#C9A227]">
-                  <div>Level</div>
-                  <div>Sessions</div>
-                  <div>Price</div>
-                  <div>What It Covers</div>
-                </div>
-                {levels.map((level, idx) => (
-                  <div
-                    key={idx}
-                    className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-b border-[#5A5A66]/20 transition-colors duration-300 hover:bg-[#C9A227]/[0.04]"
-                  >
-                    <div className="font-serif text-lg text-[#C9A227]">{level.level}</div>
-                    <div className="text-[#5A5A66] font-normal">{level.sessions}</div>
-                    <div className="font-serif text-xl text-[#1A1A1A]">{level.price}</div>
-                    <div className="text-[#5A5A66] font-normal">{level.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </div>
-
-      {/* CHAPTER: Trial */}
-      <div id="chapter-trial" className="relative w-full bg-[#0C0922] py-32 overflow-hidden">
-        <img src="/start 10 min.webp" alt="Horse Face" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover object-right z-0" />
-        <div className="absolute inset-0 z-0 bg-gradient-to-r from-[#0C0922] via-[#0C0922]/85 to-transparent"></div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row gap-12 md:gap-24">
-            <div className="w-full md:w-[55%]">
+            <div className="mb-16 [&_*]:transition-colors [&_*]:duration-500 hover:[&_*]:text-[#876B18]">
               <SplitText
                 as="h2"
-                className="type-page-title text-white mb-12"
+                className="type-section-title text-[#1A1A1A]"
                 wordDelay={0.04}
                 startDelay={0.1}
                 amount={0.3}
               >
-                Start with ten minutes.
+                Safety is a matching problem before it is a training problem.
               </SplitText>
+            </div>
 
-              <div className="flex flex-col md:flex-row gap-12 md:gap-24">
-                <FadeUp size="text" delay={0.2} className="flex-1">
-                  <h4 className="mb-3 text-sm font-bold text-[#C9A227]">Free</h4>
-                  <p className="mb-3 text-xl font-bold text-white">10 minutes · No charge</p>
-                  <p className="type-body text-white/70">Meet the horses, sit on one, see the arena.</p>
-                  <div className="mt-8">
-                    <button
-                      onClick={() => openEnquiry('Trial Ride')}
-                      className="inline-block border-b-2 border-[#C9A227] pb-1 text-sm font-bold text-[#C9A227] transition-colors hover:border-white hover:text-white"
-                    >
-                      Book a trial ride
-                    </button>
-                  </div>
-                </FadeUp>
+            <Stagger gap={0.12} amount={0.15} className="grid grid-cols-1 gap-12 md:grid-cols-2">
+              {matchItems.map((item, idx) => (
+                <StaggerItem key={idx}>
+                  <InkDropReveal
+                    delay={idx * 0.08}
+                    prefersReduced={prefersReduced}
+                    className="rounded-xl"
+                  >
+                    <MatchItem item={item} prefersReduced={prefersReduced} />
+                  </InkDropReveal>
+                </StaggerItem>
+              ))}
+            </Stagger>
+          </div>
+        </SectionGlow>
+      </div>
 
-                <FadeUp size="text" delay={0.35} className="flex-1">
-                  <h4 className="mb-3 text-sm font-bold text-[#C9A227]">Paid</h4>
-                  <p className="mb-3 text-xl font-bold text-white">45 minutes · ₹1,999</p>
-                  <p className="type-body text-white/70">A full first lesson, with groundwork and time in the saddle.</p>
-                </FadeUp>
-              </div>
+      {/* ═══════════════════════════════════════════════════════
+          CHAPTER: A Day in the Stables (dark)
+      ═══════════════════════════════════════════════════════ */}
+      <div id="chapter-day" className="bg-[#0C0922] py-24">
+        <SectionGlow tone="dark">
+          <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 px-6 lg:flex-row">
+            <Stagger gap={0.12} amount={0.15} className="w-full lg:w-1/2">
+              <StaggerItem>
+                <h4 className="type-eyebrow mb-4">
+                  <ShinyText
+                    text="A Day in the Stables"
+                    color="#C9A227"
+                    shineColor="#F5F1E8"
+                    speed={2.5}
+                    spread={120}
+                  />
+                </h4>
+              </StaggerItem>
+
+              <StaggerItem>
+                <SplitText
+                  as="h2"
+                  className="type-section-title mb-8 text-white"
+                  wordDelay={0.04}
+                  startDelay={0}
+                  amount={0.4}
+                >
+                  Handled every day, by the same hands.
+                </SplitText>
+              </StaggerItem>
+
+              {[
+                'Every horse is groomed, checked and exercised as part of a fixed daily routine, not only on the days it is ridden.',
+                'Calm handling on the ground is what produces calm horses under saddle. Horses that are used to being groomed, leading and picked up are the ones that are not surprised under a rider.',
+                'Feed, exercise and rest are managed by staff who work with the same horses every day, and who know the signs that a horse is not quite right.',
+              ].map((text, i) => (
+                <StaggerItem key={i}>
+                  <p className="group relative mb-6 pl-0 font-normal leading-relaxed text-white/70 transition-all duration-500 hover:pl-4 hover:text-white">
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-0 top-1 h-0 w-[2px] bg-[#C9A227] transition-all duration-500 group-hover:h-full"
+                    />
+                    {text}
+                  </p>
+                </StaggerItem>
+              ))}
+            </Stagger>
+
+            <div className="w-full lg:w-1/2">
+              <motion.div
+                className="w-full"
+                initial={
+                  prefersReduced
+                    ? false
+                    : {
+                        clipPath: 'polygon(0 0, 0 0, 0 100%, 0 100%)',
+                        scale: 1.08,
+                        opacity: 0,
+                      }
+                }
+                whileInView={
+                  prefersReduced
+                    ? {}
+                    : {
+                        clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
+                        scale: 1,
+                        opacity: 1,
+                      }
+                }
+                viewport={{ once: true, amount: 0.3 }}
+                transition={
+                  prefersReduced
+                    ? { duration: 0 }
+                    : {
+                        clipPath: { duration: 1.3, ease: [0.76, 0, 0.24, 1] },
+                        scale: { duration: 1.6, delay: 0.2, ease: EASE_PRIMARY },
+                        opacity: { duration: 0.6, ease: EASE_PRIMARY },
+                      }
+                }
+              >
+                <DriftImage
+                  src="/day in stable.webp"
+                  alt="Handler with horse"
+                  drift="subtle"
+                  duration={40}
+                  targetOpacity={1}
+                  className="w-full overflow-hidden rounded-3xl shadow-2xl"
+                  imgClassName="w-full object-cover"
+                />
+              </motion.div>
             </div>
           </div>
-        </div>
+        </SectionGlow>
       </div>
 
-      {/* CHAPTER: Disciplines */}
-      <div id="chapter-disciplines" className="relative z-10 -mt-12 rounded-t-[3rem] bg-[#FDFCFA] py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <FadeUp size="text" className="mb-4">
-            <h4 className="type-eyebrow text-[#876B18]">Disciplines</h4>
-          </FadeUp>
+      {/* ═══════════════════════════════════════════════════════
+          CHAPTER: Meet the Horses (white) — LETTERBOX + CARD REVEAL
+      ═══════════════════════════════════════════════════════ */}
+      <div id="chapter-meet" className="bg-white py-24">
+        <SectionGlow tone="light">
+          <div className="mx-auto max-w-7xl px-6">
+            <FadeUp size="text" className="mb-4">
+              <h4 className="type-eyebrow text-[#C9A227]">The Horses</h4>
+            </FadeUp>
 
-          <SplitText
-            as="h2"
-            className="type-section-title text-[#1A1A1A] mb-16"
-            wordDelay={0.04}
-            startDelay={0.1}
-            amount={0.3}
-          >
-            What the sport is made of.
-          </SplitText>
+            <div className="mb-16 [&_*]:transition-colors [&_*]:duration-500 hover:[&_*]:text-[#876B18]">
+              <SplitText
+                as="h2"
+                className="type-page-title text-[#1A1A1A]"
+                wordDelay={0.04}
+                startDelay={0.1}
+                amount={0.3}
+              >
+                Meet the horses.
+              </SplitText>
+            </div>
 
-          <Stagger gap={0.15} amount={0.15} className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {disciplines.map((disc, idx) => (
-              <StaggerItem key={idx}>
-                <InteractiveCard as="div" className="flex flex-col group">
-                  <p className="text-[#876B18] type-eyebrow mb-2">{disc.status}</p>
-                  <h3 className="text-xl md:text-2xl font-serif text-[#1A1A1A] mb-6">{disc.title}</h3>
-                  <div className="overflow-hidden rounded-xl mb-6">
-                    <img
-                      src={disc.img}
-                      alt={disc.title}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full aspect-[4/3] object-cover transform transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-                  <p className="text-[#5A5A66] font-normal leading-relaxed">{disc.desc}</p>
-                </InteractiveCard>
-              </StaggerItem>
-            ))}
-          </Stagger>
-        </div>
+            <div className="grid grid-cols-1 gap-x-8 gap-y-16 md:grid-cols-2 lg:grid-cols-4">
+              {horses.map((horse, idx) => (
+                <HorseCard
+                  key={idx}
+                  horse={horse}
+                  index={idx}
+                  prefersReduced={prefersReduced}
+                />
+              ))}
+            </div>
+          </div>
+        </SectionGlow>
       </div>
 
-      {/* CHAPTER: Beyond Riding */}
-      <div id="chapter-beyond-riding" className="bg-[#0C0922] py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <FadeUp size="text" className="mb-4">
-            <h4 className="type-eyebrow">
-              <ShinyText
-                text="Beyond Riding"
-                color="#C9A227"
-                shineColor="#F5F1E8"
-                speed={2.5}
-                spread={120}
-              />
-            </h4>
-          </FadeUp>
-
-          <SplitText
-            as="h2"
-            className="type-section-title text-white mb-12"
-            wordDelay={0.04}
-            startDelay={0.1}
-            amount={0.3}
-          >
-            Not everyone comes to learn.
-          </SplitText>
-
-          <Stagger gap={0.08} amount={0.1} className="grid grid-cols-1 gap-6 md:flex md:snap-x md:snap-mandatory md:overflow-x-auto md:overscroll-x-contain md:pb-4 lg:grid lg:grid-cols-5 lg:overflow-visible lg:pb-0">
-            {groupServices.map((item, idx) => (
-              <StaggerItem key={idx}>
-                <button
-                  onClick={() => openEnquiry('Group Booking')}
-                  className="group flex flex-col text-left md:basis-[46%] md:shrink-0 md:snap-start lg:basis-auto"
+      {/* ═══════════════════════════════════════════════════════
+          CHAPTER: Care and Welfare (white)
+      ═══════════════════════════════════════════════════════ */}
+      <div id="chapter-care" className="bg-white py-24">
+        <SectionGlow tone="light">
+          <div className="flex w-full flex-col items-stretch gap-0 lg:flex-row">
+            <div className="relative w-full bg-white lg:w-[45%]">
+              <div className="h-full py-12 pr-4">
+                <motion.div
+                  className="h-full w-full"
+                  initial={
+                    prefersReduced
+                      ? false
+                      : {
+                          clipPath: 'polygon(0 0, 0 0, 0 100%, 0 100%)',
+                          scale: 1.08,
+                          opacity: 0,
+                        }
+                  }
+                  whileInView={
+                    prefersReduced
+                      ? {}
+                      : {
+                          clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
+                          scale: 1,
+                          opacity: 1,
+                        }
+                  }
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={
+                    prefersReduced
+                      ? { duration: 0 }
+                      : {
+                          clipPath: { duration: 1.3, ease: [0.76, 0, 0.24, 1] },
+                          scale: { duration: 1.6, delay: 0.2, ease: EASE_PRIMARY },
+                          opacity: { duration: 0.6, ease: EASE_PRIMARY },
+                        }
+                  }
                 >
-                  <div className="overflow-hidden rounded-xl mb-4">
-                    <img
-                      src={item.img}
-                      alt={item.title}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full aspect-[2/3] object-cover hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <h4 className="text-white font-bold text-sm mb-2 uppercase tracking-wider group-hover:text-[#C9A227] transition-colors">{item.title}</h4>
-                  <p className="text-white/60 text-sm font-normal leading-relaxed">{item.desc}</p>
-                </button>
-              </StaggerItem>
-            ))}
-          </Stagger>
+                  <DriftImage
+                    src="/care and welfare.webp"
+                    alt="Stables interior"
+                    drift="subtle"
+                    duration={40}
+                    targetOpacity={1}
+                    className="h-full w-full overflow-hidden rounded-r-[3rem] shadow-2xl"
+                    imgClassName="h-full w-full object-cover"
+                  />
+                </motion.div>
+              </div>
+            </div>
 
-          <FadeUp size="text" delay={0.2} className="mt-12">
-            <button
-              onClick={() => openEnquiry('Group Booking')}
-              className="text-white font-medium text-lg border-b border-[#C9A227] pb-1 hover:text-[#C9A227] transition-colors"
+            <Stagger
+              gap={0.08}
+              amount={0.1}
+              className="flex w-full flex-col justify-center py-12 pl-6 pr-6 lg:w-[55%] lg:pl-16 lg:pr-24"
             >
-              Enquire about group bookings
-            </button>
-          </FadeUp>
-        </div>
+              <StaggerItem>
+                <h4 className="type-eyebrow mb-4">
+                  <ShinyText
+                    text="Care and Welfare"
+                    color="#C9A227"
+                    shineColor="#F5F1E8"
+                    speed={2.5}
+                    spread={120}
+                  />
+                </h4>
+              </StaggerItem>
+
+              <StaggerItem>
+                <h2 className="type-section-title mb-10 text-[#1A1A1A]">
+                  Looked after<br />before they are ridden.
+                </h2>
+              </StaggerItem>
+
+              {careItems.map((item, idx) => (
+                <StaggerItem key={idx}>
+                  <div className="group relative border-b border-[#5A5A66]/20 py-3 pl-0 transition-all duration-500 hover:border-[#C9A227]/40 hover:pl-4">
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-0 top-3 h-0 w-[2px] bg-[#C9A227] transition-all duration-500 group-hover:h-[calc(100%-1.5rem)]"
+                    />
+                    <h5 className="mb-1 text-sm font-bold text-[#1A1A1A] transition-colors duration-500 group-hover:text-[#876B18]">
+                      {item.title}
+                    </h5>
+                    <p className="text-sm font-normal leading-relaxed text-[#5A5A66] transition-colors duration-500 group-hover:text-[#1A1A1A]">
+                      {item.desc}
+                    </p>
+                  </div>
+                </StaggerItem>
+              ))}
+            </Stagger>
+          </div>
+        </SectionGlow>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════
+          CHAPTER: Safety (dark) — BOTTOM-UP RISE
+      ═══════════════════════════════════════════════════════ */}
+      <div id="chapter-safety" className="border-t border-white/10 bg-[#0C0922] py-24">
+        <SectionGlow tone="dark">
+          <div className="mx-auto max-w-7xl px-6">
+            <FadeUp size="text" className="mb-4">
+              <h4 className="type-eyebrow mb-4">
+                <ShinyText
+                  text="Safety"
+                  color="#C9A227"
+                  shineColor="#F5F1E8"
+                  speed={2.5}
+                  spread={120}
+                />
+              </h4>
+            </FadeUp>
+
+            <div className="mb-16 [&_*]:transition-colors [&_*]:duration-500 hover:[&_*]:text-[#C9A227]">
+              <SplitText
+                as="h2"
+                className="type-page-title text-white"
+                wordDelay={0.04}
+                startDelay={0.1}
+                amount={0.3}
+              >
+                The rules we don't move on.
+              </SplitText>
+            </div>
+
+            <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
+              {[
+                { title: 'Rider weight limit', desc: 'Under 75 kg, for the wellbeing of both horse and rider.' },
+                { title: 'Helmets, always', desc: 'No rider goes into an arena without one.' },
+                { title: 'Supervised handling', desc: 'Riders are never alone with a horse until they are ready to be.' },
+                { title: 'Schooled horses only', desc: 'Beginners ride horses proven calm and consistent. No exceptions.' },
+              ].map((item, idx) => (
+                <RiseReveal key={idx} delay={idx * 0.1} prefersReduced={prefersReduced}>
+                  <div className="group relative rounded-xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md transition-all duration-500 hover:border-[#C9A227]/40 hover:bg-white/[0.05]">
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 rounded-xl ring-0 ring-[#C9A227]/0 transition-all duration-500 group-hover:ring-1 group-hover:ring-[#C9A227]/40"
+                    />
+
+                    <h4 className="mb-3 text-xl font-bold text-white transition-colors duration-500 group-hover:text-[#C9A227]">
+                      {item.title}
+                    </h4>
+                    <p className="text-base font-normal leading-relaxed text-white/60 transition-colors duration-500 group-hover:text-white/85">
+                      {item.desc}
+                    </p>
+                  </div>
+                </RiseReveal>
+              ))}
+            </div>
+          </div>
+        </SectionGlow>
       </div>
 
     </div>
   );
 };
 
-export default Courses;
+export default Horses;

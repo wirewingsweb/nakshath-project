@@ -13,27 +13,34 @@ const Hero = () => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // ── Image parallax — snappy spring ──
-  const parallaxSpring = { damping: 40, stiffness: 120, mass: 0.6 };
-  const smoothX = useSpring(mouseX, parallaxSpring);
-  const smoothY = useSpring(mouseY, parallaxSpring);
+  // ── Layer 1 — Background image parallax — snappy, subtle ──
+  const imageSpring = { damping: 40, stiffness: 120, mass: 0.6 };
+  const imageX = useSpring(mouseX, imageSpring);
+  const imageY = useSpring(mouseY, imageSpring);
+  const parallaxImageX = useTransform(imageX, [-0.5, 0.5], [10, -10]);
+  const parallaxImageY = useTransform(imageY, [-0.5, 0.5], [8, -8]);
 
-  const parallaxX = useTransform(smoothX, [-0.5, 0.5], [10, -10]);
-  const parallaxY = useTransform(smoothY, [-0.5, 0.5], [8, -8]);
+  // ── Layer 2 — Midground gold motes — medium rate for depth ──
+  const motesSpring = { damping: 45, stiffness: 100, mass: 0.7 };
+  const motesSmoothX = useSpring(mouseX, motesSpring);
+  const motesSmoothY = useSpring(mouseY, motesSpring);
+  const parallaxMotesX = useTransform(motesSmoothX, [-0.5, 0.5], [22, -22]);
+  const parallaxMotesY = useTransform(motesSmoothY, [-0.5, 0.5], [18, -18]);
 
-  // ── Motes — slightly larger parallax than the image for depth ──
-  const motesX = useTransform(smoothX, [-0.5, 0.5], [18, -18]);
-  const motesY = useTransform(smoothY, [-0.5, 0.5], [14, -14]);
-
-  // ── Glow — slower spring so it lags behind the cursor like light ──
+  // ── Layer 3 — Foreground gold glow (light source) — slower, lagged ──
   const glowSpring = { damping: 60, stiffness: 60, mass: 0.8 };
-  const glowSmoothX = useSpring(smoothX, glowSpring);
-  const glowSmoothY = useSpring(smoothY, glowSpring);
+  const glowSmoothX = useSpring(mouseX, glowSpring);
+  const glowSmoothY = useSpring(mouseY, glowSpring);
 
-  // Confine the glow's center to the middle 50% of the frame so it never
-  // reaches the edges — a light source at the edge feels like a graphic.
   const glowLeft = useTransform(glowSmoothX, [-0.5, 0.5], ['25%', '75%']);
   const glowTop = useTransform(glowSmoothY, [-0.5, 0.5], ['25%', '75%']);
+
+  // ── Layer 4 — Very foreground decorative border — largest rate ──
+  const decorSpring = { damping: 50, stiffness: 90, mass: 0.5 };
+  const decorSmoothX = useSpring(mouseX, decorSpring);
+  const decorSmoothY = useSpring(mouseY, decorSpring);
+  const parallaxDecorX = useTransform(decorSmoothX, [-0.5, 0.5], [32, -32]);
+  const parallaxDecorY = useTransform(decorSmoothY, [-0.5, 0.5], [26, -26]);
 
   // ── Mouse listener — desktop, fine pointer only ──
   useEffect(() => {
@@ -73,10 +80,14 @@ const Hero = () => {
     >
       <h1 className="sr-only">Horse Riding Academy in Bengaluru</h1>
 
-      {/* ═══ Layer 1: Image — Ken Burns + cursor parallax ═══ */}
+      {/* ═══════════════════════════════════════════════════════════
+          LAYER 1 — BACKGROUND IMAGE
+          Parallax rate: ±10px / ±8px (slowest — appears furthest away)
+          Plus Ken Burns drift on load
+      ═══════════════════════════════════════════════════════════ */}
       <motion.div
         className="absolute inset-0 h-full w-full"
-        style={prefersReduced ? undefined : { x: parallaxX, y: parallaxY }}
+        style={prefersReduced ? undefined : { x: parallaxImageX, y: parallaxImageY }}
       >
         <motion.div
           className="absolute inset-0 h-full w-full will-change-transform"
@@ -118,18 +129,39 @@ const Hero = () => {
         </motion.div>
       </motion.div>
 
-      {/* ═══ Layer 2: Gold glow — cursor-following light source ═══ */}
+      {/* ═══════════════════════════════════════════════════════════
+          LAYER 2 — MIDGROUND (Motes)
+          Parallax rate: ±22px / ±18px (medium — appears between image and user)
+      ═══════════════════════════════════════════════════════════ */}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-10"
+        style={prefersReduced ? undefined : { x: parallaxMotesX, y: parallaxMotesY }}
+      >
+        <motion.div
+          className="h-full w-full"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: prefersReduced ? 0 : 1 }}
+          transition={{ duration: 2, delay: 1.5, ease: EASE_PRIMARY }}
+        >
+          <GoldMotes count={120} speed={1.5} paused={prefersReduced} />
+        </motion.div>
+      </motion.div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          LAYER 3 — CURSOR-FOLLOWING GLOW (Light source)
+          Follows cursor with its own slow spring — creates a "lamp"
+          effect that feels physically separate from the image.
+      ═══════════════════════════════════════════════════════════ */}
       {!prefersReduced && (
         <motion.div
           aria-hidden="true"
-          className="pointer-events-none absolute z-[5]"
+          className="pointer-events-none absolute z-[12]"
           style={{
             width: 'clamp(300px, 55vw, 800px)',
             height: 'clamp(300px, 55vw, 800px)',
-            // Center the glow on the point defined by left/top
             x: '-50%',
             y: '-50%',
-            // Cursor-driven position — the light source follows the pointer
             left: glowLeft,
             top: glowTop,
             background:
@@ -161,26 +193,45 @@ const Hero = () => {
         />
       )}
 
-      {/* ═══ Layer 3: Gold motes — ambient dust, cursor-parallaxed ═══ */}
-      <motion.div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-10"
-        style={prefersReduced ? undefined : { x: motesX, y: motesY }}
-      >
+      {/* ═══════════════════════════════════════════════════════════
+          LAYER 4 — VERY FOREGROUND DECORATIVE BORDER
+          Parallax rate: ±32px / ±26px (fastest — appears closest to user)
+          These are subtle corner accents that move the most, creating
+          the strongest depth cue.
+      ═══════════════════════════════════════════════════════════ */}
+      {!prefersReduced && (
         <motion.div
-          className="h-full w-full"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: prefersReduced ? 0 : 1 }}
-          transition={{ duration: 2, delay: 1.5, ease: EASE_PRIMARY }}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[18]"
+          style={{ x: parallaxDecorX, y: parallaxDecorY }}
         >
-          <GoldMotes count={120} speed={1.5} paused={prefersReduced} />
-        </motion.div>
-      </motion.div>
+          {/* Top-left corner accent */}
+          <div className="absolute left-6 top-6 h-16 w-16 md:left-10 md:top-10 md:h-20 md:w-20">
+            <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-[#C9A227]/60 to-transparent" />
+            <div className="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-[#C9A227]/60 to-transparent" />
+          </div>
 
-      {/* ═══ Layer 4: Bottom gradient ═══ */}
+          {/* Bottom-right corner accent */}
+          <div className="absolute bottom-6 right-6 h-16 w-16 md:bottom-10 md:right-10 md:h-20 md:w-20">
+            <div className="absolute bottom-0 right-0 h-full w-px bg-gradient-to-t from-[#C9A227]/60 to-transparent" />
+            <div className="absolute bottom-0 right-0 h-px w-full bg-gradient-to-l from-[#C9A227]/60 to-transparent" />
+          </div>
+
+          {/* Center-bottom subtle marker */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2">
+            <div className="h-8 w-px bg-gradient-to-b from-transparent via-[#C9A227]/40 to-transparent" />
+          </div>
+        </motion.div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════
+          OVERLAYS — static layers that darken edges
+      ═══════════════════════════════════════════════════════════ */}
+
+      {/* Bottom gradient */}
       <div className="pointer-events-none absolute inset-0 z-[15] bg-gradient-to-t from-[#0C0922]/70 via-transparent to-transparent" />
 
-      {/* ═══ Layer 5: Vignette ═══ */}
+      {/* Vignette */}
       <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-[15]"
@@ -197,7 +248,7 @@ const Hero = () => {
         }}
       />
 
-      {/* ═══ Layer 6: Gold accent line — draws across on mount ═══ */}
+      {/* Gold accent line */}
       {!prefersReduced && (
         <motion.div
           aria-hidden="true"
@@ -215,7 +266,7 @@ const Hero = () => {
         </motion.div>
       )}
 
-      {/* ═══ Layer 7: Curtain — initial black frame, lifts on mount ═══ */}
+      {/* Curtain */}
       <motion.div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-30 bg-[#0C0922]"
