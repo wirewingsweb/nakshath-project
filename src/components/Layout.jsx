@@ -5,6 +5,8 @@ import Footer from './Footer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EnquiryProvider, useEnquiry } from '../context/EnquiryContext';
 import EnquiryModal from './EnquiryModal';
+import SectionProgress from './SectionProgress';
+
 
 // Sticky Button Component - WhatsApp only (Book Trial Ride removed from bottom)
 const StickyButtons = () => {
@@ -61,6 +63,7 @@ const Layout = () => {
         <Footer />
         <EnquiryModal />
         <StickyButtons />
+        <SectionProgress />
       </div>
     </EnquiryProvider>
   );

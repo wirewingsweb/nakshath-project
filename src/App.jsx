@@ -1,11 +1,12 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ReactLenis } from 'lenis/react';
+import { ReactLenis, useLenis } from 'lenis/react';
 import ScrollToTop from './components/ScrollToTop';
 import SEO from './components/SEO';
 import ScrollProgress from './components/ScrollProgress';
 import CustomCursor from './components/CustomCursor';
 import PageTransition from './components/PageTransition';
+import { connectLenisWithGSAP } from './utils/gsapSetup';
 
 // Lazy imports
 const Layout = lazy(() => import('./components/Layout'));
@@ -27,20 +28,38 @@ const PageFallback = () => (
   </div>
 );
 
+// ============================================================
+// LENIS + GSAP CONNECTOR
+// ============================================================
+const LenisGSAPConnector = () => {
+  const lenis = useLenis();
+
+  useEffect(() => {
+    if (!lenis) return;
+    const cleanup = connectLenisWithGSAP(lenis);
+    return cleanup;
+  }, [lenis]);
+
+  return null;
+};
+
 const App = () => {
   return (
-    <ReactLenis
-      root
-      options={{
-        lerp: 0.1,
-        duration: 1.2,
-        smoothWheel: true,
-        wheelMultiplier: 1,
-        touchMultiplier: 2,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      }}
-    >
+  <ReactLenis
+  root
+  options={{
+    lerp: 0.08,
+    duration: 1.4,
+    smoothWheel: true,
+    wheelMultiplier: 0.9,
+    touchMultiplier: 1.5,
+    syncTouch: true,
+    infinite: false,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    }}
+  >
       <Router>
+        <LenisGSAPConnector />
         <ScrollProgress />
         <CustomCursor />
         <ScrollToTop />
@@ -49,11 +68,9 @@ const App = () => {
         <Suspense fallback={<PageFallback />}>
           <PageTransition>
             <Routes>
-              {/* Trial-ride campaign page */}
               <Route path="/book-your-trial-ride" element={<LandingPage />} />
               <Route path="/landing" element={<Navigate to="/book-your-trial-ride" replace />} />
 
-              {/* All other pages — with Layout */}
               <Route element={<Layout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
@@ -66,7 +83,6 @@ const App = () => {
                 <Route path="/refund-and-cancellation" element={<RefundAndCancellation />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
-                {/* Redirects */}
                 <Route path="/terms" element={<Navigate to="/terms-and-conditions" replace />} />
                 <Route path="/refund" element={<Navigate to="/refund-and-cancellation" replace />} />
                 <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />

@@ -270,9 +270,9 @@ const HeroSection = () => {
               />
             </motion.div>
 
-            {/* Heading — with SHIMMER */}
+            {/* ✅ FIXED — Heading with clamp-based sizing */}
             <motion.h1
-              className="type-page-title text-white leading-tight mb-4 text-left lg:text-center relative"
+              className="font-serif text-[clamp(2rem,4.5vw,4rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-white mb-4 text-left lg:text-center relative"
               variants={fadeUp}
             >
               Begin Your<br />
@@ -431,7 +431,10 @@ const HeroSection = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1, duration: 0.7 }}
               >
-                <h2 className="type-section-title text-[#C9A227] mb-2">Book your trial ride</h2>
+                {/* ✅ FIXED — Form heading with clamp-based sizing */}
+                <h2 className="font-serif text-[clamp(1.25rem,2vw,1.75rem)] font-semibold leading-[1.15] tracking-[-0.01em] text-[#C9A227] mb-2">
+                  Book your trial ride
+                </h2>
                 <div className="flex items-center justify-center gap-2">
                   <motion.div
                     className="h-[1px] w-12 bg-[#C9A227]/40"

@@ -71,10 +71,6 @@ const Hero = () => {
         className="pointer-events-none absolute inset-0 z-[3] bg-gradient-to-t from-[#0C0922]/85 via-transparent to-[#0C0922]/40 transition-opacity duration-700"
         style={{ opacity: isHovered ? 0.65 : 1 }}
       />
-
-      {/* ============================================================ */}
-      {/* SCROLL INDICATOR — REMOVED ✅ */}
-      {/* ============================================================ */}
     </section>
   );
 };

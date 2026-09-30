@@ -24,9 +24,6 @@ const AnimatedHeading = ({
     // Respect reduced motion
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    // Skip on mobile for performance (optional)
-    // if (isMobile()) return;
-
     // Split text into words/lines
     splitRef.current = new SplitType(el, {
       types: type,
@@ -48,8 +45,8 @@ const AnimatedHeading = ({
       wrapper.style.display = 'inline-block';
       wrapper.style.overflow = 'hidden';
       wrapper.style.verticalAlign = 'bottom';
-      wrapper.style.paddingBottom = '0.15em'; // Prevent descender cutoff
-      wrapper.style.marginBottom = '-0.15em'; // Compensate spacing
+      wrapper.style.paddingBottom = '0.15em';
+      wrapper.style.marginBottom = '-0.15em';
 
       target.parentNode.insertBefore(wrapper, target);
       wrapper.appendChild(target);

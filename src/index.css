@@ -1,26 +1,62 @@
 @import "tailwindcss";
 
+/* ============================================================
+   DESIGN SYSTEM — @theme
+   ============================================================ */
 @theme {
+  /* Fonts */
   --font-serif: "Cinzel", serif;
   --font-sans: "Montserrat", sans-serif;
 
+  /* ============================================================
+     COLOR PALETTE — EXPANDED
+     ============================================================ */
+  /* Core brand */
   --color-brand-dark: #0C0922;
   --color-brand-navy: #0C0922;
   --color-brand-deep-navy: #141034;
   --color-brand-gold: #C9A227;
   --color-brand-muted-gold: #876B18;
-  --color-brand-off-white: #FDFCFA;
-  --color-brand-stone: #F2F0EB;
+
+  /* NEW — Warm & Deep Tones */
   --color-brand-cream: #F5F1E8;
+  --color-brand-warm-cream: #FAF7F0;
+  --color-brand-forest: #1A2B1F;
+  --color-brand-champagne: #E8D9B5;
+  --color-brand-stone: #F2F0EB;
+  --color-brand-off-white: #FDFCFA;
   --color-brand-ink: #1A1A1A;
   --color-brand-secondary: #5A5A66;
 
-  /* Site-specific optical type scale: Cinzel display + Montserrat UI/body. */
-  --text-display: clamp(1.875rem, 1.52rem + 1.75vw, 3.25rem);
-  --text-page-title: clamp(1.75rem, 1.5rem + 1vw, 2.5rem);
-  --text-section-title: clamp(1.5rem, 1.33rem + 0.7vw, 2rem);
-  --text-card-title: clamp(1.125rem, 1.04rem + 0.35vw, 1.375rem);
-  --text-lead: clamp(1rem, 0.96rem + 0.18vw, 1.125rem);
+  /* ============================================================
+     TYPOGRAPHY SCALE — UPGRADED HIERARCHY
+     ============================================================ */
+  /* Huge display — Hero sections */
+  --text-display: clamp(2.5rem, 6vw, 5.5rem);
+
+  /* Big page titles — About, Facilities, etc. */
+  --text-page-title: clamp(2rem, 4.5vw, 4rem);
+  --text-page-title-long: clamp(1.75rem, 3.8vw, 3.25rem);
+
+  /* Section headings — inside page sections */
+  --text-section-title: clamp(1.5rem, 3vw, 2.5rem);
+
+  /* Card titles */
+  --text-card-title: clamp(1.125rem, 1.2vw, 1.5rem);
+
+  /* Body text */
+  --text-lead: clamp(1rem, 0.96rem + 0.2vw, 1.25rem);
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-caption: 0.75rem;
+}
+
+/* ============================================================
+   GLOBAL RESET & BASE
+   ============================================================ */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -28,25 +64,64 @@ body {
   color: var(--color-brand-ink);
   font-family: var(--font-sans);
   font-weight: 400;
+  overflow-x: hidden;
 }
 
-/* Keep every visible scrollbar aligned with the site's refined gold accent. */
-html,
-* {
+/* ============================================================
+   GRAIN TEXTURE OVERLAY — Site-wide subtle noise
+   ============================================================ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* ============================================================
+   TYPOGRAPHY BASE STYLES
+   ============================================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+h1, h2 {
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+h3, h4 {
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+p {
+  line-height: 1.65;
+}
+
+/* ============================================================
+   SCROLLBAR — Refined gold
+   ============================================================ */
+html, * {
   scrollbar-color: var(--color-brand-gold) transparent;
   scrollbar-width: thin;
 }
 
 @supports selector(::-webkit-scrollbar) {
-  html,
-  * {
+  html, * {
     scrollbar-color: auto;
     scrollbar-width: auto;
   }
 
   *::-webkit-scrollbar {
-    width: 2px;
-    height: 2px;
+    width: 4px;
+    height: 4px;
   }
 
   *::-webkit-scrollbar-track {
@@ -62,6 +137,10 @@ html,
     border-radius: 999px;
   }
 
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-brand-muted-gold);
+  }
+
   *::-webkit-scrollbar-button,
   *::-webkit-scrollbar-corner {
     display: none;
@@ -69,6 +148,7 @@ html,
   }
 }
 
+/* Hide scrollbar for specific elements */
 .nav-overlay {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -78,18 +158,12 @@ html,
   display: none;
 }
 
-h1,
-h2 {
-  font-family: var(--font-serif);
-  font-weight: 600;
-}
-
-.font-serif {
-  font-weight: 600;
-}
-
+/* ============================================================
+   TYPOGRAPHY CLASSES — UTILITY
+   ============================================================ */
 .type-display,
 .type-page-title,
+.type-page-title-long,
 .type-section-title,
 .type-card-title {
   font-family: var(--font-serif);
@@ -99,34 +173,32 @@ h2 {
 
 .type-display {
   font-size: var(--text-display);
-  line-height: 1.08;
-  letter-spacing: -0.025em;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
 }
 
 .type-page-title {
   font-size: var(--text-page-title);
-  line-height: 1.12;
-  letter-spacing: -0.018em;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
 }
 
 .type-page-title-long {
-  font-family: var(--font-serif);
-  font-size: var(--text-page-title);
-  font-weight: 600;
-  line-height: 1.14;
-  letter-spacing: -0.022em;
-  text-wrap: balance;
+  font-size: var(--text-page-title-long);
+  line-height: 1.1;
+  letter-spacing: -0.028em;
 }
 
 .type-section-title {
   font-size: var(--text-section-title);
-  line-height: 1.16;
-  letter-spacing: -0.012em;
+  line-height: 1.12;
+  letter-spacing: -0.018em;
 }
 
 .type-card-title {
   font-size: var(--text-card-title);
-  line-height: 1.22;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
 }
 
 .type-lead {
@@ -136,13 +208,13 @@ h2 {
 }
 
 .type-body {
-  font-size: 1rem;
-  line-height: 1.65;
+  font-size: var(--text-body);
+  line-height: 1.7;
 }
 
 .type-small {
-  font-size: 0.875rem;
-  line-height: 1.55;
+  font-size: var(--text-small);
+  line-height: 1.6;
 }
 
 .type-eyebrow {
@@ -150,13 +222,13 @@ h2 {
   font-size: 0.6875rem;
   font-weight: 600;
   line-height: 1.35;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
 .type-caption {
-  font-size: 0.75rem;
-  line-height: 1.45;
+  font-size: var(--text-caption);
+  line-height: 1.5;
 }
 
 .type-button {
@@ -164,10 +236,13 @@ h2 {
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.25;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
+/* ============================================================
+   FORM ELEMENTS
+   ============================================================ */
 input,
 select,
 textarea {
@@ -176,6 +251,26 @@ textarea {
   line-height: 1.5;
 }
 
+/* ============================================================
+   ACCESSIBILITY — Focus visible
+   ============================================================ */
+*:focus-visible {
+  outline: 2px solid var(--color-brand-gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   SELECTION — Golden
+   ============================================================ */
+::selection {
+  background: rgba(201, 162, 39, 0.35);
+  color: #0C0922;
+}
+
+/* ============================================================
+   MOBILE TYPE ADJUSTMENTS
+   ============================================================ */
 @media (max-width: 639px) {
   .type-display,
   .type-page-title,
@@ -190,12 +285,17 @@ textarea {
   }
 }
 
-.programs-carousel {
+/* ============================================================
+   PROGRAMS CAROUSEL — Hide scrollbar
+   ============================================================ */
+.programs-carousel,
+.programs-track {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-.programs-carousel::-webkit-scrollbar {
+.programs-carousel::-webkit-scrollbar,
+.programs-track::-webkit-scrollbar {
   display: none;
 }
 
@@ -208,6 +308,9 @@ textarea {
   display: none;
 }
 
+/* ============================================================
+   FAQ TABS SCROLLBAR
+   ============================================================ */
 .faq-tabs-scrollbar {
   scrollbar-color: var(--color-brand-gold) transparent;
   scrollbar-width: thin;
@@ -233,6 +336,9 @@ textarea {
   }
 }
 
+/* ============================================================
+   FACILITY / CAMPUS CAROUSEL — existing styles preserved
+   ============================================================ */
 .facility-image {
   aspect-ratio: var(--facility-ratio, 4 / 3);
 }
@@ -325,9 +431,9 @@ textarea {
   }
 }
 
-/* Responsive utilities used by the editorial Why Riding composition are
-   generated from the section component during the Tailwind build. */
-
+/* ============================================================
+   FOUNDER CAROUSEL
+   ============================================================ */
 .founder-carousel-track {
   --founder-carousel-gap: 1rem;
   --founder-carousel-half-gap: 0.5rem;
@@ -350,144 +456,10 @@ textarea {
     --founder-carousel-half-gap: 0.75vw;
   }
 }
-/* ============================================================
-   THE CAMPUS — Continuous Marquee Scroll
-   ============================================================ */
-.campus-scroll-track {
-  display: flex;
-  gap: 1rem;
-  width: max-content;
-  animation: campus-scroll 40s linear infinite;
-}
-
-.campus-scroll-track:hover {
-  animation-play-state: paused;
-}
-
-@keyframes campus-scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-.campus-scroll-card {
-  flex: 0 0 clamp(12rem, 22vw, 20rem);
-}
-
-@media (max-width: 767px) {
-  .campus-scroll-track {
-    gap: 0.75rem;
-    animation-duration: 30s;
-  }
-  .campus-scroll-card {
-    flex-basis: 72vw;
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .campus-scroll-track {
-    animation: none;
-  }
-}
-
-/* ============================================================
-   OPENING SEASON — Marquee Animations
-   ============================================================ */
-@keyframes marquee-left {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-@keyframes marquee-right {
-  0% {
-    transform: translateX(-50%);
-  }
-  100% {
-    transform: translateX(0);
-  }
-}
-
-.animate-marquee-left {
-  animation: marquee-left linear infinite;
-}
-
-.animate-marquee-right {
-  animation: marquee-right linear infinite;
-}
-
-/* Pause on hover */
-.animate-marquee-left:hover,
-.animate-marquee-right:hover {
-  animation-play-state: paused;
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .animate-marquee-left,
-  .animate-marquee-right {
-    animation: none;
-  }
-}
-/* ============================================================
-   GLOBAL POLISH
-   ============================================================ */
-
-/* Smooth scroll behavior */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Hide default cursor on desktop (since we have custom cursor) */
-@media (hover: hover) and (pointer: fine) {
-  body,
-  a,
-  button,
-  input,
-  textarea,
-  select,
-  [role="button"] {
-    cursor: none;
-  }
-}
-
-/* Better text selection */
-::selection {
-  background: rgba(201, 162, 39, 0.35);
-  color: #0C0922;
-}
-
-/* Focus visible outline — golden */
-*:focus-visible {
-  outline: 2px solid #C9A227;
-  outline-offset: 3px;
-}
-
-/* Reduce motion for users who prefer it */
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
 
 /* ============================================================
    LENIS SMOOTH SCROLL
    ============================================================ */
-
 html.lenis,
 html.lenis body {
   height: auto;
