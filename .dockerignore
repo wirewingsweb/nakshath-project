@@ -1,0 +1,7 @@
+node_modules
+dist
+.git
+public-backup
+public-original
+src-backup
+docs
